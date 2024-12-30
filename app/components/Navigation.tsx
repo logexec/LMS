@@ -3,7 +3,7 @@ import React from "react";
 import { IoLogInOutline } from "react-icons/io5";
 
 const Navigation = () => {
-  let user = {
+  const user = {
     name: "Ricardo",
     lastName: "Estrella",
     role: ["admin", "superuser"],

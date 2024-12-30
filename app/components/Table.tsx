@@ -242,7 +242,7 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
     },
     {
       label: "Acciones",
-      renderCell: (item: Node) => (
+      renderCell: () => (
         <div className="flex flex-row gap-3">
           <button className="text-indigo-500 hover:underline hover:text-indigo-700">
             <span>Editar</span>
@@ -348,7 +348,7 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
     // Función para dividir el texto largo en múltiples líneas
     const splitTextIntoLines = (text: string, maxWidth: number) => {
       const words = text.split(" ");
-      let lines = [];
+      const lines = [];
       let currentLine = "";
 
       words.forEach((word) => {

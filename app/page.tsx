@@ -7,7 +7,8 @@ const Home = () => {
       return 0; // Fuera del horario laboral (antes de las 8:00 o después de las 17:00)
     }
 
-    let remainingHours = 16 - currentHour;
+    const remainingHours = 16 - currentHour;
+
     if (remainingHours <= 0 || remainingHours > 9) {
       return 0; // Si la hora actual es exactamente 17:00 o más, mostrar 0
     }
@@ -23,8 +24,8 @@ const Home = () => {
       return 0;
     }
 
-    let remainingMinutes = 60 - currentMinute;
-    let remainingHours = 17 - currentHour;
+    const remainingMinutes = 60 - currentMinute;
+    const remainingHours = 17 - currentHour;
 
     if (remainingHours === 0 && currentMinute >= 59) {
       return 0;

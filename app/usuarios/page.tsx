@@ -5,6 +5,7 @@ import { admnUsers } from "@/utils/constants";
 import Input from "../components/Input";
 
 type Role = "admin" | "user";
+
 type Realm =
   | "user" // Dominio de usuarios
   | "root" // Superusuario o dominio raíz
