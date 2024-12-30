@@ -38,10 +38,26 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
   // Estado para la validación del formulario
   const [isFormValid, setIsFormValid] = useState(false);
 
-  // Estado para manejar la opción seleccionada en el Select
+  // Estado para manejar la opción seleccionada en el Select de Tipo
   const [selectedTipo, setSelectedTipo] = useState("");
 
-  if (!isOpen) return null;
+  // Estado para manejar la opción seleccionada en el Select de Empresa
+  const [selectedEmpresa, setSelectedEmpresa] = useState("");
+
+  // Estado para manejar la opción seleccionada en el Select de Proyecto
+  const [selectedProyecto, setSelectedProyecto] = useState("");
+
+  // Opciones del segundo Select (Empresa) que dependen de la selección del primer Select (Tipo)
+  const empresaOptions = {
+    nomina: [
+      { label: "Prebam", value: "prebam" },
+      { label: "SERSUPPORT", value: "sersupport" },
+    ],
+    transportista: [
+      { label: "Empresa A", value: "empresaA" },
+      { label: "Empresa B", value: "empresaB" },
+    ],
+  };
 
   // Efecto para verificar si el formulario está completo
   useEffect(() => {
@@ -59,11 +75,37 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
   };
 
   // Manejo del cambio en el Select
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTipo(e.target.value);
+  const handleSelectChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+    type: "tipo" | "empresa" | "proyecto"
+  ) => {
+    const { value } = e.target;
+
+    if (type === "tipo") {
+      setSelectedTipo(value);
+      setFormData((prevData) => ({
+        ...prevData,
+        selected_tipo: value, // Actualizamos el estado del formulario con el valor de tipo
+      }));
+    } else if (type === "empresa") {
+      setSelectedEmpresa(value);
+      setFormData((prevData) => ({
+        ...prevData,
+        empresa: value, // Actualizamos el estado del formulario con el valor de empresa
+      }));
+    } else if (type === "proyecto") {
+      setSelectedProyecto(value);
+      setFormData((prevData) => ({
+        ...prevData,
+        selected_proyecto: value, // Actualizamos el estado del formulario con el valor de empresa
+      }));
+    }
   };
 
+  //TODO:Hacer funcional
   console.log("Implementar la logica", handleSelectChange);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -91,13 +133,13 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
             <Select
               name="tipo"
               id="tipo"
-              label="Tipo"
+              label={!selectedTipo ? "Tipo" : `${selectedTipo}`}
               options={[
                 { label: "Nómina", value: "nomina" },
                 { label: "Transportista", value: "transportista" },
               ]}
-              value={formData.selected_tipo}
-              // onChange={handleSelectChange}
+              value={selectedTipo}
+              onChange={(e) => handleSelectChange(e, "tipo")}
             />
             <Input
               type="tel"
@@ -129,7 +171,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
             <Select
               name="proyecto"
               id="proyecto"
-              label="Proyecto"
+              label={selectedProyecto ? `${selectedProyecto}` : "Proyecto"}
               options={[
                 {
                   label: "ADMN",
@@ -140,8 +182,8 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
                   value: "cnqt",
                 },
               ]}
-              // onChange={handleSelectChange}
               value={formData.proyecto}
+              onChange={(e) => handleSelectChange(e, "proyecto")}
             />
             <Input
               type="text"
@@ -152,7 +194,40 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               value={formData.responsable}
               onChange={handleInputChange}
             />
-            {}
+            {selectedTipo === "nomina" && (
+              <Select
+                name="empresa"
+                id="empresa"
+                label="Empresa"
+                options={empresaOptions.nomina} // Usamos las opciones dependiendo del tipo seleccionado
+                value={formData.empresa}
+                onChange={(e) => handleSelectChange(e, "empresa")}
+              />
+            )}
+
+            {selectedTipo === "transportista" && (
+              <Select
+                name="empresa"
+                id="empresa"
+                label="Empresa"
+                options={empresaOptions.transportista} // Usamos las opciones dependiendo del tipo seleccionado
+                value={formData.empresa}
+                onChange={(e) => handleSelectChange(e, "empresa")}
+              />
+            )}
+
+            {selectedTipo === "nomina" && (
+              <Input
+                type="text"
+                label="Campo adicional para Nómina"
+                name="campo_nomina"
+                id="campo_nomina"
+                required
+                value={formData.campo_nomina || ""}
+                onChange={handleInputChange}
+              />
+            )}
+
             <Input
               type="text"
               label="Transporte"
@@ -190,39 +265,6 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               value={formData.adjunto}
               onChange={handleInputChange}
             />
-
-            {selectedTipo === "nomina" && (
-              <>
-                <Select
-                  name="empresa"
-                  id="empresa"
-                  label="Empresa"
-                  options={[
-                    {
-                      label: "Prebam",
-                      value: "prebam",
-                    },
-                    {
-                      label: "SERSUPPORT",
-                      value: "sersupport",
-                    },
-                  ]}
-                  // onChange={handleSelectChange}
-                  value={formData.empresa}
-                />
-              </>
-            )}
-            {selectedTipo === "nomina" && (
-              <Input
-                type="text"
-                label="Campo adicional para Nómina"
-                name="campo_nomina"
-                id="campo_nomina"
-                required
-                value={formData.campo_nomina || ""}
-                onChange={handleInputChange}
-              />
-            )}
           </div>
           <button
             className={`btn btn-success float-start w-36 ${

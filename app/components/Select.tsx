@@ -12,14 +12,17 @@ interface SelectProps {
   label: string;
   options: Option[];
   value: Option["value"];
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
-const Select: React.FC<SelectProps> = ({ options, name, id, label }) => {
+const Select: React.FC<SelectProps> = ({
+  options,
+  name,
+  id,
+  label,
+  onChange,
+}) => {
   const [selectedValue, setSelectedValue] = useState<string>("");
-
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedValue(e.target.value);
-  };
 
   return (
     <div className="select-container">
@@ -27,7 +30,7 @@ const Select: React.FC<SelectProps> = ({ options, name, id, label }) => {
         name={name}
         id={id}
         value={selectedValue}
-        onChange={handleChange}
+        onChange={onChange}
         className="select-field"
       >
         <option value="" disabled hidden>
@@ -39,7 +42,7 @@ const Select: React.FC<SelectProps> = ({ options, name, id, label }) => {
           </option>
         ))}
       </select>
-      <label htmlFor={id} className="select-label">
+      <label htmlFor={id} className="select-label capitalize">
         {label}
       </label>
       <span className="select-highlight"></span>
