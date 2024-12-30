@@ -1,5 +1,5 @@
 import "./select.component.css";
-import React, { useState } from "react";
+import React from "react";
 
 type Option = {
   value: string;
@@ -20,16 +20,15 @@ const Select: React.FC<SelectProps> = ({
   name,
   id,
   label,
+  value,
   onChange,
 }) => {
-  const [selectedValue, setSelectedValue] = useState<string>("");
-
   return (
     <div className="select-container">
       <select
         name={name}
         id={id}
-        value={selectedValue}
+        value={value}
         onChange={onChange}
         className="select-field"
       >
@@ -42,7 +41,7 @@ const Select: React.FC<SelectProps> = ({
           </option>
         ))}
       </select>
-      <label htmlFor={id} className="select-label capitalize">
+      <label htmlFor={id} className="select-label">
         {label}
       </label>
       <span className="select-highlight"></span>

@@ -85,7 +85,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
       setSelectedTipo(value);
       setFormData((prevData) => ({
         ...prevData,
-        selected_tipo: value, // Actualizamos el estado del formulario con el valor de tipo
+        tipo: value, // Actualizamos el estado del formulario con el valor de tipo
       }));
     } else if (type === "empresa") {
       setSelectedEmpresa(value);
@@ -97,13 +97,10 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
       setSelectedProyecto(value);
       setFormData((prevData) => ({
         ...prevData,
-        selected_proyecto: value, // Actualizamos el estado del formulario con el valor de empresa
+        proyecto: value, // Actualizamos el estado del formulario con el valor de empresa
       }));
     }
   };
-
-  //TODO:Hacer funcional
-  console.log("Implementar la logica", handleSelectChange);
 
   if (!isOpen) return null;
 
@@ -133,7 +130,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
             <Select
               name="tipo"
               id="tipo"
-              label={!selectedTipo ? "Tipo" : `${selectedTipo}`}
+              label="Tipo"
               options={[
                 { label: "Nómina", value: "nomina" },
                 { label: "Transportista", value: "transportista" },
@@ -171,7 +168,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
             <Select
               name="proyecto"
               id="proyecto"
-              label={selectedProyecto ? `${selectedProyecto}` : "Proyecto"}
+              label="Proyecto"
               options={[
                 {
                   label: "ADMN",
