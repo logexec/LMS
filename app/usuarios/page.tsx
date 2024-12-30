@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import "./usuarios.component.css";
 import { admnUsers } from "@/utils/constants";
-import Input from "../components/Input";
 import UsersTableComponent from "../components/UsersTable";
 
 const UsersPage: React.FC = () => {
@@ -24,25 +23,6 @@ const UsersPage: React.FC = () => {
   const handleViewChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedValue = event.target.value;
     setView(selectedValue as "users" | "roles");
-  };
-
-  const removeAccents = (text: string) => {
-    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  };
-
-  const [search, setSearch] = useState("");
-  const lowerSearch = removeAccents(search.toLowerCase());
-
-  const filteredUsers = admnUsers.filter((user) => {
-    return (
-      user.id.includes(lowerSearch) ||
-      removeAccents(user.name.toLocaleLowerCase()).includes(lowerSearch) ||
-      removeAccents(user.email).includes(lowerSearch)
-    );
-  });
-
-  const handleUserSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
   };
 
   return (
@@ -73,14 +53,6 @@ const UsersPage: React.FC = () => {
               Administrar Roles
             </label>
             <span className="glider"></span>
-            <Input
-              label="Buscar Usuarios"
-              name="searchUsers"
-              id="searchUsers"
-              type="search"
-              onChange={handleUserSearch}
-              className="search-bar float-end"
-            />
           </div>
         </div>
       </section>
