@@ -46,7 +46,7 @@ const InputField: React.FC<{
   placeholder,
   className,
 }) => (
-  <div className="input-container">
+  <div className={`input-container ${className}`}>
     <input
       placeholder={placeholder}
       className="input-field"
@@ -157,7 +157,7 @@ const Input: React.FC<InputProps> = ({
 
   if (type === "date") {
     return (
-      <div className="input-container">
+      <div className={`input-container ${className}`}>
         <input
           type="date"
           name={name}
@@ -244,7 +244,7 @@ const Input: React.FC<InputProps> = ({
     `;
     return (
       <StyledWrapper>
-        <div className="container">
+        <div className={`container ${className}`}>
           <input type="checkbox" id="cbx" style={{ display: "none" }} />
           <label htmlFor="cbx" className="check">
             <svg width="18px" height="18px" viewBox="0 0 18 18">

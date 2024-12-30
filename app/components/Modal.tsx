@@ -116,14 +116,22 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               value={formData.cuenta}
               onChange={handleInputChange}
             />
-            <Input
-              type="text"
-              label="Proyecto"
+            <Select
               name="proyecto"
               id="proyecto"
-              required
+              label="Proyecto"
+              options={[
+                {
+                  label: "ADMN",
+                  value: "admn",
+                },
+                {
+                  label: "CNQT",
+                  value: "cnqt",
+                },
+              ]}
+              onChange={handleProyectoChange}
               value={formData.proyecto}
-              onChange={handleInputChange}
             />
             <Input
               type="text"
@@ -134,6 +142,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               value={formData.responsable}
               onChange={handleInputChange}
             />
+            {}
             <Input
               type="text"
               label="Transporte"
