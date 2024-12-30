@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import "./usuarios.component.css";
-import { admnUsers } from "@/utils/constants";
 import UsersTableComponent from "../components/UsersTable";
 
 const UsersPage: React.FC = () => {
@@ -11,6 +10,26 @@ const UsersPage: React.FC = () => {
     {
       id: "1234567890",
       nombre: "John",
+      apellido: "Doe",
+      email: "johndoe@logex.ec",
+      estado: "activo",
+      rol: "administrador",
+      created_at: "30/12/2024",
+      updated_at: "30/12/2024",
+    },
+    {
+      id: "1234567890",
+      nombre: "John Segundo",
+      apellido: "Doe",
+      email: "johndoe@logex.ec",
+      estado: "activo",
+      rol: "administrador",
+      created_at: "30/12/2024",
+      updated_at: "30/12/2024",
+    },
+    {
+      id: "1234567890",
+      nombre: "John Tercero",
       apellido: "Doe",
       email: "johndoe@logex.ec",
       estado: "activo",
