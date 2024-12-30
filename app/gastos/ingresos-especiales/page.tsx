@@ -1,7 +1,7 @@
 import React from "react";
 
-const page = () => {
+const IngresosEspecialesPage: React.FC = () => {
   return <div>Ingresos especiales</div>;
 };
 
-export default page;
+export default IngresosEspecialesPage;

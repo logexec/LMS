@@ -13,6 +13,12 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
   if (!isOpen) return null;
 
+  if (type)
+    console.log(
+      "Type se utiliza para ver a que api se manda el formulario",
+      type
+    );
+
   // Estado para almacenar los datos del formulario
   const [formData, setFormData] = useState({
     fecha_gasto: "",

@@ -24,7 +24,7 @@ interface UserProps {
   createdAt: Date;
 }
 
-const usersPage: React.FC<UserProps> = ({
+const UsersPage: React.FC<UserProps> = ({
   id,
   name,
   email,
@@ -339,4 +339,4 @@ const usersPage: React.FC<UserProps> = ({
   );
 };
 
-export default usersPage;
+export default UsersPage;

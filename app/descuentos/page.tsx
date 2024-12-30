@@ -5,7 +5,7 @@ import Modal from "../components/Modal";
 import Table from "../components/Table";
 import { descuentosData } from "@/utils/dummyData";
 
-const descuentosPage: React.FC = () => {
+const DescuentosPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const closeModal = () => setModalOpen(false);
 
@@ -34,4 +34,4 @@ const descuentosPage: React.FC = () => {
   );
 };
 
-export default descuentosPage;
+export default DescuentosPage;

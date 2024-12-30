@@ -5,7 +5,7 @@ import Modal from "../components/Modal";
 import Table from "../components/Table";
 import { gastosData } from "@/utils/dummyData";
 
-const gastosPage: React.FC = () => {
+const GastosPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const closeModal = () => setModalOpen(false);
 
@@ -34,4 +34,4 @@ const gastosPage: React.FC = () => {
   );
 };
 
-export default gastosPage;
+export default GastosPage;
