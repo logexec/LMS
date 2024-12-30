@@ -23,7 +23,7 @@ interface UserProps {
   createdAt: Date;
 }
 
-const page: React.FC<UserProps> = ({
+const usersPage: React.FC<UserProps> = ({
   id,
   name,
   email,
@@ -62,10 +62,24 @@ const page: React.FC<UserProps> = ({
     setSearch(e.target.value);
   };
 
+  const borrar = () => {
+    // Funcion hecha para evitar errores en Netlify mientras se construye la App.
+    if (id || name || roles || realms || lastLogin || createdAt) {
+      return (
+        <span>
+          {id} {name} {email} {roles} {realms}{" "}
+          {lastLogin && <span>{lastLogin.toLocaleDateString()}</span>}{" "}
+          {createdAt && <span>{createdAt.toLocaleDateString()}</span>}{" "}
+        </span>
+      );
+    }
+  };
+
   return (
     <>
       <div className="w-full overflow-auto table-container">
         <section>
+          {borrar()}
           <div className="container" id="toggle">
             <div className="tabs">
               <input
@@ -324,4 +338,4 @@ const page: React.FC<UserProps> = ({
   );
 };
 
-export default page;
+export default usersPage;

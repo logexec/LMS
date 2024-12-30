@@ -11,6 +11,7 @@ interface SelectProps {
   id: string;
   label: string;
   options: Option[];
+  value: Option["value"];
 }
 
 const Select: React.FC<SelectProps> = ({ options, name, id, label }) => {

@@ -27,6 +27,8 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
     observacion: "",
     adjunto: "",
     empresa: "",
+    selected_tipo: "",
+    campo_nomina: "",
   });
 
   // Estado para la validación del formulario
@@ -51,9 +53,9 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
   };
 
   // Manejo del cambio en el Select
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTipo(e.target.value);
-  };
+  // const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setSelectedTipo(e.target.value);
+  // };
 
   return (
     <div
@@ -86,8 +88,8 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
                 { label: "Nómina", value: "nomina" },
                 { label: "Transportista", value: "transportista" },
               ]}
-              value={selectedTipo}
-              onChange={handleSelectChange}
+              value={formData.selected_tipo}
+              // onChange={handleSelectChange}
             />
             <Input
               type="tel"
@@ -130,7 +132,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
                   value: "cnqt",
                 },
               ]}
-              onChange={handleProyectoChange}
+              // onChange={handleSelectChange}
               value={formData.proyecto}
             />
             <Input
@@ -197,7 +199,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
                       value: "sersupport",
                     },
                   ]}
-                  onChange={handleEmpresaChange}
+                  // onChange={handleSelectChange}
                   value={formData.empresa}
                 />
               </>

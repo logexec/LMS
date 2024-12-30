@@ -2,18 +2,43 @@
   "policies": [
     {
       "role": "admin",
-      "resource": "/admin",
-      "action": "GET"
+      "resources": [
+        {
+          "url": "/admin",
+          "action": "GET",
+          "permissions": ["editar", "ver", "crear"]
+        }
+      ]
     },
     {
       "role": "auditor",
-      "resource": "/admin",
-      "action": "POST"
+      "resources": [
+        {
+          "url": "/admin",
+          "action": "GET",
+          "permissions": ["ver"]
+        }
+      ]
     },
     {
       "role": "user",
-      "resource": "/dashboard",
-      "action": "GET"
+      "resources": [
+        {
+          "url": "/dashboard",
+          "action": "GET",
+          "permissions": ["editar", "ver", "crear"]
+        }
+      ]
+    },
+    {
+      "role": "developer",
+      "resources": [
+        {
+          "url": "/dashboard",
+          "action": "GET",
+          "permissions": ["editar", "eliminar", "crear", "ver"]
+        }
+      ]
     }
   ]
 }
