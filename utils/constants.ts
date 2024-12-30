@@ -59,10 +59,15 @@ export const sidenavLinks: navLink[] = [
         url: "/gastos",
         icon: MdOutlineDashboard,
       },
+    ],
+  },
+  {
+    category: "Ingresos especiales",
+    links: [
       {
-        label: "Ingresos Especiales",
-        url: "/gastos/ingresos-especiales",
-        icon: PiMoneyWavyThin,
+        label: "Inicio",
+        url: "/ingresos-especiales",
+        icon: MdOutlineDashboard,
       },
     ],
   },

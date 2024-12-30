@@ -2,12 +2,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import path from "path";
 
+// Función que lee las políticas desde el archivo JSON
 const getPolicies = () => {
   const policiesPath = path.join(process.cwd(), "policies/policies.json");
   const rawData = fs.readFileSync(policiesPath, "utf-8");
   return JSON.parse(rawData).policies;
 };
 
+// Función para verificar permisos
 export const checkPermission = (
   role: string,
   resource: string,
@@ -31,15 +33,15 @@ export const withPermission = (resource: string, action: string) => {
     if (!role) {
       return res
         .status(403)
-        .json({ message: "No tienes permisos para acceder a esta sección." });
+        .json({ message: "Rol de usuario no especificado" });
     }
 
     const hasPermission = checkPermission(role, resource, action);
 
     if (hasPermission) {
-      return next();
+      return next(); // Si tiene permiso, continua con la ejecución
     } else {
-      return res.status(403).json({ message: "Acceso denegado." });
+      return res.status(403).json({ message: "Acceso denegado" });
     }
   };
 };
