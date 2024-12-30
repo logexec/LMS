@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "role": "admin",
+      "resource": "/admin",
+      "action": "GET"
+    },
+    {
+      "role": "admin",
+      "resource": "/admin",
+      "action": "POST"
+    },
+    {
+      "role": "user",
+      "resource": "/dashboard",
+      "action": "GET"
+    }
+  ]
+}

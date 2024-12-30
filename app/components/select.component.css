@@ -1,0 +1,46 @@
+.select-container {
+  position: relative;
+  width: 100%;
+}
+
+.select-field {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  background-color: transparent;
+}
+
+.select-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 16px;
+  color: rgba(204, 204, 204, 0);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.select-highlight {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background-color: #148bda;
+  transition: all 0.3s ease;
+}
+
+.select-field:focus + .select-label,
+.select-field:not(:placeholder-shown) + .select-label {
+  top: -1.5ch;
+  font-size: 12px;
+  color: #148bda;
+}
+
+.select-field:focus + .select-label + .select-highlight {
+  width: 100%;
+}
