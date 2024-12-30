@@ -17,7 +17,6 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
       type
     );
 
-  // Estado para almacenar los datos del formulario
   const [formData, setFormData] = useState({
     fecha_gasto: "",
     tipo: "",
@@ -37,15 +36,6 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
 
   // Estado para la validación del formulario
   const [isFormValid, setIsFormValid] = useState(false);
-
-  // Estado para manejar la opción seleccionada en el Select de Tipo
-  const [selectedTipo, setSelectedTipo] = useState("");
-
-  // Estado para manejar la opción seleccionada en el Select de Empresa
-  const [selectedEmpresa, setSelectedEmpresa] = useState("");
-
-  // Estado para manejar la opción seleccionada en el Select de Proyecto
-  const [selectedProyecto, setSelectedProyecto] = useState("");
 
   // Opciones del segundo Select (Empresa) que dependen de la selección del primer Select (Tipo)
   const empresaOptions = {
@@ -82,22 +72,19 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
     const { value } = e.target;
 
     if (type === "tipo") {
-      setSelectedTipo(value);
       setFormData((prevData) => ({
         ...prevData,
-        tipo: value, // Actualizamos el estado del formulario con el valor de tipo
+        tipo: value,
       }));
     } else if (type === "empresa") {
-      setSelectedEmpresa(value);
       setFormData((prevData) => ({
         ...prevData,
-        empresa: value, // Actualizamos el estado del formulario con el valor de empresa
+        empresa: value,
       }));
     } else if (type === "proyecto") {
-      setSelectedProyecto(value);
       setFormData((prevData) => ({
         ...prevData,
-        proyecto: value, // Actualizamos el estado del formulario con el valor de empresa
+        proyecto: value,
       }));
     }
   };
@@ -135,7 +122,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
                 { label: "Nómina", value: "nomina" },
                 { label: "Transportista", value: "transportista" },
               ]}
-              value={selectedTipo}
+              value={formData.tipo}
               onChange={(e) => handleSelectChange(e, "tipo")}
             />
             <Input
@@ -191,7 +178,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               value={formData.responsable}
               onChange={handleInputChange}
             />
-            {selectedTipo === "nomina" && (
+            {formData.tipo === "nomina" && (
               <Select
                 name="empresa"
                 id="empresa"
@@ -202,7 +189,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               />
             )}
 
-            {selectedTipo === "transportista" && (
+            {formData.tipo === "transportista" && (
               <Select
                 name="empresa"
                 id="empresa"
@@ -213,7 +200,7 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
               />
             )}
 
-            {selectedTipo === "nomina" && (
+            {formData.tipo === "nomina" && (
               <Input
                 type="text"
                 label="Campo adicional para Nómina"
