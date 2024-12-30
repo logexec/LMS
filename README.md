@@ -1,6 +1,8 @@
-<span style="display: flex; flex-align: center; justify-items: center; height:auto; width: 300px">
+<span style="display: flex; flex-align: center; justify-items: center; place-self: center; height:auto; width: 300px">
 <img src="https://www.logex.com.ec/wp-content/uploads/2024/05/cropped-logoweb.png" alt="LogeX Logo" />
 </span>
+<br/>
+<br/>
 # LogeX Management System 🚀
 
 ## Bienvenido a LogeX Management System
