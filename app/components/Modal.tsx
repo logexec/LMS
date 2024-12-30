@@ -11,8 +11,6 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
-  if (!isOpen) return null;
-
   if (type)
     console.log(
       "Type se utiliza para ver a que api se manda el formulario",
@@ -42,6 +40,8 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
 
   // Estado para manejar la opción seleccionada en el Select
   const [selectedTipo, setSelectedTipo] = useState("");
+
+  if (!isOpen) return null;
 
   // Efecto para verificar si el formulario está completo
   useEffect(() => {
