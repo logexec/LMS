@@ -9,9 +9,6 @@
 .tabs {
   display: flex;
   position: relative;
-  background-color: #fff;
-  box-shadow: 0 0 1px 0 rgba(24, 94, 224, 0.15),
-    0 6px 12px 0 rgba(24, 94, 224, 0.15);
   padding: 0.75rem;
   border-radius: 99px;
 }
@@ -35,7 +32,7 @@
   align-items: center;
   justify-content: center;
   height: 30px;
-  width: 125px;
+  width: 145px;
   font-size: 0.8rem;
   color: #5c5e5d;
   font-weight: 500;
@@ -54,11 +51,11 @@
   margin: 0px;
 }
 
-.container input[id="simple-view"]:checked ~ .glider {
+.container input[id="admin"]:checked ~ .glider {
   transform: translateX(0);
 }
 
-.container input[id="advanced-view"]:checked ~ .glider {
+.container input[id="roles"]:checked ~ .glider {
   transform: translateX(100%);
 }
 
@@ -66,7 +63,7 @@
   position: absolute;
   display: flex;
   height: 30px;
-  width: 125px;
+  width: 145px;
   background-color: #f9e6e6;
   z-index: 1;
   border-radius: 99px;
@@ -83,53 +80,6 @@
 * End Radio Buttons
 **/
 
-.legend {
-  margin: 0;
-  padding: 0;
-}
-.legend li {
-  list-style: none;
-  display: inline;
-  margin-left: 1em;
-}
-.legend li span {
-  margin-right: 0.2em;
-}
-.legend li h4 {
-  display: inline;
-}
-.table-header td {
-  white-space: nowrap;
-}
-.table-header .header-created,
-.table-header .header-login {
-  text-align: right;
-}
-.adminusers-creation-date-column,
-.adminusers-last-login-date-column {
-  text-align: right !important;
-}
-.adminusers-stats-column div {
-  white-space: nowrap;
-}
-.adminusers-stats-column ul {
-  margin: 0;
-  padding: 0;
-}
-.adminusers-stats-column ul li {
-  list-style: none;
-}
-.point {
-  cursor: help;
-  display: inline-block;
-  width: 0.8em;
-  height: 0.8em;
-  border-radius: 100%;
-  border: none;
-  vertical-align: middle;
-  margin-right: 0.2em;
-  margin-bottom: 0.2em;
-}
 .point.default {
   background-color: #ef5350;
 }
@@ -147,35 +97,4 @@
     45deg var(--primary),
     var(--secondary-dark)
   );
-}
-.ft-table tr td:first-child,
-.ft-table tr td:nth-child(2),
-.ft-table tr td:last-child {
-  width: 2em;
-}
-.ft-table td:not(:last-child) {
-  border-right: 1px solid #ddd !important;
-}
-.ft-table li {
-  display: block !important;
-  vertical-align: top;
-  border: none !important;
-}
-.ft-table.simple-view .adminusers-stats-column {
-  display: none;
-}
-.ft-table.simple-view .adminusers-groups-column .resume {
-  display: block;
-}
-.ft-table.simple-view .adminusers-groups-column .admin-item-list {
-  display: none;
-}
-.ft-table.simple-view .adminusers-roles-column .resume {
-  display: block;
-}
-.ft-table.simple-view .adminusers-roles-column .admin-item-list {
-  display: none;
-}
-.ft-table.advanced-view .resume {
-  display: none;
 }
