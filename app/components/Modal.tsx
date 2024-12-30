@@ -59,9 +59,11 @@ const Modal: React.FC<ModalProps> = ({ title, type, isOpen, onClose }) => {
   };
 
   // Manejo del cambio en el Select
-  // const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   setSelectedTipo(e.target.value);
-  // };
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTipo(e.target.value);
+  };
+
+  console.log("Implementar la logica", handleSelectChange);
 
   return (
     <div
