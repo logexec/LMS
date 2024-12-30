@@ -155,7 +155,11 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
     }
   };
 
-  const dateOptions = { year: "numeric", month: "2-digit", day: "2-digit" };
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  };
 
   const sort = useSort(
     { nodes: filteredData },
