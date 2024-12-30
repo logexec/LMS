@@ -27,7 +27,11 @@ export const checkPermission = (
 
 // Middleware para Next.js API
 export const withPermission = (resource: string, action: string) => {
-  return async (req: NextApiRequest, res: NextApiResponse, next: Function) => {
+  return async (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    next: () => void
+  ) => {
     const role = req.headers["x-role"] as string; // Asume que el rol viene en los headers
 
     if (!role) {
