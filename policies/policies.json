@@ -1,23 +1,35 @@
 {
   "policies": [
     {
-      "action": "manage_users",
+      "actions": ["view_content", "edit_content", "delete_content"],
       "conditions": {
-        "role": "admin"
+        "role": "admin",
+        "resources": ["*"],
+        "groups": ["*"]
       }
     },
     {
-      "action": "edit_content",
+      "actions": ["view_content", "edit_content", "delete_content"],
       "conditions": {
-        "role": "editor",
-        "resource": "content"
+        "role": "developer",
+        "resources": ["*"],
+        "groups": ["*"]
       }
     },
     {
-      "action": "view_content",
+      "actions": ["edit_content"],
+      "conditions": {
+        "role": "supervisor",
+        "resources": ["gastos", "descuentos"],
+        "groups": ["operaciones", "administracion", "desarrollador"]
+      }
+    },
+    {
+      "actions": ["view_content", "edit_content"],
       "conditions": {
         "role": "user",
-        "resource": "content"
+        "resources": ["ingresos-especiales"],
+        "groups": ["rrhh", "administracion", "desarrollador"]
       }
     }
   ]
