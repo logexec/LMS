@@ -87,10 +87,9 @@ const removeAccents = (text: string) => {
 const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
   const [search, setSearch] = useState("");
 
+  //TODO: Eliminar. Bloque de codigo puesto para que netlify no de errores
   if (type === "users") {
-    console.log("Administrar Usuarios");
-  } else {
-    console.log("administrar roles");
+    console.log("Tipo:", type);
   }
 
   const theme = useTheme([
