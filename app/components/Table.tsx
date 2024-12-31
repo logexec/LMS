@@ -35,6 +35,11 @@ interface TableData {
   type: string;
 }
 
+type ColumnType = {
+  accessor: (item: Node) => string | number | Date | null | React.ReactNode;
+  name: string;
+};
+
 const PaginationButtons: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -260,14 +265,30 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
   ];
 
   //   Descargar CSV
-  const escapeCsvCell = (cell: string | number | null) => {
+  const escapeCsvCell = (
+    cell: string | number | Date | null | React.ReactNode
+  ): string => {
     if (cell == null) {
       return "";
     }
-    const sc = cell.toString().trim();
+
+    if (cell instanceof Date) {
+      return cell.toLocaleDateString();
+    }
+
+    if (React.isValidElement(cell)) {
+      const children = cell.props;
+      // const children = cell.props.children;
+
+      return String(children);
+    }
+
+    const sc = String(cell).trim();
+
     if (sc === "" || sc === '""') {
       return sc;
     }
+
     if (
       sc.includes('"') ||
       sc.includes(",") ||
@@ -276,13 +297,17 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
     ) {
       return '"' + sc.replace(/"/g, '""') + '"';
     }
+
     return sc;
   };
 
   const makeCsvData = (
-    columns: { accessor: (item: Node) => any; name: string }[],
+    columns: {
+      accessor: (item: Node) => string | number | Date | null | React.ReactNode;
+      name: string;
+    }[],
     data: Node[]
-  ) => {
+  ): string => {
     return data.reduce((csvString, rowItem) => {
       return (
         csvString +
@@ -295,7 +320,7 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
   };
 
   const downloadAsCsv = (
-    columns: { accessor: (item: Node) => any; name: string }[],
+    columns: ColumnType[],
     data: Node[],
     filename: string
   ): void => {
@@ -312,7 +337,7 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
   };
 
   const handleDownloadCsv = () => {
-    const columns = [
+    const columns: ColumnType[] = [
       { accessor: (item: Node) => item.fechaGasto, name: "Fecha Gasto" },
       { accessor: (item: Node) => item.tipo, name: "Tipo" },
       {

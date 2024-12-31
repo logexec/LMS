@@ -1,44 +1,24 @@
 {
   "policies": [
     {
-      "role": "admin",
-      "resources": [
-        {
-          "url": "/admin",
-          "action": "GET",
-          "permissions": ["editar", "ver", "crear"]
-        }
-      ]
+      "action": "manage_users",
+      "conditions": {
+        "role": "admin"
+      }
     },
     {
-      "role": "auditor",
-      "resources": [
-        {
-          "url": "/admin",
-          "action": "GET",
-          "permissions": ["ver"]
-        }
-      ]
+      "action": "edit_content",
+      "conditions": {
+        "role": "editor",
+        "resource": "content"
+      }
     },
     {
-      "role": "user",
-      "resources": [
-        {
-          "url": "/dashboard",
-          "action": "GET",
-          "permissions": ["editar", "ver", "crear"]
-        }
-      ]
-    },
-    {
-      "role": "developer",
-      "resources": [
-        {
-          "url": "/dashboard",
-          "action": "GET",
-          "permissions": ["editar", "eliminar", "crear", "ver"]
-        }
-      ]
+      "action": "view_content",
+      "conditions": {
+        "role": "user",
+        "resource": "content"
+      }
     }
   ]
 }
