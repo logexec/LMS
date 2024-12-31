@@ -260,7 +260,7 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
   ];
 
   //   Descargar CSV
-  const escapeCsvCell = (cell) => {
+  const escapeCsvCell = (cell: string | number | null) => {
     if (cell == null) {
       return "";
     }
@@ -279,7 +279,10 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
     return sc;
   };
 
-  const makeCsvData = (columns, data) => {
+  const makeCsvData = (
+    columns: { accessor: (item: Node) => any; name: string }[],
+    data: Node[]
+  ) => {
     return data.reduce((csvString, rowItem) => {
       return (
         csvString +
@@ -291,7 +294,11 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
     }, columns.map(({ name }) => escapeCsvCell(name)).join(",") + "\r\n");
   };
 
-  const downloadAsCsv = (columns, data, filename) => {
+  const downloadAsCsv = (
+    columns: { accessor: (item: Node) => any; name: string }[],
+    data: Node[],
+    filename: string
+  ): void => {
     const csvData = makeCsvData(columns, data);
     const csvFile = new Blob([csvData], { type: "text/csv" });
     const downloadLink = document.createElement("a");
