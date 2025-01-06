@@ -1,5 +1,6 @@
 import Input from "@/app/components/Input";
 import React, { useState } from "react";
+import Select from "./Select";
 
 interface FormProps {
   id: string;
@@ -27,6 +28,16 @@ const EditUserForm: React.FC<FormProps> = ({
     proyecto: proyecto,
   });
 
+  const estadoOptions = [
+    { label: "Activo", value: "activo" },
+    { label: "Inactivo", value: "inactivo" },
+    { label: "Suspendido", value: "suspendido" },
+  ];
+  const proyectoOptions = [
+    { label: "Admin", value: "admin" },
+    { label: "CNQT", value: "cnqt" },
+  ];
+
   const handleRoleChange = (role: string) => {
     setFormData((prevData) => {
       const newRoles = prevData.roles.includes(role)
@@ -47,21 +58,12 @@ const EditUserForm: React.FC<FormProps> = ({
     }));
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    setFormData((prevData) => {
-      if (checked) {
-        return {
-          ...prevData,
-          roles: [...prevData.roles, value],
-        };
-      } else {
-        return {
-          ...prevData,
-          roles: prevData.roles.filter((role) => role !== value),
-        };
-      }
-    });
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   return (
@@ -117,21 +119,21 @@ const EditUserForm: React.FC<FormProps> = ({
           />
         </div>
       </div>
-      <Input
-        type="text"
-        id="estado"
-        name="estado"
+      <Select
         label="Estado"
+        name="estado"
+        id="estado"
         value={formData.estado}
-        onChange={handleInputChange}
+        options={estadoOptions}
+        onChange={handleSelectChange}
       />
-      <Input
-        type="text"
-        id="proyecto"
-        name="proyecto"
+      <Select
         label="Proyecto"
+        name="proyecto"
+        id="proyecto"
         value={formData.proyecto}
-        onChange={handleInputChange}
+        options={proyectoOptions}
+        onChange={handleSelectChange}
       />
       <Input
         type="email"
