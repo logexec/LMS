@@ -10,13 +10,17 @@ interface SelectProps {
   name: string;
   id: string;
   label: string;
+  className?: string;
   options: Option[];
+  optionLabel?: Option["label"];
   value: Option["value"];
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const Select: React.FC<SelectProps> = ({
   options,
+  optionLabel,
+  className,
   name,
   id,
   label,
@@ -24,7 +28,7 @@ const Select: React.FC<SelectProps> = ({
   onChange,
 }) => {
   return (
-    <div className="select-container">
+    <div className={`select-container ${className}`}>
       <select
         name={name}
         id={id}
