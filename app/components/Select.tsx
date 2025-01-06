@@ -12,14 +12,12 @@ interface SelectProps {
   label: string;
   className?: string;
   options: Option[];
-  optionLabel?: Option["label"];
   value: Option["value"];
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const Select: React.FC<SelectProps> = ({
   options,
-  optionLabel,
   className,
   name,
   id,
