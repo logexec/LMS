@@ -600,6 +600,10 @@ const Component: React.FC<TableData> = ({ nodes, type }) => {
         onNextPage={handleNextPage}
         handlePage={handlePage}
       />
+
+      <button className="text-primary hover:text-red-700 hover:underline transition-all duration-300">
+        Enviar Solicitud
+      </button>
     </Suspense>
   );
 };
