@@ -1,4 +1,4 @@
-import { ElementType, JSX } from "react";
+import { ElementType } from "react";
 import { MdOutlineDashboard } from "react-icons/md";
 import { GrDocumentText, GrDocumentUser } from "react-icons/gr";
 import { RiDiscountPercentLine } from "react-icons/ri";
