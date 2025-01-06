@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import Modal from "../components/Modal";
 import Table from "../components/Table";
 import { gastosData } from "@/utils/dummyData";
+import { AiOutlineFileAdd } from "react-icons/ai";
 
 const IngresosEspecialesPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,7 +24,11 @@ const IngresosEspecialesPage: React.FC = () => {
         )}
       <div className="flex flex-row justify-between px-5 items-center">
         <h1 className="title">Ingresos Registrados</h1>
-        <button className="btn btn-negative" onClick={() => setModalOpen(true)}>
+        <button
+          className="btn flex justify-center items-center gap-3"
+          onClick={() => setModalOpen(true)}
+        >
+          <AiOutlineFileAdd />
           Registrar Ingreso
         </button>
       </div>
