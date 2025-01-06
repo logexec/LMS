@@ -12,7 +12,6 @@ import "./table.component.css";
 import Loader from "./Loader";
 import { createPortal } from "react-dom";
 import Modal from "./Modal";
-import { admnUsers, cnqtUsers } from "@/utils/constants";
 import EditUserForm from "./EditUserForm";
 
 interface Node {
