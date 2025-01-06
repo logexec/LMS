@@ -10,21 +10,27 @@ import Input from "./Input";
 import { BiLeftArrow, BiRightArrow } from "react-icons/bi";
 import "./table.component.css";
 import Loader from "./Loader";
+import { createPortal } from "react-dom";
+import Modal from "./Modal";
+import { admnUsers, cnqtUsers } from "@/utils/constants";
+import EditUserForm from "./EditUserForm";
 
 interface Node {
   id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  estado: string;
-  rol: string;
-  created_at: string;
-  updated_at: string;
+  name?: string;
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+  estado?: string;
+  rol?: string;
+  proyecto?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface TableData {
   nodes: Node[];
-  type: string;
+  type?: string;
 }
 
 const PaginationButtons: React.FC<{
@@ -85,9 +91,11 @@ const removeAccents = (text: string) => {
 };
 
 const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>("");
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [selectedUser, setSelectedUser] = useState<Node | null>(null);
 
-  //TODO: Eliminar. Bloque de codigo puesto para que netlify no de errores
+  //TODO: Eliminar. Bloque de codigo puesto para que netlify no de errores. Tipo es para especificar la API a la que se manda la información.
   if (type === "users") {
     console.log("Tipo:", type);
   }
@@ -103,12 +111,21 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
 
   const lowerSearch = removeAccents(search.toLowerCase());
   const filteredData = nodes.filter((item) => {
+    const nombre = item.nombre ? item.nombre : "";
+    const apellido = item.apellido ? item.apellido : "";
+    const fullName = item.name ? item.name : "";
+    const email = item.email ? item.email : "";
+    const estado = item.estado ? item.estado : "";
+    const proyecto = item.proyecto ? item.proyecto : "";
+
     return (
       removeAccents(item.id.toLowerCase()).includes(lowerSearch) ||
-      removeAccents(item.nombre.toLowerCase()).includes(lowerSearch) ||
-      removeAccents(item.apellido.toLowerCase()).includes(lowerSearch) ||
-      removeAccents(item.email.toLowerCase()).includes(lowerSearch) ||
-      removeAccents(item.estado.toLowerCase()).includes(lowerSearch)
+      removeAccents(nombre.toLowerCase()).includes(lowerSearch) ||
+      removeAccents(apellido.toLowerCase()).includes(lowerSearch) ||
+      removeAccents(fullName.toLowerCase()).includes(lowerSearch) ||
+      removeAccents(email.toLowerCase()).includes(lowerSearch) ||
+      removeAccents(proyecto.toLowerCase()).includes(lowerSearch) ||
+      removeAccents(estado.toLowerCase()).includes(lowerSearch)
     );
   });
 
@@ -161,6 +178,11 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
     }
   );
 
+  const editUser = (selected_user: Node) => {
+    setModalOpen(true);
+    setSelectedUser(selected_user);
+  };
+
   const COLUMNS = [
     {
       label: "Identificación",
@@ -171,15 +193,21 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
       label: "Nombres",
       renderCell: (item: Node) => (
         <div className="flex flex-col">
-          <span className="text-slate-800 text-lg">
-            {item.nombre} {item.apellido}
+          <span className="text-slate-800 text-lg capitalize">
+            {item.name ? item.name : `${item.nombre} ${item.apellido}`}
           </span>
-          <a
-            href={`mailto:${item.email}`}
-            className="text-red-600 hover:text-red-800"
-          >
-            {item.email}
-          </a>
+          {item.email ? (
+            <a
+              href={`mailto:${item.email}`}
+              className="text-red-600 hover:text-red-800"
+            >
+              {item.email}
+            </a>
+          ) : (
+            <span className="text-red-600">
+              No existe un e-mail registrado.
+            </span>
+          )}
         </div>
       ),
     },
@@ -207,13 +235,22 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
     },
     {
       label: "Acciones",
-      renderCell: () => (
+      renderCell: (item: Node) => (
         <div className="flex flex-row gap-3">
-          <button className="text-indigo-500 hover:underline hover:text-indigo-700">
-            <span>Editar</span>
+          <button
+            className="text-indigo-500 hover:underline hover:text-indigo-700"
+            onClick={(e) => {
+              e.preventDefault();
+              editUser(item);
+            }}
+          >
+            Editar
           </button>
-          <button className="text-red-500 hover:underline hover:text-red-700">
-            <span>Eliminar</span>
+          <button
+            className="text-red-500 hover:underline hover:text-red-700"
+            onClick={() => console.log("Eliminar usuario")}
+          >
+            Eliminar
           </button>
         </div>
       ),
@@ -251,6 +288,23 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
         onNextPage={handleNextPage}
         handlePage={handlePage}
       />
+      {selectedUser && modalOpen && (
+        <Modal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={`Editar datos de ${selectedUser.name}`}
+          isForm={false}
+        >
+          <EditUserForm
+            id={selectedUser.id}
+            name={selectedUser.name}
+            email={selectedUser.email}
+            estado={selectedUser.estado}
+            proyecto={selectedUser.proyecto}
+            roles={selectedUser.roles}
+          />
+        </Modal>
+      )}
     </Suspense>
   );
 };
