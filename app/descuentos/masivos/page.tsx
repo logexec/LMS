@@ -13,7 +13,7 @@ import {
 import { GiPayMoney } from "react-icons/gi";
 import UsersTable from "@/app/components/UsersTable";
 
-const page = () => {
+const MasivosPage = () => {
   const [formData, setFormData] = useState({
     fecha_gasto: "",
     tipo: "",
@@ -160,4 +160,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default MasivosPage;
