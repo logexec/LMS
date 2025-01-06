@@ -128,7 +128,7 @@ const MasivosPage = () => {
                 className="my-4 lg:my-0"
               />
               <Input
-                type="number"
+                type="text"
                 name="observacion"
                 id="observacion"
                 label="Observación"
