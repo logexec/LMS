@@ -23,7 +23,7 @@ const EditUserForm: React.FC<FormProps> = ({
     id: id,
     name: name,
     email,
-    roles: roles || [],
+    roles: roles.length ? roles : [],
     estado: estado,
     proyecto: proyecto,
   });

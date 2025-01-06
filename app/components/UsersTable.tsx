@@ -20,7 +20,7 @@ interface Node {
   apellido?: string;
   email?: string;
   estado?: string;
-  rol?: string;
+  roles?: string[];
   proyecto?: string;
   created_at?: string;
   updated_at?: string;
@@ -212,7 +212,7 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
     {
       label: "Rol",
       renderCell: (item: Node) => (
-        <span className="capitalize">{item.rol}</span>
+        <span className="capitalize">{item.roles}</span>
       ),
     },
     {
@@ -295,11 +295,11 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
         >
           <EditUserForm
             id={selectedUser.id}
-            name={selectedUser.name}
-            email={selectedUser.email}
-            estado={selectedUser.estado}
-            proyecto={selectedUser.proyecto}
-            roles={selectedUser.roles}
+            name={selectedUser.name || ""}
+            email={selectedUser.email || ""}
+            estado={selectedUser.estado || ""}
+            proyecto={selectedUser.proyecto || ""}
+            roles={selectedUser.roles || []}
           />
         </Modal>
       )}
