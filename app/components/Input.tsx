@@ -1,5 +1,5 @@
 "use client";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import "./input.component.css";
 import styled from "styled-components";
 
@@ -22,8 +22,40 @@ type InputProps = {
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
+  currentDate?: boolean;
   placeholderText?: string;
+  maxLength?: number;
+  minLength?: number;
+  isIdentification?: boolean;
+  checked?: boolean;
 };
+
+const ErrorMessage = styled.span`
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  max-width: 12rem;
+`;
+
+const StyledInput = styled.input<{
+  $isValid: boolean;
+  $isIdentification: boolean;
+}>`
+  &.input-field {
+    border-color: ${(props) =>
+      props.$isIdentification ? (props.$isValid ? "#ccc" : "#dc3545") : "#ccc"};
+
+    &:focus {
+      border-color: ${(props) =>
+        props.$isIdentification
+          ? props.$isValid
+            ? "#148bda"
+            : "#dc3545"
+          : "#ccc"};
+    }
+  }
+`;
 
 const InputField: React.FC<{
   label: string;
@@ -35,6 +67,10 @@ const InputField: React.FC<{
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   className?: string;
+  currentDate?: boolean;
+  isIdentification: boolean;
+  maxLength?: number;
+  minLength?: number;
 }> = ({
   label,
   name,
@@ -45,36 +81,98 @@ const InputField: React.FC<{
   onChange,
   placeholder,
   className,
-}) => (
-  <div className={`input-container ${className}`}>
-    <input
-      placeholder={placeholder}
-      className="input-field"
-      type={type}
-      name={name}
-      id={id}
-      required={required}
-      value={value}
-      onChange={onChange}
-    />
-    <label htmlFor={id} className="input-label">
-      {label}
-    </label>
-    <span className="input-highlight"></span>
-  </div>
-);
+  isIdentification,
+  maxLength = 13,
+  minLength = 10,
+}) => {
+  const [error, setError] = useState<string>("");
+  const [isValid, setIsValid] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isIdentification && value) {
+      if (value.length > 0 && value.length < minLength) {
+        setError(
+          "El número de Identificación debe tener al menos 10 caracteres."
+        );
+        setIsValid(false);
+      } else {
+        setError("");
+        setIsValid(true);
+      }
+    }
+  }, [value, isIdentification, minLength]);
+
+  const validateNumberOnly = (value: string) => {
+    return /^\d*$/.test(value);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+
+    if (isIdentification) {
+      if (!validateNumberOnly(newValue)) {
+        return;
+      }
+
+      if (newValue.length > maxLength) {
+        return;
+      }
+
+      if (newValue.length > 0 && newValue.length < minLength) {
+        setError(
+          "El número de Identificación debe tener entre 10 y 13 caracteres."
+        );
+        setIsValid(false);
+      } else {
+        setError("");
+        setIsValid(true);
+      }
+    }
+
+    if (onChange) {
+      onChange(e);
+    }
+  };
+
+  return (
+    <div className={`input-container ${className}`}>
+      <StyledInput
+        placeholder={placeholder}
+        className="input-field"
+        type={type}
+        name={name}
+        id={id}
+        required={required}
+        value={value}
+        onChange={handleInputChange}
+        maxLength={isIdentification ? maxLength : undefined}
+        $isIdentification={isIdentification}
+        $isValid={isValid}
+      />
+      <label htmlFor={id} className="input-label">
+        {label}
+      </label>
+      <span className={`input-highlight ${error && "error"}`}></span>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+    </div>
+  );
+};
 
 const Input: React.FC<InputProps> = ({
   label,
   name,
   id,
+  currentDate = true,
   placeholder = label,
   required = false,
   type,
   value,
+  checked,
   onChange,
   className,
   placeholderText,
+  maxLength,
+  minLength,
 }) => {
   const [fileName, setFileName] = useState("");
 
@@ -84,6 +182,12 @@ const Input: React.FC<InputProps> = ({
       setFileName(file.name);
     }
   };
+
+  const isIdentification =
+    label.toLowerCase().includes("identificación") ||
+    label.toLowerCase().includes("identificacion") ||
+    label.toLowerCase().includes("cedula") ||
+    label.toLowerCase().includes("cédula");
 
   if (type === "file") {
     return (
@@ -164,6 +268,8 @@ const Input: React.FC<InputProps> = ({
           id={id}
           required={required}
           className="input-field"
+          value={currentDate ? new Date().toISOString().split("T")[0] : ""}
+          onChange={onChange}
         />
         <label htmlFor={id} className="input-label">
           {label}
@@ -173,87 +279,26 @@ const Input: React.FC<InputProps> = ({
   }
 
   if (type === "checkbox") {
-    const StyledWrapper = styled.div`
-      .check {
-        cursor: pointer;
-        position: relative;
-        margin: auto;
-        width: 18px;
-        height: 18px;
-        -webkit-tap-highlight-color: transparent;
-        transform: translate3d(0, 0, 0);
-      }
-
-      .check:before {
-        content: "";
-        position: absolute;
-        top: -15px;
-        left: -15px;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: rgba(34, 50, 84, 0.03);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-      }
-
-      .check svg {
-        position: relative;
-        z-index: 1;
-        fill: none;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke: #c8ccd4;
-        stroke-width: 1.5;
-        transform: translate3d(0, 0, 0);
-        transition: all 0.2s ease;
-      }
-
-      .check svg path {
-        stroke-dasharray: 60;
-        stroke-dashoffset: 0;
-      }
-
-      .check svg polyline {
-        stroke-dasharray: 22;
-        stroke-dashoffset: 66;
-      }
-
-      .check:hover:before {
-        opacity: 1;
-      }
-
-      .check:hover svg {
-        stroke: #4285f4;
-      }
-
-      #cbx:checked + .check svg {
-        stroke: #4285f4;
-      }
-
-      #cbx:checked + .check svg path {
-        stroke-dashoffset: 60;
-        transition: all 0.3s linear;
-      }
-
-      #cbx:checked + .check svg polyline {
-        stroke-dashoffset: 42;
-        transition: all 0.2s linear;
-        transition-delay: 0.15s;
-      }
-    `;
     return (
-      <StyledWrapper>
-        <div className={`container ${className}`}>
-          <input type="checkbox" id="cbx" style={{ display: "none" }} />
-          <label htmlFor="cbx" className="check">
-            <svg width="18px" height="18px" viewBox="0 0 18 18">
-              <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z" />
-              <polyline points="1 9 7 14 15 4" />
+      <div className="checkbox-wrapper">
+        <input
+          type="checkbox"
+          id={id}
+          className="inp-cbx"
+          name={name}
+          value={value}
+          checked={checked}
+          onChange={onChange}
+        />
+        <label htmlFor={id} className="cbx">
+          <span>
+            <svg viewBox="0 0 12 10" height="10px" width="12px">
+              <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
             </svg>
-          </label>
-        </div>
-      </StyledWrapper>
+          </span>
+          <span>{label}</span>
+        </label>
+      </div>
     );
   }
 
@@ -268,6 +313,9 @@ const Input: React.FC<InputProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       className={className}
+      isIdentification={isIdentification}
+      maxLength={maxLength}
+      minLength={minLength}
     />
   );
 };
