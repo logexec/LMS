@@ -1,3 +1,25 @@
+export const sampleData = [
+  { id: 1, name: "John Doe", age: 30, city: "New York", role: "Developer" },
+  {
+    id: 2,
+    name: "Jane Smith",
+    age: 25,
+    city: "San Francisco",
+    role: "Designer",
+  },
+  { id: 3, name: "Bob Johnson", age: 35, city: "Chicago", role: "Manager" },
+  { id: 4, name: "Alice Brown", age: 28, city: "Boston", role: "Developer" },
+  { id: 5, name: "Charlie Wilson", age: 32, city: "Seattle", role: "Designer" },
+];
+
+export const columns = [
+  { key: "id", label: "ID", sortable: true },
+  { key: "name", label: "Nombre", sortable: true },
+  { key: "age", label: "Edad", sortable: true },
+  { key: "city", label: "Ciudad", sortable: true },
+  { key: "role", label: "Rol", sortable: true },
+];
+
 export const gastosData = [
   {
     id: "0",
