@@ -57,7 +57,7 @@ const MasivosPage = () => {
             <Hr />
           </div>
           <div className="w-full mx-1 p-5 bg-white shadow rounded-xl my-3">
-            <form className="lg:grid grid-cols-3 gap-5">
+            <form className="lg:grid grid-cols-4 gap-5">
               <Input
                 type="date"
                 label="Fecha del Gasto"
@@ -133,11 +133,11 @@ const MasivosPage = () => {
                 id="observacion"
                 label="Observación"
                 onChange={handleInputChange}
-                className="my-4 lg:my-0"
+                className="my-4 lg:my-0 col-span-4"
               />
               <button
                 type="submit"
-                className="btn col-span-3 w-96 mx-auto flex items-center justify-center gap-4"
+                className="btn col-span-4 w-96 mx-auto flex items-center justify-center gap-4"
               >
                 <GiPayMoney className="size-6" />
                 Registrar Descuento Masivo

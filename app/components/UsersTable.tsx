@@ -10,7 +10,7 @@ import Input from "./Input";
 import { BiLeftArrow, BiRightArrow } from "react-icons/bi";
 import "./table.component.css";
 import Loader from "./Loader";
-import Modal from "./Modal";
+import Modal from "./ModalForm";
 import EditUserForm from "./EditUserForm";
 
 interface Node {

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import "./usuarios.component.css";
 import UsersTableComponent from "../components/UsersTable";
-import Modal from "../components/Modal";
+import Modal from "../components/ModalForm";
 import Input from "../components/Input";
 import { roles } from "@/utils/constants";
 import { RiUserAddLine } from "react-icons/ri";

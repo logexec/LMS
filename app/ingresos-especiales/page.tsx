@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import Modal from "../components/Modal";
+import Modal from "../components/ModalForm";
 import Table from "../components/Table";
 import { gastosData } from "@/utils/dummyData";
 import { AiOutlineFileAdd } from "react-icons/ai";

@@ -1,6 +1,9 @@
+"use client";
 import Input from "@/app/components/Input";
 import React, { useState } from "react";
 import Select from "./Select";
+import ModalStatus from "./ModalStatus";
+import { createPortal } from "react-dom";
 
 interface FormProps {
   id: string;
@@ -27,6 +30,8 @@ const EditUserForm: React.FC<FormProps> = ({
     estado: estado,
     proyecto: proyecto,
   });
+
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const estadoOptions = [
     { label: "Activo", value: "activo" },
@@ -66,8 +71,22 @@ const EditUserForm: React.FC<FormProps> = ({
     }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Aquí realizarías la lógica de actualización del usuario, por ejemplo, una llamada a una API
+
+    // Mostrar la modal
+    setModalOpen(true);
+
+    // Cerrar la modal después de 3 segundos
+    setTimeout(() => {
+      setModalOpen(false);
+    }, 3000);
+  };
+
   return (
-    <form className="grid grid-cols-3 gap-5">
+    <form className="grid grid-cols-3 gap-5 py-4">
       <Input
         type="text"
         id="identificacion"
@@ -84,41 +103,6 @@ const EditUserForm: React.FC<FormProps> = ({
         value={formData.name}
         onChange={handleInputChange}
       />
-      <div className="flex flex-col items-start justify-center">
-        <div className="block">
-          <Input
-            type="checkbox"
-            label="Administrador"
-            name="role"
-            id="adminRole"
-            value="Administrador"
-            checked={formData.roles.includes("Administrador")}
-            onChange={() => handleRoleChange("Administrador")}
-          />
-        </div>
-        <div className="block">
-          <Input
-            type="checkbox"
-            label="Developer"
-            name="role"
-            id="developerRole"
-            value="Developer"
-            checked={formData.roles.includes("Developer")}
-            onChange={() => handleRoleChange("Developer")}
-          />
-        </div>
-        <div className="block">
-          <Input
-            type="checkbox"
-            label="Usuario"
-            name="role"
-            id="userRole"
-            value="Usuario"
-            checked={formData.roles.includes("Usuario")}
-            onChange={() => handleRoleChange("Usuario")}
-          />
-        </div>
-      </div>
       <Select
         label="Estado"
         name="estado"
@@ -143,6 +127,56 @@ const EditUserForm: React.FC<FormProps> = ({
         value={formData.email}
         onChange={handleInputChange}
       />
+      <div className="flex flex-col items-start justify-center">
+        <div className="flex flex-col justify-center gap-2">
+          <h3 className="text-blue-600 text-sm">Roles</h3>
+          <div className="flex flex-row gap-2">
+            <Input
+              type="checkbox"
+              label="Administrador"
+              name="role"
+              id="adminRole"
+              value="Administrador"
+              checked={formData.roles.includes("admin")}
+              onChange={() => handleRoleChange("admin")}
+            />
+
+            <Input
+              type="checkbox"
+              label="Developer"
+              name="role"
+              id="developerRole"
+              value="Developer"
+              checked={formData.roles.includes("developer")}
+              onChange={() => handleRoleChange("developer")}
+            />
+
+            <Input
+              type="checkbox"
+              label="Usuario"
+              name="role"
+              id="userRole"
+              value="Usuario"
+              checked={formData.roles.includes("user")}
+              onChange={() => handleRoleChange("user")}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="mt-8" />
+      <button
+        className="btn absolute float float-start bottom-8 w-80"
+        type="submit"
+        onClick={handleSubmit}
+      >
+        Actualizar usuario
+      </button>
+
+      {modalOpen &&
+        createPortal(
+          <ModalStatus text="Usuario actualizado" error />,
+          document.body
+        )}
     </form>
   );
 };

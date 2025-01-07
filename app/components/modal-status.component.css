@@ -1,0 +1,243 @@
+:root {
+  --check-size: 120px;
+  --icon-size: 120px;
+}
+.container {
+  max-width: var(--check-size);
+  margin: 50px auto;
+}
+
+.svg-success {
+  display: inline-block;
+  vertical-align: top;
+  height: var(--check-size);
+  width: var(--check-size);
+  opacity: 1;
+  overflow: visible;
+}
+@-webkit-keyframes success-tick {
+  0% {
+    stroke-dashoffset: 16px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 31px;
+    opacity: 1;
+  }
+}
+@keyframes success-tick {
+  0% {
+    stroke-dashoffset: 16px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 31px;
+    opacity: 1;
+  }
+}
+@-webkit-keyframes success-circle-outline {
+  0% {
+    stroke-dashoffset: 72px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0px;
+    opacity: 1;
+  }
+}
+@keyframes success-circle-outline {
+  0% {
+    stroke-dashoffset: 72px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0px;
+    opacity: 1;
+  }
+}
+@-webkit-keyframes success-circle-fill {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes success-circle-fill {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.svg-success .success-tick {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #ffffff;
+  stroke-dasharray: 15px, 15px;
+  stroke-dashoffset: -14px;
+  -webkit-animation: success-tick 450ms ease 1000ms forwards;
+  animation: success-tick 450ms ease 1000ms forwards;
+  opacity: 0;
+}
+.svg-success .success-circle-outline {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #81c038;
+  stroke-dasharray: 72px, 72px;
+  stroke-dashoffset: 72px;
+  -webkit-animation: success-circle-outline 300ms ease-in-out 400ms forwards;
+  animation: success-circle-outline 300ms ease-in-out 400ms forwards;
+  opacity: 0;
+}
+.svg-success .success-circle-fill {
+  fill: #81c038;
+  stroke: none;
+  opacity: 0;
+  -webkit-animation: success-circle-fill 300ms ease-out 700ms forwards;
+  animation: success-circle-fill 300ms ease-out 700ms forwards;
+}
+
+.fade-in-100 {
+  animation: fadeIn 100ms ease-in-out;
+}
+
+.fade-in-200 {
+  animation: fadeIn 200ms ease-in-out;
+}
+
+.fade-in-300 {
+  animation: fadeIn 300ms ease-in-out;
+}
+
+.fade-in-400 {
+  animation: fadeIn 400ms ease-in-out;
+}
+
+.fade-in-500 {
+  animation: fadeIn 500ms ease-in-out;
+}
+
+.fade-in-600 {
+  animation: fadeIn 600ms ease-in-out;
+}
+
+.fade-in-700 {
+  animation: fadeIn 700ms ease-in-out;
+}
+
+.fade-in-750 {
+  animation: fadeIn 750ms ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.container {
+  max-width: var(--icon-size);
+  margin: 50px auto;
+}
+
+.svg-icon {
+  display: inline-block;
+  vertical-align: top;
+  height: var(--icon-size);
+  width: var(--icon-size);
+  opacity: 1;
+  overflow: visible;
+}
+
+/* General Animations */
+@keyframes draw-circle {
+  0% {
+    stroke-dashoffset: 72px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0px;
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-fill {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes draw-symbol {
+  0% {
+    stroke-dashoffset: 16px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 31px;
+    opacity: 1;
+  }
+}
+
+/* Info Icon */
+.svg-info .info-circle-outline {
+  fill: none;
+  stroke-width: 2px;
+  stroke: #3b82f6; /* Blue */
+  stroke-dasharray: 72px, 72px;
+  stroke-dashoffset: 72px;
+  animation: draw-circle 300ms ease-in-out 400ms forwards;
+  opacity: 0;
+}
+
+.svg-info .info-circle-fill {
+  fill: #3b82f6;
+  stroke: none;
+  opacity: 0;
+  animation: fade-in-fill 300ms ease-out 700ms forwards;
+}
+
+.svg-info .info-symbol {
+  fill: none;
+  stroke-width: 2px;
+  stroke: #ffffff;
+  stroke-dasharray: 15px, 15px;
+  stroke-dashoffset: -14px;
+  animation: draw-symbol 450ms ease 1000ms forwards;
+  opacity: 0;
+}
+
+/* Error Icon */
+.svg-error .error-circle-outline {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #ef4444; /* Red */
+  stroke-dasharray: 72px, 72px;
+  stroke-dashoffset: 72px;
+  animation: draw-circle 300ms ease-in-out 400ms forwards;
+  opacity: 0;
+}
+
+.svg-error .error-circle-fill {
+  fill: #ef4444;
+  stroke: none;
+  opacity: 0;
+  animation: fade-in-fill 300ms ease-out 700ms forwards;
+}
+
+.svg-error .error-cross {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #ffffff;
+  stroke-dasharray: 20px, 20px;
+  stroke-dashoffset: -19px;
+  animation: draw-symbol 450ms ease 1000ms forwards;
+  opacity: 0;
+}
