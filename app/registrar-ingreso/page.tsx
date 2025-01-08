@@ -6,9 +6,6 @@ import "./registro.component.css";
 
 const RegistroPage: React.FC = () => {
   const [view, setView] = useState<"descuentos" | "gastos">("descuentos");
-  const [solicitudeType, setSolicitudeType] = useState<"descuentos" | "gastos">(
-    "descuentos"
-  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStatus, setModalStatus] = useState({
     isOpen: false,
@@ -21,7 +18,7 @@ const RegistroPage: React.FC = () => {
     setIsModalOpen(false);
 
     // Simulación de llamada a la API
-    const apiResponse = Math.random() > 0.9 ? 200 : 500; // Éxito o error aleatorio
+    const apiResponse = Math.random() > 0.5 ? 200 : 500; // Éxito o error aleatorio
 
     if (apiResponse === 200) {
       setModalStatus({
@@ -52,7 +49,7 @@ const RegistroPage: React.FC = () => {
 
   return (
     <div className="grid grid-rows-[auto_auto_1fr] w-full h-full">
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal isOpen={isModalOpen}>
         <div>
           <h2 className="text-lg font-bold">Confirmar acción</h2>
           <div className="h-[1px] w-full bg-slate-300 my-1" />
