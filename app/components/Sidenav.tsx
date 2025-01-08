@@ -35,7 +35,7 @@ const Sidenav = () => {
               >
                 <Link href={itemLink.url} className="block w-full">
                   <span className="flex flex-row gap-2 items-center">
-                    <itemLink.icon />
+                    <itemLink.icon className="size-[1.15rem]" />
                     {itemLink.label}
                   </span>
                 </Link>
