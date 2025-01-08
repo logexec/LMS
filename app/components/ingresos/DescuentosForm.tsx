@@ -39,7 +39,7 @@ const DescuentosForm = () => {
               ¿Carga masiva de información?
             </h3>
             <p className="text-sm text-slate-500">
-              Por favor, carga tu archivo xlsx, xls o csv.
+              Por favor, carga tu archivo .xlsx, .xls o .csv.
             </p>
           </div>
           <div className="w-3/4">
