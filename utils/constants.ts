@@ -5,7 +5,7 @@ import {
   GrDocumentUser,
   GrSubtractCircle,
 } from "react-icons/gr";
-import { RiDiscountPercentLine } from "react-icons/ri";
+import { VscRequestChanges } from "react-icons/vsc";
 import { CgAddR } from "react-icons/cg";
 import { GiPayMoney } from "react-icons/gi";
 import { LuUsers } from "react-icons/lu";
@@ -57,37 +57,17 @@ export const sidenavLinks: navLink[] = [
     ],
   },
   {
-    category: "Descuentos",
+    category: "Gestión",
     links: [
       {
-        label: "Inicio",
-        url: "/descuentos",
-        icon: MdOutlineDashboard,
-      },
-      {
         label: "Solicitudes",
-        url: "/descuentos/solicitudes",
-        icon: GrDocumentText,
+        url: "/gestion/solicitudes",
+        icon: VscRequestChanges,
       },
       {
         label: "Reportes Personales",
         url: "/descuentos/reportes-personales",
         icon: GrDocumentUser,
-      },
-      {
-        label: "Descuentos Masivos (Faltantes)",
-        url: "/descuentos/masivos",
-        icon: RiDiscountPercentLine,
-      },
-    ],
-  },
-  {
-    category: "Gastos",
-    links: [
-      {
-        label: "Inicio",
-        url: "/gastos",
-        icon: MdOutlineDashboard,
       },
     ],
   },
