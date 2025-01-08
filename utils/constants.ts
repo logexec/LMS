@@ -1,7 +1,13 @@
 import { ElementType } from "react";
 import { MdOutlineDashboard } from "react-icons/md";
-import { GrDocumentText, GrDocumentUser } from "react-icons/gr";
+import {
+  GrDocumentText,
+  GrDocumentUser,
+  GrSubtractCircle,
+} from "react-icons/gr";
 import { RiDiscountPercentLine } from "react-icons/ri";
+import { CgAddR } from "react-icons/cg";
+import { GiPayMoney } from "react-icons/gi";
 import { LuUsers } from "react-icons/lu";
 
 type navLink = {
@@ -22,6 +28,31 @@ export const sidenavLinks: navLink[] = [
         label: "Gestionar usuarios",
         url: "/usuarios",
         icon: LuUsers,
+      },
+    ],
+  },
+  {
+    category: "Ingresos",
+    links: [
+      {
+        label: "Registrar nuevo",
+        url: "/registrar-ingreso",
+        icon: CgAddR,
+      },
+    ],
+  },
+  {
+    category: "Registros",
+    links: [
+      {
+        label: "Descuentos",
+        url: "/registros/descuentos",
+        icon: GrSubtractCircle,
+      },
+      {
+        label: "Gastos",
+        url: "/registros/gastos",
+        icon: GiPayMoney,
       },
     ],
   },
