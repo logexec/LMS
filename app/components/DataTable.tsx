@@ -344,7 +344,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       </div>
 
       {editItem && (
-        <Modal isOpen={!!editItem} onClose={() => setEditItem(null)}>
+        <Modal isOpen={!!editItem}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Editar Registro</h2>
             {editItem &&
@@ -385,7 +385,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       )}
 
       {deleteItem && (
-        <Modal isOpen={!!deleteItem} onClose={() => setDeleteItem(null)}>
+        <Modal isOpen={!!deleteItem}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">
               Se va a eliminar el registro
