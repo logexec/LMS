@@ -123,7 +123,6 @@ const RegistroPage: React.FC = () => {
       <section className="w-full row-start-3 py-4 px-2">
         {view === "descuentos" && (
           <div>
-            Form para agregar descuentos, permitir carga masiva
             <DescuentosForm />
             {/* TODO: Quitar clase invisible */}
             <button
