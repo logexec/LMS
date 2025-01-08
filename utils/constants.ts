@@ -66,7 +66,7 @@ export const sidenavLinks: navLink[] = [
       },
       {
         label: "Reportes Personales",
-        url: "/descuentos/reportes-personales",
+        url: "/gestion/reportes-personales",
         icon: GrDocumentUser,
       },
     ],
