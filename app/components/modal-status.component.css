@@ -2,7 +2,7 @@
   --check-size: 120px;
   --icon-size: 120px;
 }
-.container {
+.modal-container {
   max-width: var(--check-size);
   margin: 50px auto;
 }
@@ -140,7 +140,7 @@
   }
 }
 
-.container {
+.icon-container {
   max-width: var(--icon-size);
   margin: 50px auto;
 }
@@ -186,6 +186,17 @@
   }
 }
 
+@keyframes draw-symbol2 {
+  0% {
+    stroke-dashoffset: 16px;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0px;
+    opacity: 1;
+  }
+}
+
 /* Info Icon */
 .svg-info .info-circle-outline {
   fill: none;
@@ -218,7 +229,7 @@
 .svg-error .error-circle-outline {
   fill: none;
   stroke-width: 1px;
-  stroke: #ef4444; /* Red */
+  stroke: #ef4444;
   stroke-dasharray: 72px, 72px;
   stroke-dashoffset: 72px;
   animation: draw-circle 300ms ease-in-out 400ms forwards;
@@ -237,7 +248,7 @@
   stroke-width: 1px;
   stroke: #ffffff;
   stroke-dasharray: 20px, 20px;
-  stroke-dashoffset: -19px;
-  animation: draw-symbol 450ms ease 1000ms forwards;
+  stroke-dashoffset: -25px;
   opacity: 0;
+  animation: draw-symbol2 450ms ease 1000ms forwards;
 }
