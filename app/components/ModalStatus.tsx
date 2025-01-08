@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import "./modal-status.component.css";
 
 interface ModalProps {
@@ -6,6 +7,7 @@ interface ModalProps {
   information?: boolean;
   success?: boolean;
   text: string;
+  suggestion?: string;
 }
 
 const ModalStatus: React.FC<ModalProps> = ({
@@ -13,17 +15,18 @@ const ModalStatus: React.FC<ModalProps> = ({
   information,
   success,
   text,
+  suggestion,
 }) => {
-  return (
+  return createPortal(
     <div
       className={`fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-50 duration-300 backdrop-blur-sm`}
     >
       <div
-        className={`bg-white p-8 rounded-lg min-w-96 duration-300 fade-in-200`}
+        className={`bg-white p-8 rounded-lg w-[28rem] duration-300 fade-in-200`}
       >
         <div className="flex flex-col justify-center items-center my-5">
           {success && (
-            <div className="container">
+            <div className="modal-container">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="svg-success"
@@ -55,7 +58,7 @@ const ModalStatus: React.FC<ModalProps> = ({
             </div>
           )}
           {error && (
-            <div className="container">
+            <div className="icon-container">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="svg-icon svg-error"
@@ -85,7 +88,7 @@ const ModalStatus: React.FC<ModalProps> = ({
             </div>
           )}
           {information && (
-            <div className="container">
+            <div className="icon-container">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="svg-icon svg-info"
@@ -120,10 +123,14 @@ const ModalStatus: React.FC<ModalProps> = ({
               </svg>
             </div>
           )}
-          <h2 className="text-3xl font-bold fade-in-700">{text}</h2>
+          <h2 className="text-2xl font-bold fade-in-700">{text}</h2>
+          {suggestion !== "" && (
+            <p className="text-base text-slate-700 mt-2">{suggestion}</p>
+          )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
