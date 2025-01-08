@@ -6,14 +6,14 @@
 * Radio Buttons
 **/
 
-.tabs {
+.user-tabs {
   display: flex;
   position: relative;
   padding: 0.75rem;
   border-radius: 99px;
 }
 
-.tabs * {
+.user-tabs * {
   z-index: 2;
 }
 
@@ -27,7 +27,7 @@
   width: inherit;
 }
 
-.tab {
+.user-tab {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,15 +51,15 @@
   margin: 0px;
 }
 
-.container input[id="admin"]:checked ~ .glider {
+.container input[id="admin"]:checked ~ .user-glider {
   transform: translateX(0);
 }
 
-.container input[id="roles"]:checked ~ .glider {
+.container input[id="roles"]:checked ~ .user-glider {
   transform: translateX(100%);
 }
 
-.glider {
+.user-glider {
   position: absolute;
   display: flex;
   height: 30px;

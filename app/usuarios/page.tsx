@@ -53,7 +53,7 @@ const UsersPage: React.FC = () => {
     <div className="w-full">
       <section className="w-full shadow rounded-lg bg-white p-5 flex gap-3">
         <div className="container" id="toggle">
-          <div className="tabs">
+          <div className="user-tabs">
             <input
               type="radio"
               id="users"
@@ -62,7 +62,7 @@ const UsersPage: React.FC = () => {
               checked={view === "users"}
               onChange={handleViewChange}
             />
-            <label className="tab" htmlFor="users">
+            <label className="user-tab" htmlFor="users">
               Administrar Usuarios
             </label>
             <input
@@ -73,10 +73,10 @@ const UsersPage: React.FC = () => {
               checked={view === "roles"}
               onChange={handleViewChange}
             />
-            <label className="tab" htmlFor="roles">
+            <label className="user-tab" htmlFor="roles">
               Administrar Roles
             </label>
-            <span className="glider"></span>
+            <span className="user-glider"></span>
           </div>
         </div>
         <button
