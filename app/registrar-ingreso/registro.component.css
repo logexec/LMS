@@ -1,0 +1,74 @@
+:root {
+  --radio-width: 120px;
+}
+.table-container {
+  height: calc(100% - 40px);
+}
+
+/** 
+* Radio Buttons
+**/
+
+.tabs {
+  display: flex;
+  position: relative;
+  padding: 0.75rem;
+  border-radius: 99px;
+}
+
+.tabs * {
+  z-index: 2;
+}
+
+.container input[type="radio"] {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  width: var(--radio-width);
+  font-size: 0.8rem;
+  color: #5c5e5d;
+  font-weight: 500;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: color 0.15s ease-in;
+}
+
+.container input[type="radio"]:checked + label {
+  color: #e53430;
+}
+
+.container input[type="radio"]:checked + label > .notification {
+  background-color: #e53430;
+  color: #fff;
+  margin: 0px;
+}
+
+.container input[id="descuentos"]:checked ~ .glider {
+  transform: translateX(0);
+}
+
+.container input[id="gastos"]:checked ~ .glider {
+  transform: translateX(100%);
+}
+
+.glider {
+  position: absolute;
+  display: flex;
+  height: 30px;
+  width: var(--radio-width);
+  background-color: #f9e6e6;
+  z-index: 1;
+  border-radius: 99px;
+  transition: 0.25s ease-out;
+}
+
+@media (max-width: 700px) {
+  .tabs {
+    transform: scale(0.6);
+  }
+}
