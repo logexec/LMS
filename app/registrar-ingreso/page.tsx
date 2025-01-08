@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { Modal } from "../components/Modal";
 import ModalStatus from "../components/ModalStatus";
 import "./registro.component.css";
+import DescuentosForm from "../components/ingresos/DescuentosForm";
+import GastosForm from "../components/ingresos/GastosForm";
 
 const RegistroPage: React.FC = () => {
   const [view, setView] = useState<"descuentos" | "gastos">("descuentos");
@@ -82,9 +84,9 @@ const RegistroPage: React.FC = () => {
         />
       )}
 
-      <div className="flex flex-row justify-between row-start-1 px-5 items-center">
-        <h1 className="title">Registros</h1>
-      </div>
+      {/* <div className="flex flex-row justify-between row-start-1 px-5 items-center">
+        <h1 className="title">Registrar</h1>
+      </div> */}
       <section className="w-full shadow rounded-lg bg-white row-start-2 p-5 flex gap-3">
         <div className="container" id="toggle">
           <div className="tabs">
@@ -99,7 +101,7 @@ const RegistroPage: React.FC = () => {
               }
             />
             <label className="tab" htmlFor="descuentos">
-              Descuentos
+              Descuento
             </label>
             <input
               type="radio"
@@ -112,7 +114,7 @@ const RegistroPage: React.FC = () => {
               }
             />
             <label className="tab" htmlFor="gastos">
-              Gastos
+              Gasto
             </label>
             <span className="glider"></span>
           </div>
@@ -122,6 +124,7 @@ const RegistroPage: React.FC = () => {
         {view === "descuentos" && (
           <div>
             Form para agregar descuentos, permitir carga masiva
+            <DescuentosForm />
             <button
               className="text-red-600 hover:underline hover:text-red-700 block"
               onClick={() => setIsModalOpen(true)}
@@ -132,7 +135,7 @@ const RegistroPage: React.FC = () => {
         )}
         {view === "gastos" && (
           <div>
-            Form para agregar gastos
+            <GastosForm />
             <button
               className="text-red-600 hover:underline hover:text-red-700 block"
               onClick={() => setIsModalOpen(true)}
