@@ -125,8 +125,9 @@ const RegistroPage: React.FC = () => {
           <div>
             Form para agregar descuentos, permitir carga masiva
             <DescuentosForm />
+            {/* TODO: Quitar clase invisible */}
             <button
-              className="text-red-600 hover:underline hover:text-red-700 block"
+              className="text-red-600 hover:underline hover:text-red-700 block invisible"
               onClick={() => setIsModalOpen(true)}
             >
               Enviar solicitud
@@ -136,8 +137,9 @@ const RegistroPage: React.FC = () => {
         {view === "gastos" && (
           <div>
             <GastosForm />
+            {/* TODO: Quitar clase invisible */}
             <button
-              className="text-red-600 hover:underline hover:text-red-700 block"
+              className="text-red-600 hover:underline hover:text-red-700 block invisible"
               onClick={() => setIsModalOpen(true)}
             >
               Enviar solicitud
