@@ -7,6 +7,8 @@ import Image from "next/image";
 
 const Sidenav = () => {
   const path = usePathname();
+  const notification = 8;
+
   return (
     <div className="flex flex-col gap-4 h-full w-64 p-4 bg-slate-950 bg-opacity-90 text-slate-50">
       <Link href="/" className="flex items-center justify-center gap-2">
@@ -33,10 +35,29 @@ const Sidenav = () => {
                   path === itemLink.url ? "bg-red-700 hover:bg-primary" : ""
                 }`}
               >
-                <Link href={itemLink.url} className="block w-full">
-                  <span className="flex flex-row gap-2 items-center">
-                    <itemLink.icon className="size-[1.15rem]" />
-                    {itemLink.label}
+                <Link
+                  href={itemLink.url}
+                  className="block w-full transition-colors duration-200"
+                >
+                  <span className="flex items-center justify-between">
+                    <div className="flex flex-row gap-2">
+                      <itemLink.icon className="size-[1.15rem]" />
+                      <span className="transition-colors duration-200">
+                        {itemLink.label}
+                      </span>
+                    </div>
+                    {itemLink.url === "/gestion/solicitudes" &&
+                      notification > 0 && (
+                        <span
+                          className={`rounded-full py-0.5 px-2 bg-slate-600 font-medium transition-colors duration-200 ${
+                            path === itemLink.url
+                              ? "bg-red-700 hover:bg-primary"
+                              : "group-hover:bg-red-700"
+                          }`}
+                        >
+                          {notification}
+                        </span>
+                      )}
                   </span>
                 </Link>
               </li>
