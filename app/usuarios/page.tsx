@@ -1,48 +1,149 @@
 "use client";
-import React, { useState } from "react";
-import "./usuarios.component.css";
-import UsersTableComponent from "../components/UsersTable";
+import React, { Suspense, useEffect, useState } from "react";
 import Modal from "../components/ModalForm";
 import Input from "../components/Input";
 import { roles } from "@/utils/constants";
 import { RiUserAddLine } from "react-icons/ri";
+import "./usuarios.component.css";
+import { DataTable } from "../components/DataTable";
+import Loader from "../components/Loader";
 
-const UsersPage: React.FC = () => {
+interface Employee {
+  id: number;
+  data: Data[];
+}
+
+interface Data {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  correo_electronico: string;
+  proyecto: string;
+  cargo_logex: string;
+  estado_personal: string;
+}
+
+const UsersPage = () => {
   const [view, setView] = useState<"users" | "roles">("users");
   const [modalOpen, setModalOpen] = useState(false);
 
-  const users = [
+  const [users, setUsers] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const userColumns = [
     {
-      id: "1234567890",
-      nombre: "John",
-      apellido: "Doe",
-      email: "johndoe@logex.ec",
-      estado: "activo",
-      rol: "administrador",
-      created_at: "30/12/2024",
-      updated_at: "30/12/2024",
+      id: 0,
+      key: "id",
+      label: "ID",
+      sorteable: true,
     },
     {
-      id: "0987654321",
-      nombre: "John Segundo",
-      apellido: "Doe",
-      email: "johndoe@logex.ec",
-      estado: "activo",
-      rol: "administrador",
-      created_at: "30/12/2024",
-      updated_at: "30/12/2024",
+      id: 1,
+      key: "nombres",
+      label: "Nombres",
+      sorteable: true,
     },
     {
-      id: "1029384756",
-      nombre: "John Tercero",
-      apellido: "Doe",
-      email: "johndoe@logex.ec",
-      estado: "activo",
-      rol: "administrador",
-      created_at: "30/12/2024",
-      updated_at: "30/12/2024",
+      id: 2,
+      key: "correo_electronico",
+      label: "Correo",
+      sortable: true,
+    },
+    {
+      id: 3,
+      key: "proyecto",
+      label: "Proyecto",
+      sortable: true,
+    },
+    {
+      id: 4,
+      key: "cargo_logex",
+      label: "Cargo",
+      sortable: true,
+    },
+    {
+      id: 5,
+      key: "estado_personal",
+      label: "Estado",
+      sortable: true,
     },
   ];
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/personal`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const processedUsers = data.data.map((user: any) => ({
+          id: user.id,
+          nombres: `${capitalize(user.nombres)} ${capitalize(user.apellidos)}`,
+          correo_electronico: user.correo_electronico,
+          proyecto: user.proyecto,
+          cargo_logex: user.cargo_logex,
+          estado_personal: capitalize(user.estado_personal),
+        }));
+
+        setUsers(processedUsers);
+        console.log(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleEdit = async (item: any) => {
+    try {
+      // Implementar la lógica de edición
+      console.log("Editando:", item);
+      // Ejemplo:
+      // await fetch(`/api/users/${item.id}`, {
+      //   method: 'PUT',
+      //   body: JSON.stringify(item)
+      // });
+    } catch (error) {
+      console.error("Error editing user:", error);
+    }
+  };
+
+  const handleDelete = async (item: any) => {
+    try {
+      // Implementar la lógica de eliminación
+      console.log("Eliminando:", item);
+      // Ejemplo:
+      // await fetch(`/api/users/${item.id}`, {
+      //   method: 'DELETE'
+      // });
+      // Actualiza la lista de usuarios después de eliminar
+      setUsers(users.filter((user) => user.id !== item.id));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  };
+  const capitalize = (string: string) => {
+    return string
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
 
   const handleViewChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedValue = event.target.value;
@@ -95,14 +196,28 @@ const UsersPage: React.FC = () => {
             view === "roles" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          <UsersTableComponent nodes={users} type="roles" />
+          <Suspense fallback={<Loader />}>
+            <DataTable
+              columns={userColumns}
+              data={users}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </Suspense>
         </div>
         <div
           className={`w-full h-full transition-all duration-300 col-span-1 col-start-1 row-start-1 ease-out overflow-hidden ${
             view === "users" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          <UsersTableComponent nodes={users} type="users" />
+          <Suspense fallback={<Loader />}>
+            <DataTable
+              columns={userColumns}
+              data={users}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </Suspense>
         </div>
 
         <Modal
