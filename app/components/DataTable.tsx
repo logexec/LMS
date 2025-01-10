@@ -3,7 +3,21 @@ import React, { useState, useEffect, useMemo } from "react";
 import { ArrowUpDown, FileDown, Download, Pencil, Trash2 } from "lucide-react";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
-// Base types for table data and columns
+// Añadimos tipos para la paginación
+interface PaginationInfo {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number;
+  to: number;
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationInfo;
+}
+
 type PrimitiveValue = string | number | boolean | Date | null | undefined;
 type RecordValue = Record<string, PrimitiveValue>;
 
@@ -20,12 +34,12 @@ export interface Column<T extends BaseTableData> {
 }
 
 interface DataTableProps<T extends BaseTableData> {
-  data: T[];
+  data: PaginatedResponse<T>;
   columns: Column<T>[];
   onSelectionChange?: (selectedItems: T[]) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
-  itemsPerPage?: number;
+  onPageChange: (page: number) => void;
   className?: string;
   showActions?: boolean;
   showExport?: boolean;
@@ -37,7 +51,7 @@ export const DataTable = <T extends BaseTableData>({
   onSelectionChange,
   onEdit,
   onDelete,
-  itemsPerPage = 10,
+  onPageChange,
   className = "",
   showActions = true,
   showExport = true,
@@ -49,45 +63,31 @@ export const DataTable = <T extends BaseTableData>({
     direction: "asc" | "desc";
   } | null>(null);
   const [filterText, setFilterText] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const processedData = useMemo(() => {
-    let result = [...data];
+  const { current_page, last_page, from, to, total } = data.meta;
 
-    if (filterText) {
-      result = result.filter((item) =>
-        Object.values(item).some((value) =>
-          String(value ?? "")
-            .toLowerCase()
-            .includes(filterText.toLowerCase())
-        )
-      );
+  // Función para generar el rango de páginas a mostrar
+  const getPageRange = () => {
+    const range: number[] = [];
+    const showPages = 5; // Número de páginas a mostrar
+    let start = Math.max(1, current_page - Math.floor(showPages / 2));
+    let end = Math.min(last_page, start + showPages - 1);
+
+    // Ajustar el inicio si estamos cerca del final
+    if (end === last_page) {
+      start = Math.max(1, end - showPages + 1);
     }
 
-    if (sortConfig) {
-      result.sort((a, b) => {
-        const aValue = a[sortConfig.key] ?? "";
-        const bValue = b[sortConfig.key] ?? "";
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
+    for (let i = start; i <= end; i++) {
+      range.push(i);
     }
 
-    return result;
-  }, [data, filterText, sortConfig]);
-
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return processedData.slice(startIndex, startIndex + itemsPerPage);
-  }, [processedData, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(processedData.length / itemsPerPage);
+    return range;
+  };
 
   const selectedItems = useMemo(() => {
-    return Array.from(selectedRows).map((index) => paginatedData[index]);
-  }, [selectedRows, paginatedData]);
+    return Array.from(selectedRows).map((index) => data.data[index]);
+  }, [selectedRows, data.data]);
 
   useEffect(() => {
     if (onSelectionChange) {
@@ -261,14 +261,14 @@ export const DataTable = <T extends BaseTableData>({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.map((row, index) => (
+            {data.data.map((row, index) => (
               <tr
                 key={row.id}
                 onClick={(e) => handleRowClick(index, e)}
                 className={`
-                  cursor-pointer hover:bg-gray-50 transition-colors
-                  ${selectedRows.has(index) ? "bg-blue-50" : ""}
-                `}
+        cursor-pointer hover:bg-gray-50 transition-colors
+        ${selectedRows.has(index) ? "bg-blue-50" : ""}
+      `}
               >
                 {columns.map((column) => (
                   <td
@@ -316,22 +316,36 @@ export const DataTable = <T extends BaseTableData>({
 
       <div className="mt-4 flex justify-between items-center">
         <div className="text-sm text-gray-700">
-          Mostrando {(currentPage - 1) * itemsPerPage + 1} a{" "}
-          {Math.min(currentPage * itemsPerPage, processedData.length)} de{" "}
-          {processedData.length} entradas
+          Mostrando {from} a {to} de {total} entradas
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+            onClick={() => onPageChange(current_page - 1)}
+            disabled={current_page === 1}
+            className="px-3 py-1 border rounded hover:bg-red-100 disabled:opacity-50"
           >
             Anterior
           </button>
+
+          {getPageRange().map((pageNum) => (
+            <button
+              key={pageNum}
+              onClick={() => onPageChange(pageNum)}
+              className={`px-3 py-1 border rounded hover:bg-red-100 
+                ${
+                  pageNum === current_page
+                    ? "bg-red-500 text-white hover:!bg-red-700"
+                    : ""
+                }`}
+            >
+              {pageNum}
+            </button>
+          ))}
+
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+            onClick={() => onPageChange(current_page + 1)}
+            disabled={current_page === last_page}
+            className="px-3 py-1 border rounded hover:bg-red-100 disabled:opacity-50"
           >
             Siguiente
           </button>
