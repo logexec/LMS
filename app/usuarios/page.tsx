@@ -1,15 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { RiUserAddLine } from "react-icons/ri";
-import { DataTable } from "../components/DataTable";
+import { DataTable, Column, BaseTableData } from "../components/DataTable";
 import PersonalForm from "../components/forms/PersonalForm";
 import Loader from "../components/Loader";
 import { Modal } from "../components/Modal";
 import "./usuarios.component.css";
 
 // Domain Models
-interface Personal {
-  id: number | string;
+interface Personal extends BaseTableData {
   nombres: string;
   apellidos: string;
   correo_electronico: string;
@@ -17,6 +16,35 @@ interface Personal {
   cargo_logex: string;
   estado_personal: string;
 }
+
+// Configuración de columnas para la tabla
+const userColumns: Column<Personal>[] = [
+  {
+    key: "nombres",
+    label: "Nombres",
+    sortable: true,
+  },
+  {
+    key: "correo_electronico",
+    label: "Correo",
+    sortable: true,
+  },
+  {
+    key: "proyecto",
+    label: "Proyecto",
+    sortable: true,
+  },
+  {
+    key: "cargo_logex",
+    label: "Cargo",
+    sortable: true,
+  },
+  {
+    key: "estado_personal",
+    label: "Estado",
+    sortable: true,
+  },
+];
 
 interface ApiResponse {
   data: Personal[];
@@ -39,40 +67,6 @@ const UsersPage: React.FC = () => {
   const [editItem, setEditItem] = useState<Personal | null>(null);
   const [deleteItem, setDeleteItem] = useState<Personal | null>(null);
   const [infoModalOpen, setInfoModalOpen] = useState(false);
-
-  // Configuración de columnas para la tabla
-  const userColumns = [
-    {
-      id: 1,
-      key: "nombres",
-      label: "Nombres",
-      sortable: true,
-    },
-    {
-      id: 2,
-      key: "correo_electronico",
-      label: "Correo",
-      sortable: true,
-    },
-    {
-      id: 3,
-      key: "proyecto",
-      label: "Proyecto",
-      sortable: true,
-    },
-    {
-      id: 4,
-      key: "cargo_logex",
-      label: "Cargo",
-      sortable: true,
-    },
-    {
-      id: 5,
-      key: "estado_personal",
-      label: "Estado",
-      sortable: true,
-    },
-  ];
 
   // Fetch inicial de datos
   const fetchUsers = async () => {
@@ -304,6 +298,7 @@ const UsersPage: React.FC = () => {
             data={users}
             onEdit={setEditItem}
             onDelete={setDeleteItem}
+            showExport={false}
           />
         </div>
         <div
@@ -316,6 +311,7 @@ const UsersPage: React.FC = () => {
             data={users}
             onEdit={setEditItem}
             onDelete={setDeleteItem}
+            showExport={false}
           />
         </div>
       </section>
