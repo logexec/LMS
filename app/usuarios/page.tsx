@@ -371,19 +371,17 @@ const UsersPage: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Error al actualizar usuario");
+        throw new Error("Error al actualizar cargo");
       }
 
       await fetchUsers();
       setEditItem(null);
     } catch (error) {
-      console.error("Error updating personal:", error);
+      console.error("Error updating position:", error);
       setErrorMessage({
         status: 500,
         message:
-          error instanceof Error
-            ? error.message
-            : "Error al actualizar usuario",
+          error instanceof Error ? error.message : "Error al actualizar cargo",
       });
       setInfoModalOpen(true);
     } finally {
