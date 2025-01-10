@@ -16,15 +16,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
-        <div className="grid grid-cols-[auto_1fr]">
+      <body className={`antialiased relative`}>
+        <div className="relative lg:flex lg:items-start">
           <Sidenav />
-          <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen">
-            <Navigation />
-            <main className="flex gap-8 row-start-2 items-center sm:items-start h-full w-full p-2">
-              {children}
-            </main>
-            <Footer />
+          <div className="flex-1">
+            <div className="ml-64 grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen">
+              <Navigation />
+              <main className="flex gap-8 row-start-2 items-center sm:items-start h-full w-full p-2">
+                {children}
+              </main>
+              <Footer />
+            </div>
           </div>
         </div>
       </body>

@@ -10,7 +10,7 @@ const Sidenav = () => {
   const notification = 8;
 
   return (
-    <div className="flex flex-col gap-4 h-full w-64 p-4 bg-slate-950 bg-opacity-90 text-slate-50">
+    <aside className="fixed top-0 bottom-0 left-0 flex flex-col gap-4 h-full w-64 z-20 p-4 bg-slate-950 bg-opacity-90 text-slate-50">
       <Link href="/" className="flex items-center justify-center gap-2">
         <Image
           aria-hidden
@@ -65,7 +65,7 @@ const Sidenav = () => {
           </ul>
         </div>
       ))}
-    </div>
+    </aside>
   );
 };
 
