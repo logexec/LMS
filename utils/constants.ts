@@ -25,7 +25,7 @@ export const sidenavLinks: navLink[] = [
     category: "Administración General",
     links: [
       {
-        label: "Gestionar usuarios",
+        label: "Gestionar Personal",
         url: "/usuarios",
         icon: LuUsers,
       },
@@ -35,7 +35,7 @@ export const sidenavLinks: navLink[] = [
     category: "Ingresos",
     links: [
       {
-        label: "Registrar nuevo",
+        label: "Registrar Nuevo",
         url: "/registrar-ingreso",
         icon: CgAddR,
       },
@@ -72,7 +72,7 @@ export const sidenavLinks: navLink[] = [
     ],
   },
   {
-    category: "Ingresos especiales",
+    category: "Ingresos Especiales",
     links: [
       {
         label: "Inicio",
