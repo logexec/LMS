@@ -2,6 +2,7 @@ import React from "react";
 import { Modal } from "../Modal";
 
 // Domain Models. | Actualizar con los campos necesarios
+
 interface Position {
   id: string | number;
   cargo: string;

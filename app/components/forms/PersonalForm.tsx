@@ -1,15 +1,15 @@
 import React from "react";
 import { Modal } from "../Modal";
+import { BaseTableData } from "../DataTable";
 
 // Domain Models. | Actualizar con los campos necesarios
-interface Personal {
-  id: string | number;
+interface Personal extends BaseTableData {
   nombres: string;
   apellidos: string;
   correo_electronico: string;
+  proyecto?: string;
   cargo_logex: string;
   estado_personal: string;
-  proyecto?: string;
 }
 
 type FormMode = "create" | "edit";
