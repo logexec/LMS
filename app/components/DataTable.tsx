@@ -1,48 +1,55 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { ArrowUpDown, FileDown, Download, Pencil, Trash2 } from "lucide-react";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import { ArrowUpDown, Download, FileDown, Pencil, Trash2 } from "lucide-react";
-import { Modal } from "./Modal";
 
-type CellValue = string | number | null;
+// Base types for table data and columns
+type PrimitiveValue = string | number | boolean | Date | null | undefined;
+type RecordValue = Record<string, PrimitiveValue>;
 
-interface TableData {
+export interface BaseTableData extends RecordValue {
   id: string | number;
-  [key: string]: CellValue;
+  [key: string]: PrimitiveValue;
 }
 
-interface Column {
-  key: string;
+export interface Column<T extends BaseTableData> {
+  key: keyof T;
   label: string;
   sortable?: boolean;
+  render?: (value: T[keyof T], row: T) => React.ReactNode;
 }
 
-interface DataTableProps {
-  data: TableData[];
-  columns: Column[];
-  onSelectionChange?: (selectedItems: TableData[]) => void;
-  onEdit?: (item: TableData) => void;
-  onDelete?: (item: TableData) => void;
+interface DataTableProps<T extends BaseTableData> {
+  data: T[];
+  columns: Column<T>[];
+  onSelectionChange?: (selectedItems: T[]) => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  itemsPerPage?: number;
+  className?: string;
+  showActions?: boolean;
+  showExport?: boolean;
 }
 
-export const DataTable: React.FC<DataTableProps> = ({
+export const DataTable = <T extends BaseTableData>({
   data,
   columns,
   onSelectionChange,
   onEdit,
   onDelete,
-}) => {
+  itemsPerPage = 10,
+  className = "",
+  showActions = true,
+  showExport = true,
+}: DataTableProps<T>) => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [lastSelected, setLastSelected] = useState<number | null>(null);
   const [sortConfig, setSortConfig] = useState<{
-    key: string;
+    key: keyof T;
     direction: "asc" | "desc";
   } | null>(null);
   const [filterText, setFilterText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-  const [editItem, setEditItem] = useState<TableData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<TableData | null>(null);
 
   const processedData = useMemo(() => {
     let result = [...data];
@@ -115,7 +122,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     setSelectedRows(newSelected);
   };
 
-  const handleSort = (key: string) => {
+  const handleSort = (key: keyof T) => {
     setSortConfig((current) => {
       if (current?.key === key) {
         return current.direction === "asc" ? { key, direction: "desc" } : null;
@@ -124,28 +131,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     });
   };
 
-  const handleEdit = (item: TableData) => {
-    setEditItem(item);
-  };
-
-  const handleDelete = (item: TableData) => {
-    setDeleteItem(item);
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteItem && onDelete) {
-      onDelete(deleteItem);
-      setDeleteItem(null);
-    }
-  };
-
-  const handleConfirmEdit = () => {
-    if (editItem && onEdit) {
-      onEdit(editItem);
-      setEditItem(null);
-    }
-  };
-
+  // Existing export functions remain the same...
   const exportToCSV = () => {
     const headers = columns.map((col) => col.label).join(",");
     const rows = data
@@ -173,7 +159,6 @@ export const DataTable: React.FC<DataTableProps> = ({
     const padding = 40;
     let yOffset = page.getHeight() - padding;
 
-    // Agregar cabeceras
     columns.forEach((col, index) => {
       page.drawText(col.label, {
         x: padding + index * 100,
@@ -185,10 +170,8 @@ export const DataTable: React.FC<DataTableProps> = ({
 
     yOffset -= 20;
 
-    // Agregar filas
     data.forEach((row) => {
       if (yOffset < padding) {
-        // Agregar nueva página si se acaba el espacio
         const newPage = pdfDoc.addPage();
         yOffset = newPage.getHeight() - padding;
       }
@@ -211,7 +194,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     const url = URL.createObjectURL(blob);
 
     link.setAttribute("href", url);
-    link.setAttribute("download", "LogeX-export.pdf");
+    link.setAttribute("download", "table-export.pdf");
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -219,7 +202,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${className}`}>
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <input
           type="text"
@@ -228,22 +211,24 @@ export const DataTable: React.FC<DataTableProps> = ({
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
         />
-        <div className="flex gap-2">
-          <button
-            onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          >
-            <FileDown size={16} />
-            <span className="hidden sm:inline">Exportar CSV</span>
-          </button>
-          <button
-            onClick={exportToPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-          >
-            <Download size={16} />
-            <span className="hidden sm:inline">Exportar PDF</span>
-          </button>
-        </div>
+        {showExport && (
+          <div className="flex gap-2">
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              <FileDown size={16} />
+              <span className="hidden sm:inline">Exportar CSV</span>
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              <Download size={16} />
+              <span className="hidden sm:inline">Exportar PDF</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto border rounded-lg">
@@ -252,7 +237,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             <tr>
               {columns.map((column) => (
                 <th
-                  key={column.key}
+                  key={String(column.key)}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   <div className="flex items-center gap-2">
@@ -268,9 +253,11 @@ export const DataTable: React.FC<DataTableProps> = ({
                   </div>
                 </th>
               ))}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
+              {showActions && (onEdit || onDelete) && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -285,34 +272,42 @@ export const DataTable: React.FC<DataTableProps> = ({
               >
                 {columns.map((column) => (
                   <td
-                    key={column.key}
+                    key={String(column.key)}
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                   >
-                    {row[column.key] ?? ""}
+                    {column.render
+                      ? column.render(row[column.key], row)
+                      : row[column.key] ?? ""}
                   </td>
                 ))}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(row);
-                      }}
-                      className="p-1 text-blue-600 hover:text-blue-800"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(row);
-                      }}
-                      className="p-1 text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
+                {showActions && (onEdit || onDelete) && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex gap-2">
+                      {onEdit && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(row);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(row);
+                          }}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-full"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -342,75 +337,6 @@ export const DataTable: React.FC<DataTableProps> = ({
           </button>
         </div>
       </div>
-
-      {editItem && (
-        <Modal isOpen={!!editItem}>
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Editar Registro</h2>
-            {editItem &&
-              columns.map((column) => (
-                <div key={column.key}>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {column.label}
-                  </label>
-                  <input
-                    type="text"
-                    value={editItem[column.key] ?? ""}
-                    onChange={(e) =>
-                      setEditItem({
-                        ...editItem,
-                        [column.key]: e.target.value,
-                      })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  />
-                </div>
-              ))}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setEditItem(null)}
-                className="px-4 py-2 border rounded-md hover:bg-gray-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmEdit}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {deleteItem && (
-        <Modal isOpen={!!deleteItem}>
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">
-              Se va a eliminar el registro
-            </h2>
-            <p>
-              ¿Estás seguro de que quieres eliminar el registro {deleteItem.id}{" "}
-              de {deleteItem.name}?
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setDeleteItem(null)}
-                className="px-4 py-2 border rounded-md hover:bg-gray-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 };
