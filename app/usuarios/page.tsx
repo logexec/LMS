@@ -1,47 +1,52 @@
 "use client";
-import React, { Suspense, useEffect, useState } from "react";
-import Modal from "../components/ModalForm";
-import Input from "../components/Input";
-import { roles } from "@/utils/constants";
+import React, { useEffect, useState } from "react";
 import { RiUserAddLine } from "react-icons/ri";
-import "./usuarios.component.css";
 import { DataTable } from "../components/DataTable";
+import PersonalForm from "../components/forms/PersonalForm";
 import Loader from "../components/Loader";
+import { Modal } from "../components/Modal";
+import "./usuarios.component.css";
 
-interface Employee {
-  id: number;
-  data: Data[];
-}
-
-interface Data {
-  id: string;
+// Domain Models
+interface Personal {
+  id: number | string;
   nombres: string;
   apellidos: string;
   correo_electronico: string;
-  proyecto: string;
+  proyecto?: string;
   cargo_logex: string;
   estado_personal: string;
 }
 
-const UsersPage = () => {
+interface ApiResponse {
+  data: Personal[];
+}
+
+interface ErrorMessage {
+  status: number;
+  message: string;
+}
+
+const UsersPage: React.FC = () => {
+  // Estado principal
+  const [users, setUsers] = useState<Personal[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<ErrorMessage | null>(null);
+
+  // Estados de UI
   const [view, setView] = useState<"users" | "roles">("users");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editItem, setEditItem] = useState<Personal | null>(null);
+  const [deleteItem, setDeleteItem] = useState<Personal | null>(null);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
 
-  const [users, setUsers] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  // Configuración de columnas para la tabla
   const userColumns = [
-    {
-      id: 0,
-      key: "id",
-      label: "ID",
-      sorteable: true,
-    },
     {
       id: 1,
       key: "nombres",
       label: "Nombres",
-      sorteable: true,
+      sortable: true,
     },
     {
       id: 2,
@@ -69,75 +74,148 @@ const UsersPage = () => {
     },
   ];
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(`http://127.0.0.1:8000/api/personal`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+  // Fetch inicial de datos
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/personal`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        const processedUsers = data.data.map((user: any) => ({
-          id: user.id,
-          nombres: `${capitalize(user.nombres)} ${capitalize(user.apellidos)}`,
-          correo_electronico: user.correo_electronico,
-          proyecto: user.proyecto,
-          cargo_logex: user.cargo_logex,
-          estado_personal: capitalize(user.estado_personal),
-        }));
-
-        setUsers(processedUsers);
-        console.log(users);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(response.statusText || "Error al cargar usuarios");
       }
-    };
 
+      const { data }: ApiResponse = await response.json();
+      const processedUsers = data.map((user) => ({
+        ...user,
+        nombres: `${capitalize(user.nombres)} ${capitalize(user.apellidos)}`,
+        estado_personal: capitalize(user.estado_personal),
+      }));
+
+      setUsers(processedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setErrorMessage({
+        status: 500,
+        message: error instanceof Error ? error.message : "Error desconocido",
+      });
+      setInfoModalOpen(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  const handleEdit = async (item: any) => {
+  // Handlers
+  const handleCreatePersonal = async (newPersonal: Personal) => {
     try {
-      // Implementar la lógica de edición
-      console.log("Editando:", item);
-      // Ejemplo:
-      // await fetch(`/api/users/${item.id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(item)
-      // });
+      setIsLoading(true);
+      const response = await fetch("http://127.0.0.1:8000/api/personal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newPersonal),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al crear usuario");
+      }
+
+      await fetchUsers();
+      setCreateModalOpen(false);
     } catch (error) {
-      console.error("Error editing user:", error);
+      console.error("Error creating personal:", error);
+      setErrorMessage({
+        status: 500,
+        message:
+          error instanceof Error ? error.message : "Error al crear usuario",
+      });
+      setInfoModalOpen(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDelete = async (item: any) => {
+  const handleEditPersonal = async (updatedPersonal: Personal) => {
     try {
-      // Implementar la lógica de eliminación
-      console.log("Eliminando:", item);
-      // Ejemplo:
-      // await fetch(`/api/users/${item.id}`, {
-      //   method: 'DELETE'
-      // });
-      // Actualiza la lista de usuarios después de eliminar
-      setUsers(users.filter((user) => user.id !== item.id));
+      setIsLoading(true);
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/personal/${updatedPersonal.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedPersonal),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar usuario");
+      }
+
+      await fetchUsers();
+      setEditItem(null);
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error updating personal:", error);
+      setErrorMessage({
+        status: 500,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Error al actualizar usuario",
+      });
+      setInfoModalOpen(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const capitalizeFirstLetter = (string: string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  const handleDeletePersonal = async (personal: Personal) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/personal/${personal.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al eliminar usuario");
+      }
+
+      await fetchUsers();
+      setDeleteItem(null);
+    } catch (error) {
+      console.error("Error deleting personal:", error);
+      setErrorMessage({
+        status: 500,
+        message:
+          error instanceof Error ? error.message : "Error al eliminar usuario",
+      });
+      setInfoModalOpen(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleViewChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setView(event.target.value as "users" | "roles");
+  };
+
+  // Utilidades
   const capitalize = (string: string) => {
     return string
       .split(" ")
@@ -145,13 +223,36 @@ const UsersPage = () => {
       .join(" ");
   };
 
-  const handleViewChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedValue = event.target.value;
-    setView(selectedValue as "users" | "roles");
-  };
-
   return (
     <div className="w-full">
+      {isLoading && <Loader fullScreen />}
+
+      {/* Error Modal */}
+      {infoModalOpen && errorMessage && (
+        <Modal isOpen={infoModalOpen}>
+          <div className="flex flex-col">
+            <h3 className="text-2xl text-red-700 -mb-1">
+              Error {errorMessage.status}:{" "}
+              <span className="text-red-600">{errorMessage.message}</span>
+            </h3>
+            <p className="text-slate-800 my-4 text-lg">
+              Hubo un problema al tratar de recuperar la información.
+            </p>
+            <p className="text-slate-700 text-sm">
+              Por favor, acércate al equipo de IT e informa de este problema lo
+              antes posible.
+            </p>
+            <button
+              className="bg-red-700 hover:bg-red-800 rounded text-white font-semibold justify-center items-center self-end px-4 py-1 w-max"
+              onClick={() => setInfoModalOpen(false)}
+            >
+              Aceptar
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Header Section */}
       <section className="w-full shadow rounded-lg bg-white p-5 flex gap-3">
         <div className="container" id="toggle">
           <div className="user-tabs">
@@ -182,7 +283,7 @@ const UsersPage = () => {
         </div>
         <button
           className="float-end btn w-56 h-11"
-          onClick={() => setModalOpen(true)}
+          onClick={() => setCreateModalOpen(true)}
         >
           <span className="flex gap-4 justify-center items-center">
             <RiUserAddLine className="flex w-min" />
@@ -190,95 +291,82 @@ const UsersPage = () => {
           </span>
         </button>
       </section>
+
+      {/* Content Section */}
       <section className="w-full h-full grid grid-cols-[1fr_auto] p-5 grid-rows-1 transition-all duration-300 overflow-x-hidden relative">
         <div
           className={`w-full h-full transition-all duration-300 col-span-1 row-start-1 col-start-1 ease-out overflow-hidden ${
             view === "roles" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          <Suspense fallback={<Loader />}>
-            <DataTable
-              columns={userColumns}
-              data={users}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </Suspense>
+          <DataTable
+            columns={userColumns}
+            data={users}
+            onEdit={setEditItem}
+            onDelete={setDeleteItem}
+          />
         </div>
         <div
           className={`w-full h-full transition-all duration-300 col-span-1 col-start-1 row-start-1 ease-out overflow-hidden ${
             view === "users" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          <Suspense fallback={<Loader />}>
-            <DataTable
-              columns={userColumns}
-              data={users}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </Suspense>
+          <DataTable
+            columns={userColumns}
+            data={users}
+            onEdit={setEditItem}
+            onDelete={setDeleteItem}
+          />
         </div>
-
-        <Modal
-          title="Nuevo Usuario"
-          onClose={() => setModalOpen(false)}
-          isOpen={modalOpen}
-          isForm={false}
-        >
-          <form className="pb-5">
-            <div className="grid grid-cols-3 p-2 gap-5">
-              <Input type="text" label="Nombres" name="name" id="name" />
-              <Input
-                type="text"
-                id="lastName"
-                name="lastName"
-                label="Apellidos"
-              />
-              <div className="relative w-full">
-                <select
-                  id="roleSelect"
-                  className="block w-full p-2 text-sm border-none border-b-[2px] border-b-[#ccc] outline-none bg-transparent select-field"
-                >
-                  {roles.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
-                <label htmlFor="roleSelect" className={`select-label`}>
-                  Rol
-                </label>
-                <span className="select-highlight"></span>
-              </div>
-              <div className="block">
-                <Input type="text" id="id" name="id" label="Identificación" />
-              </div>
-              <div className="block">
-                <Input type="email" id="email" name="email" label="Email" />
-              </div>
-              <div className="w-full block">
-                <div className="relative w-full">
-                  <select
-                    id="roleSelect"
-                    className="block w-full p-2 text-sm border-none border-b-[2px] border-b-[#ccc] outline-none bg-transparent select-field"
-                  >
-                    <option value="active">Activo</option>
-                    <option value="deactivated">Desactivado</option>
-                  </select>
-                  <label htmlFor="roleSelect" className={`select-label`}>
-                    Estado
-                  </label>
-                  <span className="select-highlight"></span>
-                </div>
-              </div>
-            </div>
-            <button type="submit" className="float-start mt-5 btn w-56">
-              Guardar
-            </button>
-          </form>
-        </Modal>
       </section>
+
+      {/* Create Form */}
+      <PersonalForm
+        mode="create"
+        isOpen={createModalOpen}
+        onSave={handleCreatePersonal}
+        onCancel={() => setCreateModalOpen(false)}
+      />
+
+      {/* Edit Form */}
+      {editItem && (
+        <PersonalForm
+          mode="edit"
+          initialData={editItem}
+          isOpen={!!editItem}
+          onSave={handleEditPersonal}
+          onCancel={() => setEditItem(null)}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteItem && (
+        <Modal isOpen={!!deleteItem}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">
+              Se va a eliminar el registro
+            </h2>
+            <p>
+              ¿Estás seguro de que quieres eliminar el registro de{" "}
+              {deleteItem.nombres}?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setDeleteItem(null)}
+                className="px-4 py-2 border rounded-md hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDeletePersonal(deleteItem)}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
