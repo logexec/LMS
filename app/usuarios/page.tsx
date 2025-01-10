@@ -356,17 +356,17 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const handleEditPosition = async (updatedPersonal: Personal) => {
+  const handleEditPosition = async (updatedPosition: Cargo) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `http://127.0.0.1:8000/api/personal/${updatedPersonal.id}`,
+        `http://127.0.0.1:8000/api/personal/${updatedPosition.id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(updatedPersonal),
+          body: JSON.stringify(updatedPosition),
         }
       );
 
@@ -391,11 +391,11 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const handleDeletePosition = async (personal: Personal) => {
+  const handleDeletePosition = async (cargo: Cargo) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `http://127.0.0.1:8000/api/personal/${personal.id}`,
+        `http://127.0.0.1:8000/api/cargo/${cargo.id}`,
         {
           method: "DELETE",
           headers: {
@@ -411,7 +411,7 @@ const UsersPage: React.FC = () => {
       await fetchUsers();
       setDeleteItem(null);
     } catch (error) {
-      console.error("Error deleting personal:", error);
+      console.error("Error deleting position:", error);
       setErrorMessage({
         status: 500,
         message:
