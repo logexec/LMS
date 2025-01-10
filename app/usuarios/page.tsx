@@ -103,7 +103,7 @@ const UsersPage: React.FC = () => {
       current_page: 1,
       from: 0,
       last_page: 1,
-      per_page: 15,
+      per_page: 10,
       to: 0,
       total: 0,
     },
@@ -115,7 +115,7 @@ const UsersPage: React.FC = () => {
       current_page: 1,
       from: 0,
       last_page: 1,
-      per_page: 15,
+      per_page: 10,
       to: 0,
       total: 0,
     },
@@ -226,6 +226,10 @@ const UsersPage: React.FC = () => {
   // Manejador de cambio de página
   const handlePageChange = (page: number) => {
     fetchUsers(page);
+  };
+
+  const handleCargoPageChange = (page: number) => {
+    fetchRoles(page);
   };
 
   // Handlers
@@ -527,7 +531,7 @@ const UsersPage: React.FC = () => {
               data={rolesData}
               onEdit={setEditPosition}
               onDelete={setDeletePosition}
-              onPageChange={handlePageChange}
+              onPageChange={handleCargoPageChange}
               showExport={false}
             />
           )}
