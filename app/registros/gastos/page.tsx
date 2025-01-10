@@ -1,5 +1,3 @@
-import { DataTable } from "@/app/components/DataTable";
-import { columns, sampleData } from "@/utils/dummyData";
 import React from "react";
 
 const page = () => {
@@ -8,9 +6,7 @@ const page = () => {
       <div className="flex flex-row justify-between px-5 items-center">
         <h1 className="title">Gastos</h1>
       </div>
-      <section className="w-full row-start-2 py-4 px-2">
-        <DataTable columns={columns} data={sampleData} />
-      </section>
+      <section className="w-full row-start-2 py-4 px-2"></section>
     </div>
   );
   //TODO: Llega la informacion de lo que se ingresa en descuentos: Unicamente se aprueba o se elimina. No se puede modificar.
