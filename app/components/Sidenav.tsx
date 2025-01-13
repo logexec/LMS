@@ -4,10 +4,35 @@ import React from "react";
 import { sidenavLinks } from "@/utils/constants";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidenav = () => {
   const path = usePathname();
   const notification = 8;
+
+  const { hasPermission } = useAuth();
+
+  // Filtrar categorías y links basados en permisos
+  const filteredNavLinks = sidenavLinks.filter((category) => {
+    // Si la categoría no requiere permisos, mostrarla
+    if (!category.requiredPermissions) return true;
+
+    // Si la categoría requiere permisos, verificar
+    if (!hasPermission(category.requiredPermissions)) return false;
+
+    // Filtrar los links dentro de la categoría
+    const filteredLinks = category.links.filter((link) => {
+      if (!link.requiredPermissions) return true;
+      return hasPermission(link.requiredPermissions);
+    });
+
+    // Solo mostrar la categoría si tiene links visibles
+    return filteredLinks.length > 0;
+
+    // Asignar los links filtrados a la categoría
+    category.links = filteredLinks;
+    return true;
+  });
 
   return (
     <aside className="fixed top-0 bottom-0 left-0 flex flex-col gap-4 h-full w-64 z-20 p-4 bg-slate-950 bg-opacity-90 text-slate-50">
@@ -21,7 +46,7 @@ const Sidenav = () => {
           priority
         />
       </Link>
-      {sidenavLinks.map((item) => (
+      {filteredNavLinks.map((item) => (
         <div className="flex flex-col" key={item.category}>
           <h3 className="text-slate-400 font-semibold text-sm">
             {item.category}
