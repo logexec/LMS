@@ -5,9 +5,9 @@ import { DataTable, Column, BaseTableData } from "../components/DataTable";
 import PersonalForm from "../components/forms/PersonalForm";
 import Loader from "../components/Loader";
 import { Modal } from "../components/Modal";
-import "./usuarios.component.css";
 import PositionForm from "../components/forms/PositionForm";
 import { TbHierarchy2 } from "react-icons/tb";
+import "./usuarios.component.css";
 
 // Domain Models
 interface Personal extends BaseTableData {
@@ -443,7 +443,7 @@ const UsersPage: React.FC = () => {
       {infoModalOpen && errorMessage && (
         <Modal isOpen={infoModalOpen}>
           <div className="flex flex-col">
-            <h3 className="text-2xl text-red-700 -mb-1">
+            <h3 className="text-2xl text-red-600 -mb-1">
               Error {errorMessage.status}:{" "}
               <span className="text-red-600">{errorMessage.message}</span>
             </h3>
@@ -455,7 +455,7 @@ const UsersPage: React.FC = () => {
               antes posible.
             </p>
             <button
-              className="bg-red-700 hover:bg-red-800 rounded text-white font-semibold justify-center items-center self-end px-4 py-1 w-max"
+              className="bg-slate-700 hover:bg-slate-800 rounded text-white font-semibold justify-center items-center self-end px-4 py-1 mt-5 w-max"
               onClick={() => setInfoModalOpen(false)}
             >
               Aceptar

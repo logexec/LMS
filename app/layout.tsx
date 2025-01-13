@@ -1,34 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Footer from "./components/Footer";
-import Navigation from "./components/Navigation";
-import Sidenav from "./components/Sidenav";
+import { AuthProvider } from "@/contexts/AuthContext";
+import AppContent from "./AppContent";
 
 export const metadata: Metadata = {
   title: "LMS | Logex Administración",
   description: "LogeX | Supply Chain Management",
 };
 
+// Este es un componente de servidor
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={`antialiased relative`}>
-        <div className="relative lg:flex lg:items-start">
-          <Sidenav />
-          <div className="flex-1">
-            <div className="ml-64 grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen">
-              <Navigation />
-              <main className="flex gap-8 row-start-2 items-center sm:items-start h-full w-full p-2">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </div>
-        </div>
+      <body className="antialiased">
+        <AuthProvider>
+          <AppContent>{children}</AppContent>
+        </AuthProvider>
       </body>
     </html>
   );
