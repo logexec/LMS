@@ -22,14 +22,14 @@ const Navigation = () => {
           transition={{ delay: 0.2 }}
           className="flex items-center space-x-2 text-sm md:text-base"
         >
-          <div className="ml-9 flex items-center space-x-1 border-l border-gray-600 pl-2">
+          <div className="ml-9 flex items-center space-x-1 border-l border-gray-600 pl-2 lg:ml-0 ">
             <span className="font-medium">
               {formatHours(new Date().getHours())}
             </span>
             <motion.span
               animate={{ opacity: [1, 0, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="text-red-500"
+              className="text-red-600 font-bold"
             >
               :
             </motion.span>
