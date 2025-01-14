@@ -18,3 +18,8 @@ export interface PersonalTable extends BasePersonal {
   usuario: string;
   [key: string]: PrimitiveType;
 }
+
+export interface SortConfig<T> {
+  key: keyof T;
+  direction: "asc" | "desc";
+}
