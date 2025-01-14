@@ -1,27 +1,38 @@
 "use client";
-
+import React from "react";
+import { motion } from "motion/react";
 import { useAuth } from "@/contexts/AuthContext";
 import Footer from "./components/Footer";
 import Navigation from "./components/Navigation";
 import Sidenav from "./components/Sidenav";
 import LoginPage from "./login/page";
 
-function DashboardLayout({ children }: { children: React.ReactNode }) {
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative lg:flex lg:items-start">
+    <div className="relative min-h-screen bg-slate-100">
       <Sidenav />
-      <div className="flex-1">
-        <div className="ml-64 grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen">
-          <Navigation />
-          <main className="flex gap-8 row-start-2 items-center sm:items-start h-full w-full p-2">
+      <div className="lg:ml-64">
+        <Navigation />
+        <motion.main
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="container mx-auto min-h-[calc(100vh-theme(space.32))] p-4 lg:p-6"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="rounded-xl bg-white p-6 shadow-lg"
+          >
             {children}
-          </main>
-          <Footer />
-        </div>
+          </motion.div>
+        </motion.main>
+        <Footer />
       </div>
     </div>
   );
-}
+};
 
 export default function AppContent({
   children,
@@ -32,8 +43,17 @@ export default function AppContent({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: 0.5,
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
+          className="rounded-full border-4 border-red-600 border-t-transparent h-16 w-16 animate-spin"
+        />
       </div>
     );
   }

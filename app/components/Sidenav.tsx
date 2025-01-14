@@ -1,96 +1,167 @@
 "use client";
-import Link from "next/link";
-import React from "react";
-import { sidenavLinks } from "@/utils/constants";
-import { usePathname } from "next/navigation";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { sidenavLinks } from "@/utils/constants";
+import logo from "@/public/images/logex_logo.png";
+import Link from "next/link";
+
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const updateMatch = () => setMatches(media.matches);
+
+    // Set initial value
+    updateMatch();
+
+    // Setup listener
+    media.addEventListener("change", updateMatch);
+
+    // Cleanup
+    return () => media.removeEventListener("change", updateMatch);
+  }, [query]);
+
+  return matches;
+};
 
 const Sidenav = () => {
-  const path = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const path = window.location.pathname;
   const notification = 8;
-
   const { hasPermission } = useAuth();
 
-  // Filtrar categorías y links basados en permisos
   const filteredNavLinks = sidenavLinks.filter((category) => {
-    // Si la categoría no requiere permisos, mostrarla
     if (!category.requiredPermissions) return true;
-
-    // Si la categoría requiere permisos, verificar
     if (!hasPermission(category.requiredPermissions)) return false;
-
-    // Filtrar los links dentro de la categoría
     const filteredLinks = category.links.filter((link) => {
       if (!link.requiredPermissions) return true;
       return hasPermission(link.requiredPermissions);
     });
-
-    // Solo mostrar la categoría si tiene links visibles
     return filteredLinks.length > 0;
-
-    // Asignar los links filtrados a la categoría
-    category.links = filteredLinks;
-    return true;
   });
 
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+  const sidenavAnimationProps = isDesktop
+    ? {
+        initial: { x: 0 },
+        animate: { x: 0 },
+      }
+    : {
+        initial: { x: -320 },
+        animate: { x: isMobileMenuOpen ? 0 : -320 },
+        transition: { type: "spring", bounce: 0, duration: 0.4 },
+      };
+
   return (
-    <aside className="fixed top-0 bottom-0 left-0 flex flex-col gap-4 h-full w-64 z-20 p-4 bg-slate-950 bg-opacity-90 text-slate-50">
-      <Link href="/" className="flex items-center justify-center gap-2">
-        <Image
-          aria-hidden
-          src="/images/logex_logo.png"
-          alt="LogeX logo"
-          width={128}
-          height={100}
-          priority
-        />
-      </Link>
-      {filteredNavLinks.map((item) => (
-        <div className="flex flex-col" key={item.category}>
-          <h3 className="text-slate-400 font-semibold text-sm">
-            {item.category}
-          </h3>
-          <div className="rule-gradient mb-0.5" />
-          <ul className="pl-2 text-sm">
-            {item.links.map((itemLink) => (
-              <li
-                key={itemLink.label}
-                className={`rounded-lg p-2 hover:bg-primary transition-all duration-300 ease-in-out ${
-                  path === itemLink.url ? "bg-red-700 hover:bg-primary" : ""
-                }`}
-              >
-                <Link
-                  href={itemLink.url}
-                  className="block w-full transition-colors duration-200"
-                >
-                  <span className="flex items-center justify-between">
-                    <div className="flex flex-row gap-2">
-                      <itemLink.icon className="size-[1.15rem]" />
-                      <span className="transition-colors duration-200">
-                        {itemLink.label}
-                      </span>
-                    </div>
-                    {itemLink.url === "/gestion/solicitudes" &&
-                      notification > 0 && (
-                        <span
-                          className={`rounded-full py-0.5 px-2 bg-slate-600 font-medium transition-colors duration-200 ${
-                            path === itemLink.url
-                              ? "bg-red-700 hover:bg-primary"
-                              : "group-hover:bg-red-700"
-                          }`}
-                        >
-                          {notification}
-                        </span>
-                      )}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <>
+      {/* Mobile Menu Button */}
+      {!isDesktop && (
+        <motion.button
+          initial={false}
+          animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+          className={`fixed z-50 rounded-lg bg-red-600 p-2 text-white lg:hidden ${
+            isMobileMenuOpen ? "-top-56 left-28" : "top-3 left-4"
+          }`}
+          onClick={toggleMobileMenu}
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </motion.button>
+      )}
+
+      {/* Backdrop for mobile */}
+      <AnimatePresence>
+        {!isDesktop && isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+            onClick={toggleMobileMenu}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidenav */}
+      <motion.aside
+        {...sidenavAnimationProps}
+        className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col overflow-y-auto bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-64"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8 flex justify-center"
+        >
+          <img src={logo.src} alt="LogeX logo" className="h-11 w-auto" />
+        </motion.div>
+
+        <div className="flex flex-col space-y-6">
+          {filteredNavLinks.map((item, categoryIndex) => (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + categoryIndex * 0.1 }}
+              key={item.category}
+              className="flex flex-col"
+            >
+              <h3 className="mb-2 text-sm font-semibold text-slate-400">
+                {item.category}
+              </h3>
+              <div className="mb-2 h-0.5 bg-gradient-to-r from-red-600 to-transparent" />
+              <ul className="space-y-1">
+                {item.links.map((itemLink, linkIndex) => (
+                  <motion.li
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 0.3 + categoryIndex * 0.1 + linkIndex * 0.05,
+                    }}
+                    key={itemLink.label}
+                  >
+                    <Link
+                      href={itemLink.url}
+                      className={`group flex items-center justify-between rounded-lg p-2 text-sm transition-all duration-200
+                        ${
+                          path === itemLink.url
+                            ? "bg-red-600 text-white"
+                            : "text-slate-300 hover:bg-red-600/10 hover:text-white"
+                        }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <itemLink.icon className="h-5 w-5" />
+                        <span>{itemLink.label}</span>
+                      </div>
+
+                      {itemLink.url === "/gestion/solicitudes" &&
+                        notification > 0 && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className={`flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-medium
+                            ${
+                              path === itemLink.url
+                                ? "bg-white text-red-600"
+                                : "bg-red-600 text-white"
+                            }`}
+                          >
+                            {notification}
+                          </motion.span>
+                        )}
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
         </div>
-      ))}
-    </aside>
+      </motion.aside>
+    </>
   );
 };
 

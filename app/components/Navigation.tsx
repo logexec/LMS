@@ -1,53 +1,61 @@
-import Link from "next/link";
 import React from "react";
-import { IoLogInOutline } from "react-icons/io5";
+import { LogOut } from "lucide-react";
+import { motion } from "motion/react";
+import { logout } from "@/services/auth.service";
 
 const Navigation = () => {
-  const user = {
-    name: "Ricardo",
-    lastName: "Estrella",
-    role: ["admin", "superuser"],
-  };
-  const isAuthenticated: boolean = true;
+  const formatMinutes = (minutes: number) =>
+    minutes < 10 ? `0${minutes}` : minutes;
+  const formatHours = (hours: number) => (hours < 10 ? `0${hours}` : hours);
 
-  const formatMinutes = (minutes: number) => {
-    if (minutes < 10) {
-      return `0${minutes}`;
-    }
-    return minutes;
-  };
   return (
-    <nav className="row-start-1 flex gap-6 py-2 flex-wrap items-center justify-between px-5 w-full bg-black text-white">
-      <div className="flex flex-row">
-        <span className="text-normal">¡Bienvenido, &nbsp;</span>
-        <span className="text-semibold">{user.name}!</span>
-        <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
-        <p className="text-normal text-white font-base">
-          {new Date().getHours()}{" "}
-          <span className="animate-pulse duration-500 text-white">:</span>{" "}
-          {formatMinutes(new Date().getMinutes())}
-        </p>
-      </div>
-
-      {isAuthenticated && (
-        <div className="flex items-center gap-2 text-white hover:text-red-600 transition-all duration-300">
-          <Link href="/" className="flex items-center gap-2">
-            <IoLogInOutline size={20} />
-            <span>Salir</span>
-          </Link>
-        </div>
-      )}
-      {!isAuthenticated && (
-        <div
-          className={`flex items-center gap-2 text-white hover:text-red-600 transition-all duration-300`}
+    <motion.nav
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="sticky top-0 z-30 w-full bg-slate-950 text-white shadow-lg backdrop-blur-sm bg-opacity-80"
+    >
+      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+        <motion.div
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="flex items-center space-x-2 text-sm md:text-base"
         >
-          <Link href="/" className="flex items-center gap-2">
-            <IoLogInOutline size={20} />
-            <span>Identifícate</span>
-          </Link>
-        </div>
-      )}
-    </nav>
+          <div className="ml-9 flex items-center space-x-1 border-l border-gray-600 pl-2">
+            <span className="font-medium">
+              {formatHours(new Date().getHours())}
+            </span>
+            <motion.span
+              animate={{ opacity: [1, 0, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="text-red-500"
+            >
+              :
+            </motion.span>
+            <span className="font-medium">
+              {formatMinutes(new Date().getMinutes())}
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center space-x-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            onClick={() => (logout(), (window.location.href = "/"))}
+          >
+            <LogOut size={18} />
+            <span className="hidden sm:inline">Cerrar Sesión</span>
+          </motion.button>
+        </motion.div>
+      </div>
+    </motion.nav>
   );
 };
 

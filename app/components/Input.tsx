@@ -9,7 +9,6 @@ type InputProps = {
   id: string;
   required?: boolean;
   type:
-    | "checkbox"
     | "date"
     | "email"
     | "file"
@@ -27,7 +26,6 @@ type InputProps = {
   maxLength?: number;
   minLength?: number;
   isIdentification?: boolean;
-  checked?: boolean;
 };
 
 const ErrorMessage = styled.span`
@@ -167,7 +165,6 @@ const Input: React.FC<InputProps> = ({
   required = false,
   type,
   value,
-  checked,
   onChange,
   className,
   placeholderText,
@@ -273,30 +270,6 @@ const Input: React.FC<InputProps> = ({
         />
         <label htmlFor={id} className="input-label">
           {label}
-        </label>
-      </div>
-    );
-  }
-
-  if (type === "checkbox") {
-    return (
-      <div className="checkbox-wrapper">
-        <input
-          type="checkbox"
-          id={id}
-          className="inp-cbx"
-          name={name}
-          value={value}
-          checked={checked}
-          onChange={onChange}
-        />
-        <label htmlFor={id} className="cbx">
-          <span>
-            <svg viewBox="0 0 12 10" height="10px" width="12px">
-              <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-            </svg>
-          </span>
-          <span>{label}</span>
         </label>
       </div>
     );
