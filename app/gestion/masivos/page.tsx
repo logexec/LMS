@@ -3,7 +3,6 @@ import Hr from "@/app/components/Hr";
 import Input from "@/app/components/Input";
 import React, { useState } from "react";
 import Select from "@/app/components/Select";
-import { areas, cuentasMasivas, proyectos } from "@/utils/constants";
 import { GiPayMoney } from "react-icons/gi";
 
 const MasivosPage = () => {
@@ -82,33 +81,6 @@ const MasivosPage = () => {
                 id="valorTotal"
                 label="Valor Total"
                 onChange={handleInputChange}
-                className="my-4 lg:my-0"
-              />
-              <Select
-                name="cuenta"
-                id="cuenta"
-                label="Cuenta"
-                options={cuentasMasivas}
-                onChange={handleSelectChange}
-                value={formData.cuenta}
-                className="my-4 lg:my-0"
-              />
-              <Select
-                name="proyecto"
-                id="proyecto"
-                label="Proyecto"
-                options={proyectos}
-                onChange={handleSelectChange}
-                value={formData.proyecto}
-                className="my-4 lg:my-0"
-              />
-              <Select
-                name="area"
-                id="area"
-                label="Área"
-                options={areas}
-                onChange={handleSelectChange}
-                value={formData.area}
                 className="my-4 lg:my-0"
               />
               <Select
