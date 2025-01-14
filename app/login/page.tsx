@@ -170,7 +170,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   id="remember-me"
@@ -194,7 +194,7 @@ const LoginPage = () => {
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
-            </div>
+            </div> */}
 
             <motion.button
               whileHover={{ scale: 1.01 }}
