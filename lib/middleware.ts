@@ -56,11 +56,8 @@ export async function middleware(request: NextRequest) {
     // El token es válido, permitir la petición
     return NextResponse.next();
   } catch (error) {
-    // Si hay un error al verificar el token, redirigir al login
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.cookies.delete("jwt_token");
-    response.cookies.delete("access_token");
-    return response;
+    console.error("Middleware Error:", error);
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 }
 

@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { sidenavLinks } from "@/utils/constants";
 import logo from "@/public/images/logex_logo.png";
 import Link from "next/link";
+import Image from "next/image";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -95,9 +96,16 @@ const Sidenav = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-8 flex justify-center"
+          className="mb-8 flex justify-center h-11 w-56 relative"
         >
-          <img src={logo.src} alt="LogeX logo" className="h-11 w-auto" />
+          <Image
+            fill
+            priority
+            src={logo.src}
+            alt="LogeX logo"
+            className="object-contain"
+            sizes="(max-width: 760px) 100cw, 150px"
+          />
         </motion.div>
 
         <div className="flex flex-col space-y-6">

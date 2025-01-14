@@ -9,7 +9,7 @@ import { useSort } from "@table-library/react-table-library/sort";
 import Input from "./Input";
 import { BiLeftArrow, BiRightArrow } from "react-icons/bi";
 import "./table.component.css";
-import Loader from "./Loader";
+import Loader from "../Loader";
 import Modal from "./ModalForm";
 import EditUserForm from "./EditUserForm";
 
@@ -256,7 +256,7 @@ const UsersTableComponent: React.FC<TableData> = ({ nodes, type }) => {
   ];
 
   return (
-    <Suspense fallback={<Loader />}>
+    <Suspense fallback={<Loader fullScreen={false} />}>
       <div className="flex items-center justify-between">
         <Input
           label="Buscar"

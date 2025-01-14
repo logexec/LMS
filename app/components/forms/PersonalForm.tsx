@@ -22,8 +22,6 @@ interface Personal {
   [key: string]: PrimitiveType;
 }
 
-type FormMode = "create" | "edit";
-
 const PersonalForm: React.FC<PersonalFormProps> = ({
   mode,
   initialData,

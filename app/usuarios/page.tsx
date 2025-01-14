@@ -3,10 +3,10 @@ import React, { useEffect, useState } from "react";
 import { RiUserAddLine } from "react-icons/ri";
 import { BaseTableData, Column, DataTable } from "../components/DataTable";
 import PersonalForm from "../components/forms/PersonalForm";
-import Loader from "../components/Loader";
+import Loader from "@/app/Loader";
 import { Modal } from "../components/Modal";
 import { TbHierarchy2 } from "react-icons/tb";
-import { PersonalForm as PersonalFormType } from "@/utils/types";
+import { PersonalForm as PersonalFormType, SortConfig } from "@/utils/types";
 import "./usuarios.component.css";
 
 // Interfaz para la respuesta cruda del API
@@ -71,18 +71,18 @@ const userColumns: Column<Personal>[] = [
   {
     key: "nombres",
     label: "Nombres",
-    sortable: true,
+    sortable: false,
   },
   {
     key: "correo_electronico",
     label: "Correo",
-    sortable: true,
+    sortable: false,
   },
   {
     key: "permisos",
     label: "Permisos",
-    sortable: true,
-    render: (value: any, row: Personal) => (
+    sortable: false,
+    render: (value: Personal["permisos"], row: Personal) => (
       <div className="flex flex-wrap gap-1">
         {row.permisos.map((perm) => (
           <span
@@ -123,11 +123,23 @@ const UsersPage: React.FC = () => {
   const [deleteItem, setDeleteItem] = useState<Personal | null>(null);
   const [infoModalOpen, setInfoModalOpen] = useState(false);
 
-  const fetchUsers = async (page: number = 1) => {
+  const fetchUsers = async (
+    page: number = 1,
+    sortConfig?: SortConfig<Personal>
+  ) => {
     setIsLoading(true);
     try {
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+      });
+
+      if (sortConfig) {
+        queryParams.append("sort_by", String(sortConfig.key));
+        queryParams.append("sort_direction", sortConfig.direction);
+      }
+
       const response = await fetch(
-        `http://127.0.0.1:8000/api/users?page=${page}`,
+        `http://127.0.0.1:8000/api/users?${queryParams}`,
         {
           method: "GET",
           headers: {
@@ -287,7 +299,10 @@ const UsersPage: React.FC = () => {
             </p>
             <p className="text-slate-700 text-sm">
               Por favor, acércate al equipo de IT e informa de este problema lo
-              antes posible.
+              antes posible. <br />
+              <strong className="text-slate-600">
+                No refresques la página
+              </strong>
             </p>
             <button
               className="bg-slate-700 hover:bg-slate-800 rounded text-white font-semibold justify-center items-center self-end px-4 py-1 mt-5 w-max"
@@ -354,7 +369,7 @@ const UsersPage: React.FC = () => {
             view === "roles" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          {isLoading && <Loader />}
+          {isLoading && <Loader fullScreen={false} />}
           {!isLoading && <p>Aqui va otra tabla</p>}
         </div>
         <div
@@ -362,14 +377,16 @@ const UsersPage: React.FC = () => {
             view === "users" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          {isLoading && <Loader />}
+          {isLoading && <Loader fullScreen={false} />}
           {!isLoading && (
             <DataTable<Personal>
               columns={userColumns}
               data={paginatedData}
               onEdit={setEditItem}
               onDelete={setDeleteItem}
-              onPageChange={handlePageChange}
+              onPageChange={(page, sortOptions) => {
+                fetchUsers(page, sortOptions);
+              }}
               showExport={false}
             />
           )}

@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { ArrowUpDown, FileDown, Download, Pencil, Trash2 } from "lucide-react";
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import { SortConfig } from "@/utils/types";
 
-// Añadimos tipos para la paginación
 interface PaginationInfo {
   current_page: number;
   last_page: number;
@@ -37,7 +37,7 @@ export interface Column<T extends BaseTableData> {
   key: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: T[keyof T], row: T) => React.ReactNode;
 }
 
 interface DataTableProps<T extends BaseTableData> {
@@ -46,7 +46,7 @@ interface DataTableProps<T extends BaseTableData> {
   onSelectionChange?: (selectedItems: T[]) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
-  onPageChange: (page: number) => void;
+  onPageChange: (page: number, sortConfig?: SortConfig<T>) => void;
   className?: string;
   showActions?: boolean;
   showExport?: boolean;
@@ -65,10 +65,7 @@ export const DataTable = <T extends BaseTableData>({
 }: DataTableProps<T>) => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [lastSelected, setLastSelected] = useState<number | null>(null);
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof T;
-    direction: "asc" | "desc";
-  } | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig<T> | null>(null);
   const [filterText, setFilterText] = useState("");
 
   const { current_page, last_page, from, to, total } = data.meta;
@@ -78,7 +75,7 @@ export const DataTable = <T extends BaseTableData>({
     const range: number[] = [];
     const showPages = 5; // Número de páginas a mostrar
     let start = Math.max(1, current_page - Math.floor(showPages / 2));
-    let end = Math.min(last_page, start + showPages - 1);
+    const end = Math.min(last_page, start + showPages - 1);
 
     // Ajustar el inicio si estamos cerca del final
     if (end === last_page) {
@@ -130,12 +127,22 @@ export const DataTable = <T extends BaseTableData>({
   };
 
   const handleSort = (key: keyof T) => {
-    setSortConfig((current) => {
-      if (current?.key === key) {
-        return current.direction === "asc" ? { key, direction: "desc" } : null;
-      }
-      return { key, direction: "asc" };
-    });
+    let newDirection: "asc" | "desc" = "asc";
+
+    // Si ya estamos ordenando por esta columna, cambiamos la dirección
+    if (sortConfig?.key === key) {
+      newDirection = sortConfig.direction === "asc" ? "desc" : "asc";
+    }
+
+    // Actualizar el estado de ordenamiento
+    const newSortConfig: SortConfig<T> = {
+      key,
+      direction: newDirection,
+    };
+    setSortConfig(newSortConfig);
+
+    // Llamar a onPageChange con la página actual y la nueva configuración de ordenamiento
+    onPageChange(data.meta.current_page, newSortConfig);
   };
 
   // Existing export functions remain the same...
