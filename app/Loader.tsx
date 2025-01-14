@@ -6,7 +6,7 @@ interface LoaderProps {
   fullScreen?: boolean;
 }
 
-const Loader: React.FC<LoaderProps> = ({ fullScreen }) => {
+const Loader: React.FC<LoaderProps> = ({ fullScreen = true }) => {
   return (
     <div
       className={`${
