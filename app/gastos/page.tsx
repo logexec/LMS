@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import Modal from "../components/ModalForm";
-import Table from "../components/Table";
-import { gastosData } from "@/utils/dummyData";
 import { AiOutlineFileAdd } from "react-icons/ai";
 
 const GastosPage: React.FC = () => {
@@ -33,7 +31,7 @@ const GastosPage: React.FC = () => {
         </button>
       </div>
       <section className="w-full row-start-2 py-4 px-2">
-        <Table nodes={gastosData} type="gastos" />
+        Tabla de Gastos
       </section>
     </div>
   );

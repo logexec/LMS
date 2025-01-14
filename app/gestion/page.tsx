@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import Modal from "../components/ModalForm";
-import Table from "../components/Table";
-import { descuentosData } from "@/utils/dummyData";
 import { AiOutlineFileAdd } from "react-icons/ai";
 
 const DescuentosPage: React.FC = () => {
@@ -38,7 +36,7 @@ const DescuentosPage: React.FC = () => {
         </button>
       </div>
       <section className="w-full row-start-2 py-4 px-2">
-        <Table nodes={descuentosData} type="descuentos" />
+        Tabla de Gestion
       </section>
       {/* TODO: Al enviar solicitud, agrupa todos los registros filtrados, suma
       todos los valores y genera un registro de solicitud. (total y estado
