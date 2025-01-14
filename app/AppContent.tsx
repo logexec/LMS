@@ -6,18 +6,19 @@ import Footer from "./components/Footer";
 import Navigation from "./components/Navigation";
 import Sidenav from "./components/Sidenav";
 import LoginPage from "./login/page";
+import { Loader } from "lucide-react";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="relative min-h-screen bg-slate-100">
       <Sidenav />
-      <div className="lg:ml-64">
+      <div className="lg:ml-[17rem]">
         <Navigation />
         <motion.main
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="container mx-auto min-h-[calc(100vh-theme(space.32))] p-4 lg:p-6"
+          className="mx-auto min-h-[calc(100vh-theme(space.32))] p-4 lg:p-6"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -42,20 +43,7 @@ export default function AppContent({
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            duration: 0.5,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-          className="rounded-full border-4 border-red-600 border-t-transparent h-16 w-16 animate-spin"
-        />
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!user) {

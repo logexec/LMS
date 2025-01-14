@@ -90,7 +90,7 @@ const Sidenav = () => {
       {/* Sidenav */}
       <motion.aside
         {...sidenavAnimationProps}
-        className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col overflow-y-auto bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-64"
+        className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col overflow-y-auto bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-[17rem]"
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -1,5 +1,3 @@
-import { DataTable } from "@/app/components/DataTable";
-import { columns, sampleData } from "@/utils/dummyData";
 import React from "react";
 
 const page = () => {
@@ -9,7 +7,7 @@ const page = () => {
         <h1 className="title">Descuentos</h1>
       </div>
       <section className="w-full row-start-2 py-4 px-2">
-        <DataTable columns={columns} data={sampleData} />
+        tabla de descuentos
       </section>
     </div>
   );
