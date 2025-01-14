@@ -7,6 +7,7 @@ import { sidenavLinks } from "@/utils/constants";
 import logo from "@/public/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -14,14 +15,8 @@ const useMediaQuery = (query: string) => {
   useEffect(() => {
     const media = window.matchMedia(query);
     const updateMatch = () => setMatches(media.matches);
-
-    // Set initial value
     updateMatch();
-
-    // Setup listener
     media.addEventListener("change", updateMatch);
-
-    // Cleanup
     return () => media.removeEventListener("change", updateMatch);
   }, [query]);
 
@@ -31,7 +26,7 @@ const useMediaQuery = (query: string) => {
 const Sidenav = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const path = window.location.pathname;
+  const path = usePathname();
   const notification = 8;
   const { hasPermission } = useAuth();
 
