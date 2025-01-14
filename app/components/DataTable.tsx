@@ -18,7 +18,14 @@ interface PaginatedResponse<T> {
   meta: PaginationInfo;
 }
 
-type PrimitiveValue = string | number | boolean | Date | null | undefined;
+type PrimitiveValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | null
+  | undefined
+  | string[];
 type RecordValue = Record<string, PrimitiveValue>;
 
 export interface BaseTableData extends RecordValue {
@@ -30,7 +37,7 @@ export interface Column<T extends BaseTableData> {
   key: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (value: T[keyof T], row: T) => React.ReactNode;
+  render?: (value: any, row: T) => React.ReactNode;
 }
 
 interface DataTableProps<T extends BaseTableData> {
@@ -134,7 +141,7 @@ export const DataTable = <T extends BaseTableData>({
   // Existing export functions remain the same...
   const exportToCSV = () => {
     const headers = columns.map((col) => col.label).join(",");
-    const rows = data
+    const rows = data.data
       .map((row) => columns.map((col) => row[col.key] ?? "").join(","))
       .join("\n");
 
@@ -170,7 +177,7 @@ export const DataTable = <T extends BaseTableData>({
 
     yOffset -= 20;
 
-    data.forEach((row) => {
+    data.data.forEach((row) => {
       if (yOffset < padding) {
         const newPage = pdfDoc.addPage();
         yOffset = newPage.getHeight() - padding;
@@ -266,18 +273,18 @@ export const DataTable = <T extends BaseTableData>({
                 key={row.id}
                 onClick={(e) => handleRowClick(index, e)}
                 className={`
-        cursor-pointer hover:bg-gray-50 transition-colors
-        ${selectedRows.has(index) ? "bg-blue-50" : ""}
-      `}
+      cursor-pointer hover:bg-gray-50 transition-colors
+      ${selectedRows.has(index) ? "bg-blue-50" : ""}
+    `}
               >
                 {columns.map((column) => (
                   <td
-                    key={String(column.key)}
+                    key={`${row.id}-${String(column.key)}`}
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                   >
                     {column.render
                       ? column.render(row[column.key], row)
-                      : row[column.key] ?? ""}
+                      : String(row[column.key] ?? "")}
                   </td>
                 ))}
                 {showActions && (onEdit || onDelete) && (

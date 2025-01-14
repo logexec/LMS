@@ -25,7 +25,7 @@ export const sidenavLinks: NavLink[] = [
     requiredPermissions: ["admin"],
     links: [
       {
-        label: "Gestionar Personal",
+        label: "Gestionar Usuarios",
         url: "/usuarios",
         icon: LuUsers,
       },

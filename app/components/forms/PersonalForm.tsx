@@ -1,36 +1,28 @@
+import { PersonalForm as IPersonalForm, PrimitiveType } from "@/utils/types";
+
 import React from "react";
 import { Modal } from "../Modal";
-import { BaseTableData } from "../DataTable";
-
-// Domain Models. | Actualizar con los campos necesarios
-interface Personal extends BaseTableData {
-  nombres: string;
-  apellidos: string;
-  correo_electronico: string;
-  proyecto?: string;
-  cargo_logex: string;
-  estado_personal: string;
-}
-
-type FormMode = "create" | "edit";
+import Checkbox from "../Checkbox";
 
 interface PersonalFormProps {
-  mode: FormMode;
-  initialData?: Personal;
+  mode: "create" | "edit";
+  initialData?: IPersonalForm;
   isOpen: boolean;
-  onSave: (data: Personal) => void;
+  onSave: (data: IPersonalForm) => Promise<void> | void;
   onCancel: () => void;
 }
 
-const INITIAL_FORM_STATE: Personal = {
-  id: "",
-  nombres: "",
-  apellidos: "",
+const INITIAL_FORM_STATE: IPersonalForm = {
   correo_electronico: "",
-  cargo_logex: "usuario",
-  estado_personal: "activo",
-  proyecto: "",
+  permisos: [],
 };
+interface Personal {
+  correo_electronico: string;
+  permisos: string[];
+  [key: string]: PrimitiveType;
+}
+
+type FormMode = "create" | "edit";
 
 const PersonalForm: React.FC<PersonalFormProps> = ({
   mode,
@@ -42,6 +34,13 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
   const [formData, setFormData] = React.useState<Personal>(
     initialData || INITIAL_FORM_STATE
   );
+
+  // Lista de permisos disponibles
+  const PERMISOS_DISPONIBLES = [
+    { id: "admin", label: "Admin" },
+    { id: "revisar", label: "Revisar" },
+    { id: "pagar", label: "Pagar" },
+  ];
 
   React.useEffect(() => {
     if (initialData) {
@@ -56,6 +55,18 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Nuevo manejador para checkboxes
+  const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      permisos: checked
+        ? [...prev.permisos, name] // Agregar permiso
+        : prev.permisos.filter((permiso) => permiso !== name), // Remover permiso
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -74,68 +85,6 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
           {/* Primera fila */}
           <div className="flex flex-row gap-2">
             <div className="flex flex-col">
-              <label htmlFor="nombres" className="text-slate-700 text-sm">
-                Nombres
-              </label>
-              <input
-                type="text"
-                name="nombres"
-                id="nombres"
-                className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
-                placeholder="John"
-                onChange={handleInputChange}
-                value={formData.nombres}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label htmlFor="apellidos" className="text-slate-700 text-sm">
-                Apellidos
-              </label>
-              <input
-                type="text"
-                name="apellidos"
-                id="apellidos"
-                className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
-                placeholder="Kenyon"
-                onChange={handleInputChange}
-                value={formData.apellidos}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label htmlFor="cargo_logex" className="text-slate-700 text-sm">
-                Rol
-              </label>
-              <select
-                id="cargo_logex"
-                name="cargo_logex"
-                className="w-[8rem] p-1 text-sm outline-none -mt-1 bg-transparent focus:outline focus:outline-sky-300 rounded"
-                onChange={handleInputChange}
-                value={formData.cargo_logex}
-              >
-                <option value="usuario">Usuario</option>
-                <option value="administrador">Administrador</option>
-                <option value="developer">Desarrollador</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Segunda fila */}
-          <div className="flex flex-row gap-2">
-            <div className="flex flex-col">
-              <label htmlFor="id" className="text-slate-700 text-sm">
-                Identificación
-              </label>
-              <input
-                type="text"
-                name="id"
-                id="id"
-                className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
-                placeholder="1234567890"
-                onChange={handleInputChange}
-                value={formData.id}
-              />
-            </div>
-            <div className="flex flex-col">
               <label
                 htmlFor="correo_electronico"
                 className="text-slate-700 text-sm"
@@ -152,23 +101,20 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
                 value={formData.correo_electronico}
               />
             </div>
-            <div className="flex flex-col">
-              <label
-                htmlFor="estado_personal"
-                className="text-slate-700 text-sm"
-              >
-                Estado
-              </label>
-              <select
-                id="estado_personal"
-                name="estado_personal"
-                className="w-[8rem] text-sm outline-none p-1 bg-transparent focus:outline focus:outline-sky-300 rounded"
-                onChange={handleInputChange}
-                value={formData.estado_personal}
-              >
-                <option value="activo">Activo</option>
-                <option value="cesante">Cesante</option>
-              </select>
+            <div className="flex flex-col pl-3">
+              <h3 className="text-slate-700 text-sm">Permisos</h3>
+              <div className="flex flex-row gap-3">
+                {PERMISOS_DISPONIBLES.map(({ id, label }) => (
+                  <Checkbox
+                    key={id}
+                    label={label}
+                    name={id}
+                    id={id}
+                    checked={formData.permisos.includes(label)}
+                    onChange={handlePermissionChange}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 

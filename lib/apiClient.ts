@@ -19,7 +19,6 @@ async function apiClient(endpoint: string, config: RequestConfig = {}) {
       try {
         await refreshToken();
       } catch (error) {
-        // Si hay error al renovar el token, redirigir al login
         window.location.href = "/login";
         throw error;
       }
