@@ -37,7 +37,7 @@ export interface Column<T extends BaseTableData> {
   key: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (value: T[keyof T], row: T) => React.ReactNode;
+  render?: <K extends keyof T>(value: T[K], row: T) => React.ReactNode;
 }
 
 interface DataTableProps<T extends BaseTableData> {

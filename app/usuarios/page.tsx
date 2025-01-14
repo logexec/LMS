@@ -38,13 +38,15 @@ interface ApiResponse {
   };
 }
 
+type PersonalPropertyTypes = string | number | string[];
+
 interface Personal extends BaseTableData {
   id: string | number;
   nombres: string;
   correo_electronico: string;
   permisos: string[];
   usuario: string;
-  [key: string]: any;
+  [key: string]: PersonalPropertyTypes;
 }
 
 interface ErrorMessage {
@@ -82,7 +84,7 @@ const userColumns: Column<Personal>[] = [
     key: "permisos",
     label: "Permisos",
     sortable: false,
-    render: (value: Personal["permisos"], row: Personal) => (
+    render: ((value: string[], row: Personal) => (
       <div className="flex flex-wrap gap-1">
         {row.permisos.map((perm) => (
           <span
@@ -93,7 +95,7 @@ const userColumns: Column<Personal>[] = [
           </span>
         ))}
       </div>
-    ),
+    )) as Column<Personal>["render"],
   },
 ];
 

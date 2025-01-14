@@ -3,13 +3,7 @@ import Hr from "@/app/components/Hr";
 import Input from "@/app/components/Input";
 import React, { useState } from "react";
 import Select from "@/app/components/Select";
-import {
-  admnUsers,
-  areas,
-  cnqtUsers,
-  cuentasMasivas,
-  proyectos,
-} from "@/utils/constants";
+import { areas, cuentasMasivas, proyectos } from "@/utils/constants";
 import { GiPayMoney } from "react-icons/gi";
 import UsersTable from "@/app/components/UsersTable";
 
@@ -152,8 +146,6 @@ const MasivosPage = () => {
           <div className="my-4">
             <Hr />
           </div>
-          {formData.proyecto === "admn" && <UsersTable nodes={admnUsers} />}
-          {formData.proyecto === "cnqt" && <UsersTable nodes={cnqtUsers} />}
         </div>
       </div>
     </div>

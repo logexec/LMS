@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/public/images/logo_transparent.png";
 import logo_small from "@/public/images/logex_logo.png";
+import Image from "next/image";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -84,9 +85,16 @@ const LoginPage = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="lg:hidden mb-8"
+              className="lg:hidden mb-8 relative w-96 h-11"
             >
-              <img src={logo_small.src} alt="LogeX Logo" className="mx-auto" />
+              <Image
+                priority
+                fill
+                src={logo_small.src}
+                alt="LogeX Logo"
+                className="mx-auto object-contain h-13 w-auto"
+                sizes="(max-width: 760px) 100cw, 150px"
+              />
             </motion.div>
             <motion.h2
               initial={{ y: -20, opacity: 0 }}
