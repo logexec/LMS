@@ -24,7 +24,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="rounded-xl bg-white p-6 shadow-lg"
+            className="rounded-xl bg-white p-6 shadow-lg lg:min-h-[calc(100vh-9rem)]"
           >
             {children}
           </motion.div>

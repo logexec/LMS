@@ -65,12 +65,19 @@ const Sidenav = () => {
         <motion.button
           initial={false}
           animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
-          className={`fixed z-50 rounded-lg bg-red-600 p-2 text-white lg:hidden ${
-            isMobileMenuOpen ? "-top-56 left-28" : "top-3 left-4"
+          className={`relative z-50 rounded-lg p-3 text-white lg:hidden ${
+            isMobileMenuOpen ? "-top-[12.5rem] left-28" : "top-12 left-4"
           }`}
           onClick={toggleMobileMenu}
         >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileMenuOpen ? (
+            <X size={24} />
+          ) : (
+            <Menu
+              size={20}
+              className="absolute top-[15.5rem] left-[11.965rem]"
+            />
+          )}
         </motion.button>
       )}
 
