@@ -139,7 +139,7 @@ const Sidenav = () => {
                         ${
                           path === itemLink.url
                             ? "bg-red-600 text-white"
-                            : "text-slate-300 hover:bg-red-600/10 hover:text-white"
+                            : "text-slate-300 hover:bg-red-600/30 hover:text-white"
                         }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >

@@ -26,7 +26,7 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="row-start-3 flex gap-6 p-2 flex-wrap items-center justify-evenly w-full bg-black text-white">
+    <footer className="row-start-3 flex gap-6 p-2 flex-wrap items-center justify-evenly w-full bg-black text-white pointer-events-none select-none">
       <div className="flex items-center flex-wrap max-w-72 text-sm">
         <p className="font-light">
           LogeX &copy; {new Date().getFullYear()}. Todos los derechos
