@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import Select from "@/app/components/Select";
 import { areas, cuentasMasivas, proyectos } from "@/utils/constants";
 import { GiPayMoney } from "react-icons/gi";
-import UsersTable from "@/app/components/UsersTable";
 
 const MasivosPage = () => {
   const [formData, setFormData] = useState({
