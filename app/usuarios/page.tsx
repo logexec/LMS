@@ -184,9 +184,9 @@ const UsersPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handlePageChange = (page: number) => {
-    fetchUsers(page);
-  };
+  // const handlePageChange = (page: number) => {
+  //   fetchUsers(page);
+  // };
 
   const handleCreate = async (newPersonal: PersonalFormType) => {
     try {
