@@ -59,7 +59,10 @@ const Home = () => {
                 <UsersRound size={35} className="text-slate-400" />
               </div>
               <span className="text-3xl font-semibold text-slate-800 ml-5">
-                15
+                15{" "}
+                <span className="text-sm text-slate-400 font-normal ml-3">
+                  Usuarios
+                </span>
               </span>
             </div>
             <p className="text-slate-400 text-sm font-normal mt-4">
@@ -80,6 +83,9 @@ const Home = () => {
               </div>
               <span className="text-3xl font-semibold text-slate-800">
                 5516
+                <span className="text-sm text-slate-400 font-normal ml-3">
+                  Empleados
+                </span>
               </span>
             </div>
             <p className="text-slate-400 text-sm font-normal mt-4">
@@ -98,7 +104,12 @@ const Home = () => {
               <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
                 <Inbox size={35} className="text-slate-400" />
               </div>
-              <span className="text-3xl font-semibold text-slate-800">271</span>
+              <span className="text-3xl font-semibold text-slate-800">
+                271{" "}
+                <span className="text-sm text-slate-400 font-normal ml-3">
+                  Nuevas
+                </span>
+              </span>
             </div>
             <p className="text-slate-400 text-sm font-normal mt-4">
               Haz clic para gestionar
@@ -107,7 +118,7 @@ const Home = () => {
         </Card>
       </section>
 
-      <section className="mx-auto mt-24">
+      <section className="mx-auto mt-24 flex flex-col text-center items-center justify-center">
         <p className="text-lg">
           Bienvenido a{" "}
           <dfn

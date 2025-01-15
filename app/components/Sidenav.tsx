@@ -27,7 +27,7 @@ const Sidenav = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const path = usePathname();
-  const notification = 8;
+  const notification = 271;
   const { hasPermission } = useAuth();
 
   const filteredNavLinks = sidenavLinks.filter((category) => {
