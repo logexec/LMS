@@ -13,14 +13,14 @@ const Navigation = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-30 w-full bg-slate-950 text-white shadow-lg backdrop-blur-sm bg-opacity-80 pointer-events-none select-none"
+      className="sticky top-0 z-30 w-full bg-slate-950 text-white shadow-lg backdrop-blur-sm bg-opacity-80"
     >
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex items-center space-x-2 text-sm md:text-base"
+          className="flex items-center space-x-2 text-sm md:text-base pointer-events-none select-none"
         >
           <div className="ml-9 flex items-center space-x-1 border-l border-gray-600 pl-2 lg:ml-0 ">
             <span className="font-medium">
