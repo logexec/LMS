@@ -1,8 +1,16 @@
 import React from "react";
 
-const Hr: React.FC = () => {
+interface HrProps {
+  variant?: "red" | "slate";
+}
+
+const Hr: React.FC<HrProps> = ({ variant = "slate" }) => {
   return (
-    <div className="h-[1px] w-11/12 bg-gradient-to-r from-slate-400 to-transparent" />
+    <div
+      className={`h-[1px] w-11/12 bg-gradient-to-r ${
+        variant === "slate" ? "from-slate-400" : "from-red-400"
+      } to-transparent`}
+    />
   );
 };
 
