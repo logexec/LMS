@@ -3,7 +3,6 @@ import React from "react";
 import Input from "../Input";
 import File from "../File";
 import Select from "../Select";
-import { div } from "motion/react-client";
 
 const DescuentosForm = () => {
   const [formData, setFormData] = React.useState({
