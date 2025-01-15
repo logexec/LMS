@@ -1,16 +1,8 @@
+import ComingSoon from "@/app/components/ComingSoon";
 import React from "react";
 
 const page = () => {
-  return (
-    <div className="grid grid-rows-[auto_1fr] w-full h-full">
-      <div className="flex flex-row justify-between px-5 items-center">
-        <h1 className="title">Solicitudes</h1>
-      </div>
-      <section className="w-full row-start-2 py-4 px-2">
-        Tabla de solicitudes
-      </section>
-    </div>
-  );
+  return <ComingSoon />;
   //TODO: Llega la informacion de lo que se ingresa en descuentos: Unicamente se aprueba o se elimina. No se puede modificar.
   //TODO: NO PERMITE DESCONTAR MESES PASADOS.
   //TODO: EN DETALLE MOSTRAR EL DESCUENTO
