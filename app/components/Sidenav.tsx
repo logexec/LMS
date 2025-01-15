@@ -100,14 +100,16 @@ const Sidenav = () => {
           transition={{ delay: 0.2 }}
           className="mb-8 flex justify-center h-11 w-56 relative"
         >
-          <Image
-            fill
-            priority
-            src={logo.src}
-            alt="LogeX logo"
-            className="object-contain"
-            sizes="(max-width: 760px) 100cw, 150px"
-          />
+          <Link href={"/"} className="block">
+            <Image
+              fill
+              priority
+              src={logo.src}
+              alt="LogeX logo"
+              className="object-contain"
+              sizes="(max-width: 760px) 100cw, 150px"
+            />
+          </Link>
         </motion.div>
 
         <div className="flex flex-col space-y-6">
