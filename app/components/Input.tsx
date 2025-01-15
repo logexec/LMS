@@ -91,7 +91,7 @@ const Input: React.FC<InputProps> = ({
           className="user-label"
           initial={false}
           animate={{
-            y: showLabel ? -12 : 8,
+            y: showLabel ? -12 : type === "date" ? -12 : 8,
             scale: showLabel ? 0.8 : 1,
             x: showLabel ? -10 : 0,
             color: error ? "#ef4444" : isFocused ? "var(--primary)" : "#a8a8a8",

@@ -4,7 +4,7 @@ import React from "react";
 type InputProps = {
   label: string;
   name: string;
-  id: string;
+  id?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   checked?: boolean;
@@ -13,7 +13,7 @@ type InputProps = {
 const Checkbox: React.FC<InputProps> = ({
   label,
   name,
-  id,
+  id = name,
   value,
   onChange,
   checked,
@@ -29,7 +29,7 @@ const Checkbox: React.FC<InputProps> = ({
         checked={checked}
         onChange={onChange}
       />
-      <label htmlFor={id} className="cbx">
+      <label htmlFor={id} className="cbx capitalize">
         <span>
           <svg viewBox="0 0 12 10" height="10px" width="12px">
             <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
