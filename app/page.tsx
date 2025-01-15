@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Card from "./components/Card";
 import Link from "next/link";
-import { TiUserOutline } from "react-icons/ti";
 import Hr from "./components/Hr";
+import { Inbox, Users, UsersRound } from "lucide-react";
 
 const subtractHours = (date: Date) => {
   const currentHour = date.getHours();
@@ -55,10 +55,10 @@ const Home = () => {
             </h3>
             <Hr variant="red" />
             <div className="flex gap-3 mt-5 items-center">
-              <div className="rounded-full bg-gray-100 object-contain border border-slate-400">
-                <TiUserOutline size={45} className="text-slate-400" />
+              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
+                <UsersRound size={35} className="text-slate-400" />
               </div>
-              <span className="text-3xl font-semibold text-slate-700 ml-5">
+              <span className="text-3xl font-semibold text-slate-800 ml-5">
                 15
               </span>
             </div>
@@ -73,12 +73,12 @@ const Home = () => {
             <h3 className="text-slate-600 font-semibold text-xl">
               Personal de Logex
             </h3>
-            <Hr />
-            <div className="flex flex-row gap-3 mt-5 items-center justify-evenly">
-              <div className="rounded-full bg-gray-100 object-contain border border-slate-400">
-                <TiUserOutline size={45} className="text-slate-400" />
+            <Hr variant="red" />
+            <div className="flex gap-3 mt-5 items-center">
+              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
+                <Users size={35} className="text-slate-400" />
               </div>
-              <span className="text-3xl font-semibold text-slate-700">
+              <span className="text-3xl font-semibold text-slate-800">
                 5516
               </span>
             </div>
@@ -93,12 +93,12 @@ const Home = () => {
             <h3 className="text-slate-600 font-semibold text-xl">
               Solicitudes Pendientes
             </h3>
-            <Hr />
-            <div className="flex flex-row gap-3 mt-5 items-center justify-evenly">
-              <div className="rounded-full bg-gray-100 object-contain border border-slate-400">
-                <TiUserOutline size={45} className="text-slate-400" />
+            <Hr variant="red" />
+            <div className="flex gap-3 mt-5 items-center">
+              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
+                <Inbox size={35} className="text-slate-400" />
               </div>
-              <span className="text-3xl font-semibold text-slate-700">271</span>
+              <span className="text-3xl font-semibold text-slate-800">271</span>
             </div>
             <p className="text-slate-400 text-sm font-normal mt-4">
               Haz clic para gestionar
