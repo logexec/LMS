@@ -35,9 +35,9 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
 
   // Lista de permisos disponibles
   const PERMISOS_DISPONIBLES = [
-    { id: "admin", label: "Admin" },
-    { id: "revisar", label: "Revisar" },
-    { id: "pagar", label: "Pagar" },
+    { id: "Admin", label: "Admin" },
+    { id: "Revisar", label: "Revisar" },
+    { id: "Pagar", label: "Pagar" },
   ];
 
   React.useEffect(() => {
@@ -55,15 +55,14 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Nuevo manejador para checkboxes
   const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       permisos: checked
-        ? [...prev.permisos, name] // Agregar permiso
-        : prev.permisos.filter((permiso) => permiso !== name), // Remover permiso
+        ? [...prev.permisos, name]
+        : prev.permisos.filter((permiso) => permiso !== name),
     }));
   };
 
@@ -108,7 +107,7 @@ const PersonalForm: React.FC<PersonalFormProps> = ({
                     label={label}
                     name={id}
                     id={id}
-                    checked={formData.permisos.includes(label)}
+                    checked={formData.permisos.includes(id)}
                     onChange={handlePermissionChange}
                   />
                 ))}
