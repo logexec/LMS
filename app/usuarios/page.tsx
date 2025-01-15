@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { RiUserAddLine } from "react-icons/ri";
 import { BaseTableData, Column, DataTable } from "../components/DataTable";
 import PersonalForm from "../components/forms/PersonalForm";
@@ -117,7 +117,6 @@ const UsersPage: React.FC = () => {
     },
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<ErrorMessage | null>(null);
   const [view, setView] = useState<"users" | "roles">("users");
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -129,7 +128,6 @@ const UsersPage: React.FC = () => {
     page: number = 1,
     sortConfig?: SortConfig<Personal>
   ) => {
-    setIsLoading(true);
     try {
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -175,8 +173,6 @@ const UsersPage: React.FC = () => {
         message: error instanceof Error ? error.message : "Error desconocido",
       });
       setInfoModalOpen(true);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -190,7 +186,6 @@ const UsersPage: React.FC = () => {
 
   const handleCreate = async (newPersonal: PersonalFormType) => {
     try {
-      setIsLoading(true);
       const response = await fetch("http://127.0.0.1:8000/api/users", {
         method: "POST",
         headers: {
@@ -213,14 +208,11 @@ const UsersPage: React.FC = () => {
           error instanceof Error ? error.message : "Error al crear usuario",
       });
       setInfoModalOpen(true);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleEdit = async (updatedPersonal: PersonalFormType) => {
     try {
-      setIsLoading(true);
       const response = await fetch(
         `http://127.0.0.1:8000/api/users/${updatedPersonal.id}`,
         {
@@ -247,14 +239,11 @@ const UsersPage: React.FC = () => {
             : "Error al actualizar usuario",
       });
       setInfoModalOpen(true);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleDelete = async (personal: Personal) => {
     try {
-      setIsLoading(true);
       const response = await fetch(
         `http://127.0.0.1:8000/api/personal/${personal.id}`,
         {
@@ -278,8 +267,6 @@ const UsersPage: React.FC = () => {
           error instanceof Error ? error.message : "Error al eliminar usuario",
       });
       setInfoModalOpen(true);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -371,16 +358,16 @@ const UsersPage: React.FC = () => {
             view === "roles" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          {isLoading && <Loader fullScreen={false} />}
-          {!isLoading && <p>Aqui va otra tabla</p>}
+          <Suspense fallback={<Loader fullScreen={false} />}>
+            <p>Aqui va la otra tabla</p>
+          </Suspense>
         </div>
         <div
           className={`w-full h-full transition-all duration-300 col-span-1 col-start-1 row-start-1 ease-out overflow-hidden ${
             view === "users" ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          {isLoading && <Loader fullScreen={false} />}
-          {!isLoading && (
+          <Suspense fallback={<Loader fullScreen={false} />}>
             <DataTable<Personal>
               columns={userColumns}
               data={paginatedData}
@@ -391,7 +378,7 @@ const UsersPage: React.FC = () => {
               }}
               showExport={false}
             />
-          )}
+          </Suspense>
         </div>
       </section>
 
@@ -421,10 +408,7 @@ const UsersPage: React.FC = () => {
             <h2 className="text-xl font-semibold">
               Se va a eliminar el registro
             </h2>
-            <p>
-              ¿Estás seguro de que quieres eliminar el registro de{" "}
-              {deleteItem.nombres}?
-            </p>
+            <p>¿Estás seguro de que quieres eliminar a {deleteItem.nombres}?</p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setDeleteItem(null)}
