@@ -1,46 +1,195 @@
-.select-container {
+.custom-select-container {
   position: relative;
   width: 100%;
 }
 
-.select-field {
-  display: block;
+.custom-select-group {
+  position: relative;
   width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  border-bottom: 2px solid #ccc;
+}
+
+.select-trigger {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 0.5rem;
+}
+
+.custom-select-group .select {
+  width: 100%;
+  border: solid 1.5px #9e9e9e;
+  border-radius: 0.5rem;
+  background: white;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  color: #0a0a0a;
+  transition: all 200ms ease-in-out;
+  cursor: pointer;
   outline: none;
-  background-color: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
-.select-label {
+.custom-select-group .select::placeholder {
+  color: #9e9e9e;
+  opacity: 1;
+}
+
+.custom-select-group .select-label {
   position: absolute;
-  top: 0;
-  left: 0;
-  font-size: 16px;
-  color: rgba(204, 204, 204, 0);
+  left: 15px;
+  color: #a8a8a8;
   pointer-events: none;
-  transition: all 0.3s ease;
+  transform: translateY(0.5rem);
+  transition: all 200ms ease-in-out;
+  background-color: white;
+  padding: 0 0.2em;
 }
 
-.select-highlight {
+.custom-select-group .select:focus {
+  border-color: var(--primary);
+}
+
+.custom-select-group.has-error .select {
+  border-color: #ef4444;
+}
+
+.custom-select-group.has-error .select-label {
+  color: #ef4444;
+}
+
+.select-icon {
   position: absolute;
-  bottom: 0;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #9e9e9e;
+  transition: all 200ms ease-in-out;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
   left: 0;
-  height: 2px;
-  width: 0;
-  background-color: #148bda;
-  transition: all 0.3s ease;
+  right: 0;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: 1px solid #e5e7eb;
+  z-index: 50;
+  max-height: 15rem;
+  overflow-y: auto;
 }
 
-.select-field:focus + .select-label,
-.select-field:not(:placeholder-shown) + .select-label {
-  top: -1.5ch;
-  font-size: 12px;
-  color: #148bda;
+.select-dropdown::-webkit-scrollbar {
+  width: 8px;
 }
 
-.select-field:focus + .select-label + .select-highlight {
-  width: 100%;
+.select-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 0 0.5rem 0.5rem 0;
 }
+
+.select-dropdown::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+.select-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  color: #0a0a0a;
+}
+
+.select-option:first-child {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.select-option:last-child {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.select-option:hover {
+  background-color: #f3f4f6;
+}
+
+.select-option.selected {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.select-error {
+  position: absolute;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-left: 0.25rem;
+}
+
+/* Estilos para el estado disabled */
+.custom-select-group .select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Animación del label cuando hay valor o focus */
+.custom-select-group .select:focus ~ .select-label,
+.custom-select-group .select:not(:placeholder-shown) ~ .select-label {
+  transform: translateY(-50%) translateX(-14%) scale(0.8);
+  background-color: white;
+  padding: 0 0.2em;
+  color: var(--primary);
+}
+
+/* Soporte para tema oscuro */
+/* @media (prefers-color-scheme: dark) {
+  .custom-select-group .select {
+    background: #1f2937;
+    color: white;
+  }
+
+  .custom-select-group .select-label {
+    background-color: #1f2937;
+    color: #9ca3af;
+  }
+
+  .select-dropdown {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .select-option {
+    color: white;
+  }
+
+  .select-option:hover {
+    background-color: #374151;
+  }
+
+  .select-option.selected {
+    background-color: rgba(var(--primary-rgb), 0.2);
+  }
+
+  .select-dropdown::-webkit-scrollbar-track {
+    background: #374151;
+  }
+
+  .select-dropdown::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .select-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+} */
