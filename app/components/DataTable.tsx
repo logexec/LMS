@@ -279,10 +279,9 @@ export const DataTable = <T extends BaseTableData>({
               <tr
                 key={row.id}
                 onClick={(e) => handleRowClick(index, e)}
-                className={`
-      cursor-pointer hover:bg-gray-50 transition-colors
-      ${selectedRows.has(index) ? "bg-blue-50" : ""}
-    `}
+                className={`cursor-pointer hover:bg-gray-50 transition-colors
+                ${selectedRows.has(index) ? "bg-blue-50" : ""}
+              `}
               >
                 {columns.map((column) => (
                   <td
