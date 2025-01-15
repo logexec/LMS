@@ -3,17 +3,10 @@ interface FileProps {
   accept?: string;
   label: string;
   name: string;
-  buttonLabel?: string;
-  onChange?: () => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const File: React.FC<FileProps> = ({
-  accept,
-  buttonLabel,
-  label,
-  name,
-  onChange,
-}) => {
+const File: React.FC<FileProps> = ({ accept, label, name, onChange }) => {
   return (
     <>
       <label className="block text-slate-700 text-sm font-bold">{label}</label>
@@ -24,11 +17,6 @@ const File: React.FC<FileProps> = ({
         name={name}
         accept={accept}
         onChange={onChange}
-      />
-      <input
-        type="button"
-        className="p-0.5 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium"
-        value={buttonLabel || "Cargar"}
       />
     </>
   );
