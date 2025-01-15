@@ -26,8 +26,8 @@ const ComingSoon: React.FC = () => {
             </div>
             <div className="truck-container-up"></div>
             <div className="truck-container-gift">
-              <span className="absolute flex items-center justify-center text-center mx-auto top-10 left-[.85rem]">
-                Sorpresa
+              <span className="absolute flex items-center justify-center text-center mx-auto top-9 italic left-[.85rem] text-2xl text-red-600 font-bold">
+                Log<span className="text-slate-600">eX</span>
               </span>
             </div>
           </div>

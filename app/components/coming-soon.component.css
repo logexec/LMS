@@ -3,6 +3,7 @@
   position: relative;
   animation: truckmove 4s linear;
   animation-fill-mode: forwards;
+  z-index: 6;
 }
 @keyframes truckmove {
   0% {
@@ -47,19 +48,20 @@
 @keyframes giftout {
   0% {
     transform: rotate(0deg);
-    left: 500px;
+    left: 670px;
     top: 58px;
   }
 
   50% {
     transform: rotate(40deg);
-    left: 800px;
+    left: 870px;
     top: 48px;
   }
   100% {
     transform: rotate(0deg);
-    left: 850px;
+    left: 920px;
     top: 128px;
+    z-index: 1;
   }
 }
 .truck-top {
@@ -217,12 +219,13 @@
 .truck-container {
   width: 581px;
   height: 220px;
-  background-color: rgb(201, 201, 201);
+  background-color: rgb(225, 225, 225);
   position: absolute;
   left: 200px;
   top: -60px;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
+  border: 1px solid rgb(205, 205, 205);
   animation: truckup 5s linear;
   transform: rotate(0deg);
   transform-origin: right bottom;
@@ -246,21 +249,21 @@
 .truck-container-gift {
   width: 100px;
   height: 100px;
-  background-color: #e13431;
+  background-color: #d8b58c;
   position: absolute;
-  left: 500px;
+  left: 670px;
   top: 58px;
-  border-radius: 5px;
+  border-radius: 3px;
   text-align: center;
-  animation: giftout 5s linear;
-  animation-delay: 5s;
+  animation: giftout 2.5s linear;
+  animation-delay: 6s;
   animation-fill-mode: forwards;
   transform: rotate(0deg);
   transform-origin: right bottom;
   font-family: sans-serif;
   font-weight: bold;
-  color: white;
-  z-index: 1;
+  box-shadow: inset 0px 0px 3px 1px rgba(50, 50, 50, 0.85);
+  z-index: -1;
 }
 
 .truck-middle-bottom {
@@ -388,7 +391,7 @@
   border: 15px solid black;
   box-sizing: border-box;
   animation: tyreroate 2s linear;
-  animation-iteration-count: 2.5;
+  animation-iteration-count: 2;
   color: gray;
   text-align: center;
   font-size: 6em;
@@ -413,7 +416,7 @@
   font-weight: bold;
   line-height: 30px;
   animation: tyreroate 2s linear;
-  animation-iteration-count: 2.5;
+  animation-iteration-count: 2;
 }
 .movetyre {
   left: 55px;
