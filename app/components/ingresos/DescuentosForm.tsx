@@ -1,7 +1,9 @@
+"use client";
 import React from "react";
 import Input from "../Input";
 import File from "../File";
 import Select from "../Select";
+import { div } from "motion/react-client";
 
 const DescuentosForm = () => {
   const [formData, setFormData] = React.useState({
@@ -31,6 +33,17 @@ const DescuentosForm = () => {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+
+    if (files && files[0]) {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: files[0], // Guardamos el primer archivo seleccionado
+      }));
+    }
   };
 
   const tipoOptions = [
@@ -63,9 +76,15 @@ const DescuentosForm = () => {
                   name="archivo"
                   label="Archivo"
                   accept=".xlsx, .xls, .csv"
-                  buttonLabel="Cargar Información"
+                  onChange={handleFileChange}
                 />
               </div>
+              <button
+                type="submit"
+                className="mt-4 bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none hover:scale-[.98] transition-all duration-300"
+              >
+                Registrar Descuento
+              </button>
             </form>
           </div>
         </div>
@@ -88,6 +107,7 @@ const DescuentosForm = () => {
           <form className="w-3/4">
             <div className="grid grid-cols-4 gap-3">
               <Input
+                required
                 id="fechaGasto"
                 name="fechaGasto"
                 currentDate={true}
@@ -102,39 +122,9 @@ const DescuentosForm = () => {
                   name="tipo"
                   id="tipo"
                   options={tipoOptions}
+                  onChange={handleSelectChange}
                 />
               </div>
-
-              <Input
-                type="number"
-                step="0.01"
-                id="factura"
-                name="factura"
-                value={formData.factura}
-                onChange={handleInputChange}
-                label="No. Factura o Vale"
-              />
-
-              <div className="">
-                <Select
-                  label="Cuenta"
-                  name="cuenta"
-                  id="cuenta"
-                  options={[
-                    { label: "Agua Potable", value: "agua" },
-                    { label: "Alimentación", value: "alimentacion" },
-                  ]}
-                />
-              </div>
-              <Input
-                type="number"
-                step="0.01"
-                id="valor"
-                name="valor"
-                value={formData.valor}
-                onChange={handleInputChange}
-                label="Valor"
-              />
 
               <div className="">
                 <Select
@@ -145,79 +135,106 @@ const DescuentosForm = () => {
                     { label: "ADMN", value: "admn" },
                     { label: "CNQT", value: "cnqt" },
                   ]}
+                  onChange={handleSelectChange}
                 />
               </div>
 
+              <div className="">
+                <Select
+                  label="Cuenta"
+                  name="cuenta"
+                  id="cuenta"
+                  options={[
+                    { label: "Agua Potable", value: "agua" },
+                    { label: "Alimentación", value: "alimentacion" },
+                  ]}
+                  onChange={handleSelectChange}
+                />
+              </div>
+
+              <Input
+                required
+                type="number"
+                step="0.01"
+                id="factura"
+                name="factura"
+                value={formData.factura}
+                onChange={handleInputChange}
+                label="No. Factura o Vale"
+              />
+
+              <Input
+                required
+                type="number"
+                step="0.01"
+                id="valor"
+                name="valor"
+                value={formData.valor}
+                onChange={handleInputChange}
+                label="Valor"
+              />
+
               {/* Admin */}
-              {formData.tipo === "nomina" &&
-                formData.proyecto === "proyecto1" && (
-                  <div className="">
-                    <label
-                      className="block text-slate-700 text-sm font-bold mb-2"
-                      htmlFor="responsable"
-                    >
-                      Responsable
-                    </label>
-                    <select
-                      className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200  placeholder:text-slate-400"
-                      id="responsable"
-                      name="responsable"
-                      value={formData.responsable}
-                      onChange={handleSelectChange}
-                    >
-                      <option value="responsable1">John Kenyon</option>
-                      <option value="responsable2">Ricardo Estrella</option>
-                      <option value="etc">Otros Responsables de Admin</option>
-                    </select>
-                  </div>
-                )}
+              {formData.tipo === "nomina" && formData.proyecto === "admn" && (
+                <div className="">
+                  <Select
+                    label="Responsable"
+                    name="responsable"
+                    id="responsable"
+                    options={[
+                      { label: "Ricardo Estrella", value: "ricardo" },
+                      { label: "Damián Frutos", value: "damian" },
+                    ]}
+                    onChange={handleSelectChange}
+                  />
+                </div>
+              )}
 
               {/* CNQT */}
-              {formData.tipo === "nomina" &&
-                formData.proyecto === "proyecto2" && (
-                  <div className="">
-                    <label
-                      className="block text-slate-700 text-sm font-bold mb-2"
-                      htmlFor="responsable"
-                    >
-                      Responsable
-                    </label>
-                    <select
-                      className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200  placeholder:text-slate-400"
-                      id="responsable"
-                      name="responsable"
-                      value={formData.responsable}
-                      onChange={handleSelectChange}
-                    >
-                      <option value="responsable1">Damián Frutos</option>
-                      <option value="responsable2">Jonathan Visconti</option>
-                      <option value="etc">Otros Responsables de CNQT</option>
-                    </select>
-                  </div>
-                )}
+              {formData.tipo === "nomina" && formData.proyecto === "cnqt" && (
+                <div>
+                  <Select
+                    label="Responsable"
+                    name="responsable"
+                    id="responsable"
+                    options={[
+                      { label: "Ricardo Estrella", value: "ricardo" },
+                      { label: "Damián Frutos", value: "damian" },
+                    ]}
+                    onChange={handleSelectChange}
+                  />
+                </div>
+              )}
 
               {formData.tipo === "transportista" &&
-                formData.proyecto === "proyecto2" && (
-                  <div className="">
-                    <label
-                      className="block text-slate-700 text-sm font-bold mb-2"
-                      htmlFor="transporte"
-                    >
-                      No. Transporte
-                    </label>
-                    <select
-                      className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200  placeholder:text-slate-400"
-                      id="transporte"
+                formData.proyecto === "cnqt" && (
+                  <div>
+                    <Select
+                      label="No. De Transporte"
                       name="transporte"
-                      value={formData.transporte}
+                      id="transporte"
+                      options={[
+                        { label: "ABC-1234", value: "abc1234" },
+                        { label: "DEF-5678", value: "def5678" },
+                      ]}
                       onChange={handleSelectChange}
-                    >
-                      <option value="transporte1">ABC1234</option>
-                      <option value="transporte2">PQR567</option>
-                      <option value="etc">Otras Placas</option>
-                    </select>
+                    />
                   </div>
                 )}
+            </div>
+            <div className="flex w-full items-center justify-end gap-5">
+              <button
+                type="reset"
+                className="bg-slate-600 hover:bg-slate-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none hover:scale-[.98] transition-all duration-300"
+              >
+                Borrar Formulario
+              </button>
+              <button
+                type="submit"
+                className="bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none hover:scale-[.98] transition-all duration-300"
+              >
+                Registrar Descuento
+              </button>
             </div>
           </form>
         </div>
