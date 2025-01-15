@@ -1,6 +1,7 @@
 import React from "react";
 import Input from "../Input";
 import File from "../File";
+import Select from "../Select";
 
 const DescuentosForm = () => {
   const [formData, setFormData] = React.useState({
@@ -32,12 +33,23 @@ const DescuentosForm = () => {
     }));
   };
 
+  const tipoOptions = [
+    {
+      value: "nomina",
+      label: "Nómina",
+    },
+    {
+      value: "transportista",
+      label: "Transportista",
+    },
+  ];
+
   return (
     <>
       <section className="container pt-10">
         <div className="flex w-full">
           <div className="w-1/4">
-            <h3 className="text-red-900 text-sm font-bold">
+            <h3 className="text-slate-700 text-sm font-bold">
               ¿Carga masiva de información?
             </h3>
             <p className="text-sm text-slate-500">
@@ -62,7 +74,7 @@ const DescuentosForm = () => {
 
         <div className="flex">
           <section className="w-1/4">
-            <h3 className="text-red-900 text-sm font-bold">
+            <h3 className="text-slate-700 text-sm font-bold">
               Detalles del personal a descontar
             </h3>
             <p className="text-sm text-slate-500">
@@ -85,22 +97,12 @@ const DescuentosForm = () => {
                 onChange={handleInputChange}
               />
               <div className="">
-                <label
-                  className="block text-slate-700 text-sm font-bold mb-2"
-                  htmlFor="tipo"
-                >
-                  Tipo
-                </label>
-                <select
-                  className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200  placeholder:text-slate-400"
-                  id="tipo"
+                <Select
+                  label="Tipo"
                   name="tipo"
-                  value={formData.tipo}
-                  onChange={handleSelectChange}
-                >
-                  <option value="nomina">Nómina</option>
-                  <option value="transportista">Transportista</option>
-                </select>
+                  id="tipo"
+                  options={tipoOptions}
+                />
               </div>
 
               <Input
@@ -114,23 +116,15 @@ const DescuentosForm = () => {
               />
 
               <div className="">
-                <label
-                  className="block text-slate-700 text-sm font-bold mb-2"
-                  htmlFor="cuenta"
-                >
-                  Cuenta
-                </label>
-                <select
-                  className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200  placeholder:text-slate-400"
-                  id="cuenta"
+                <Select
+                  label="Cuenta"
                   name="cuenta"
-                  value={formData.cuenta}
-                  onChange={handleSelectChange}
-                >
-                  <option value="cuenta1">Agua Potable</option>
-                  <option value="cuenta2">Alimentacion</option>
-                  <option value="etc">Otras cuentas</option>
-                </select>
+                  id="cuenta"
+                  options={[
+                    { label: "Agua Potable", value: "agua" },
+                    { label: "Alimentación", value: "alimentacion" },
+                  ]}
+                />
               </div>
               <Input
                 type="number"
@@ -143,23 +137,15 @@ const DescuentosForm = () => {
               />
 
               <div className="">
-                <label
-                  className="block text-slate-700 text-sm font-bold mb-2"
-                  htmlFor="proyecto"
-                >
-                  Proyecto
-                </label>
-                <select
-                  className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200  placeholder:text-slate-400"
-                  id="proyecto"
+                <Select
+                  label="Proyecto"
                   name="proyecto"
-                  value={formData.proyecto}
-                  onChange={handleSelectChange}
-                >
-                  <option value="proyecto1">Admin</option>
-                  <option value="proyecto2">CNQT</option>
-                  <option value="etc">Otros Proyectos</option>
-                </select>
+                  id="proyecto"
+                  options={[
+                    { label: "ADMN", value: "admn" },
+                    { label: "CNQT", value: "cnqt" },
+                  ]}
+                />
               </div>
 
               {/* Admin */}

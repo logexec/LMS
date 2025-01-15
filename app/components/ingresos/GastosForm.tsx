@@ -1,4 +1,6 @@
 import React from "react";
+import Input from "../Input";
+import Select from "../Select";
 
 const GastosForm = () => {
   return (
@@ -16,34 +18,25 @@ const GastosForm = () => {
           </div>
 
           <div className="w-1/4 mr-5">
-            <label
-              className="block text-slate-700 text-sm font-bold mb-2"
-              htmlFor="fechaGasto"
-            >
-              Fecha del gasto
-            </label>
-            <input
-              className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200"
+            <Input
+              label="Fecha del gasto"
+              name="fechaGasto"
               id="fechaGasto"
               type="date"
+              currentDate={true}
             />
           </div>
 
           <div className="w-1/4">
-            <label
-              className="block text-slate-700 text-sm font-bold mb-2"
-              htmlFor="tipo"
-            >
-              Tipo
-            </label>
-            <select
-              className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-200"
-              id="tipo"
+            <Select
+              label="Tipo"
               name="tipo"
-            >
-              <option value="nomina">Nómina</option>
-              <option value="transportista">Transportista</option>
-            </select>
+              id="tipo"
+              options={[
+                { label: "Nómina", value: "nomina" },
+                { label: "Transportista", value: "transportista" },
+              ]}
+            />
           </div>
         </div>
 
@@ -56,33 +49,11 @@ const GastosForm = () => {
           </div>
 
           <div className="w-1/4 mr-5">
-            <label
-              className="block text-slate-700 text-sm font-bold mb-2"
-              htmlFor="username"
-            >
-              Usuario
-            </label>
-            <input
-              className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-500 placeholder:text-slate-400"
-              id="username"
-              type="text"
-              placeholder="John Kenyon"
-            />
+            <Input type="text" label="Usuario" name="username" id="username" />
           </div>
 
           <div className="w-1/4">
-            <label
-              className="block text-slate-700 text-sm font-bold mb-2"
-              htmlFor="business"
-            >
-              Empresa
-            </label>
-            <input
-              className="appearance-none border-b-2 shadow-sm border-slate-100 rounded w-full py-2 px-4 text-slate-700 leading-tight focus:outline-none focus:bg-white focus:border-sky-500 placeholder:text-slate-400"
-              id="business"
-              type="text"
-              placeholder="Logex"
-            />
+            <Input type="text" label="Empresa" name="company" id="company" />
           </div>
         </div>
       </section>
