@@ -1,10 +1,15 @@
 import { ElementType } from "react";
-import { MdOutlineDashboard } from "react-icons/md";
 import { GrDocumentUser, GrSubtractCircle } from "react-icons/gr";
 import { VscRequestChanges } from "react-icons/vsc";
-import { CgAddR } from "react-icons/cg";
 import { GiPayMoney } from "react-icons/gi";
 import { LuUsers } from "react-icons/lu";
+import {
+  HandHelping,
+  LayoutDashboard,
+  SquarePlus,
+  Truck,
+  User2,
+} from "lucide-react";
 
 type NavLink = {
   category: string;
@@ -25,10 +30,20 @@ export const sidenavLinks: NavLink[] = [
     requiredPermissions: ["admin"],
     links: [
       {
-        label: "Gestionar Usuarios",
+        label: "Usuarios",
         url: "/usuarios",
         icon: LuUsers,
       },
+      // {
+      //   label: "Empleados",
+      //   url: "/employees",
+      //   icon: User2,
+      // },
+      // {
+      //   label: "Transporte",
+      //   url: "/usuarios",
+      //   icon: Truck,
+      // },
     ],
   },
   {
@@ -36,9 +51,9 @@ export const sidenavLinks: NavLink[] = [
     requiredPermissions: ["admin", "revisar"],
     links: [
       {
-        label: "Registrar Nuevo",
+        label: "Nuevo Registro",
         url: "/registrar-ingreso",
-        icon: CgAddR,
+        icon: SquarePlus,
         requiredPermissions: ["admin"], // Solo admin puede registrar
       },
     ],
@@ -50,13 +65,13 @@ export const sidenavLinks: NavLink[] = [
         label: "Descuentos",
         url: "/registros/descuentos",
         icon: GrSubtractCircle,
-        requiredPermissions: ["admin", "revisar"],
+        requiredPermissions: ["admin", "revisar", "user"],
       },
       {
         label: "Gastos",
         url: "/registros/gastos",
         icon: GiPayMoney,
-        requiredPermissions: ["admin", "revisar"],
+        requiredPermissions: ["admin", "revisar", "user"],
       },
     ],
   },
@@ -67,13 +82,13 @@ export const sidenavLinks: NavLink[] = [
         label: "Solicitudes",
         url: "/gestion/solicitudes",
         icon: VscRequestChanges,
-        requiredPermissions: ["admin", "revisar", "pagar"],
+        requiredPermissions: ["admin", "revisar", "pagar", "user"],
       },
       {
         label: "Reportes Personales",
         url: "/gestion/reportes-personales",
         icon: GrDocumentUser,
-        requiredPermissions: ["admin", "revisar"],
+        requiredPermissions: ["admin", "revisar", "user"],
       },
     ],
   },
@@ -84,7 +99,7 @@ export const sidenavLinks: NavLink[] = [
       {
         label: "Inicio",
         url: "/ingresos-especiales",
-        icon: MdOutlineDashboard,
+        icon: LayoutDashboard,
       },
     ],
   },
@@ -95,7 +110,7 @@ export const sidenavLinks: NavLink[] = [
       {
         label: "Inicio",
         url: "/presupuesto",
-        icon: MdOutlineDashboard,
+        icon: LayoutDashboard,
       },
     ],
   },
@@ -106,7 +121,18 @@ export const sidenavLinks: NavLink[] = [
       {
         label: "Inicio",
         url: "/provisiones",
-        icon: MdOutlineDashboard,
+        icon: LayoutDashboard,
+      },
+    ],
+  },
+  {
+    category: "Soporte",
+    requiredPermissions: ["user", "admin", "developer"],
+    links: [
+      {
+        label: "Tickets",
+        url: "/support",
+        icon: HandHelping,
       },
     ],
   },
