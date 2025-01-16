@@ -98,7 +98,7 @@ const Sidenav = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-8 flex justify-center h-11 w-56 relative"
+          className="mb-6 flex justify-center h-8 w-36 mx-auto relative"
         >
           <Link href={"/"} className="block">
             <Image
