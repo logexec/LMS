@@ -105,7 +105,7 @@ export const sidenavLinks: NavLink[] = [
   },
   {
     category: "Presupuesto",
-    requiredPermissions: ["admin"],
+    requiredPermissions: ["user"],
     links: [
       {
         label: "Inicio",
@@ -116,7 +116,7 @@ export const sidenavLinks: NavLink[] = [
   },
   {
     category: "Provisiones",
-    requiredPermissions: ["admin"],
+    requiredPermissions: ["user"],
     links: [
       {
         label: "Inicio",
