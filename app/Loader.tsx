@@ -4,9 +4,13 @@ import Image from "next/image";
 
 interface LoaderProps {
   fullScreen?: boolean;
+  text?: string;
 }
 
-const Loader: React.FC<LoaderProps> = ({ fullScreen = true }) => {
+const Loader: React.FC<LoaderProps> = ({
+  fullScreen = true,
+  text = "Cargando...",
+}) => {
   return (
     <div
       className={`${
@@ -32,7 +36,9 @@ const Loader: React.FC<LoaderProps> = ({ fullScreen = true }) => {
         {fullScreen ? (
           "Cargando..."
         ) : (
-          <span className="text-fade">Recibiendo información...</span>
+          <span className="text-fade">
+            {text ? text : "Recibiendo información..."}
+          </span>
         )}
       </p>
     </div>

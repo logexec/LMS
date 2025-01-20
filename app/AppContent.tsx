@@ -1,12 +1,13 @@
 "use client";
+
 import React from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import Footer from "./components/Footer";
 import Navigation from "./components/Navigation";
 import Sidenav from "./components/Sidenav";
 import LoginPage from "./login/page";
-import { Loader } from "lucide-react";
+import Loader from "./Loader";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -14,21 +15,27 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <Sidenav />
       <div className="lg:ml-[17rem]">
         <Navigation />
-        <motion.main
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mx-auto min-h-[calc(100vh-theme(space.32))] p-4 lg:p-6"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="rounded-xl bg-white p-6 shadow-lg lg:min-h-[calc(100vh-9rem)]"
+        <AnimatePresence mode="wait">
+          <motion.main
+            key="main"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ delay: 0.2 }}
+            className="mx-auto min-h-[calc(100vh-theme(space.32))] p-4 lg:p-6"
           >
-            {children}
-          </motion.div>
-        </motion.main>
+            <motion.div
+              key="content"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: 0.3 }}
+              className="rounded-xl bg-white p-6 shadow-lg lg:min-h-[calc(100vh-9rem)]"
+            >
+              {children}
+            </motion.div>
+          </motion.main>
+        </AnimatePresence>
         <Footer />
       </div>
     </div>
@@ -43,12 +50,20 @@ export default function AppContent({
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader fullScreen />;
   }
 
   if (!user) {
-    return <LoginPage />;
+    return (
+      <AnimatePresence mode="wait">
+        <LoginPage />
+      </AnimatePresence>
+    );
   }
 
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <AnimatePresence mode="wait">
+      <DashboardLayout>{children}</DashboardLayout>
+    </AnimatePresence>
+  );
 }

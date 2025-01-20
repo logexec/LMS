@@ -7,57 +7,66 @@ interface Permission {
   name: string;
 }
 
-interface Position {
-  id?: number;
+interface Role {
+  id: number;
   name: string;
-  description: string;
-  permissions: number[];
-  status: boolean;
 }
 
-interface PositionFormProps {
+interface User {
+  name: string;
+  email: string;
+  password?: string;
+  role_id: number;
+  permissions: number[];
+}
+
+interface UserFormProps {
   mode: "create" | "edit";
-  initialData?: Position;
+  initialData?: User;
+  roles: Role[];
   permissions: Permission[];
   isOpen: boolean;
-  onSave: (data: Position) => Promise<void>;
+  onSave: (data: User) => Promise<void>;
   onCancel: () => void;
 }
 
-const INITIAL_FORM_STATE: Position = {
+const INITIAL_FORM_STATE: User = {
   name: "",
-  description: "",
+  email: "",
+  password: "",
+  role_id: 0,
   permissions: [],
-  status: true,
 };
 
-const PositionForm: React.FC<PositionFormProps> = ({
+const UserForm: React.FC<UserFormProps> = ({
   mode,
   initialData,
+  roles,
   permissions,
   isOpen,
   onSave,
   onCancel,
 }) => {
-  const [formData, setFormData] = React.useState<Position>(
+  const [formData, setFormData] = React.useState<User>(
     initialData || INITIAL_FORM_STATE
   );
+  const [confirmPassword, setConfirmPassword] = React.useState("");
 
   React.useEffect(() => {
     if (initialData) {
       setFormData(initialData);
+      setConfirmPassword("");
     } else {
       setFormData(INITIAL_FORM_STATE);
+      setConfirmPassword("");
     }
   }, [initialData, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target;
-    const newValue =
-      type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +81,17 @@ const PositionForm: React.FC<PositionFormProps> = ({
     }));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (formData.password && formData.password !== confirmPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    await onSave(formData);
+  };
+
   // Agrupar permisos por categoría
   const groupedPermissions = permissions.reduce((acc, permission) => {
     const category = permission.name.split("_")[0];
@@ -80,15 +100,10 @@ const PositionForm: React.FC<PositionFormProps> = ({
     return acc;
   }, {} as Record<string, Permission[]>);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSave(formData);
-  };
-
   return (
     <Modal isOpen={isOpen}>
       <h3 className="text-2xl text-slate-700">
-        {mode === "create" ? "Crear Cargo" : "Editar Cargo"}
+        {mode === "create" ? "Crear Usuario" : "Editar Usuario"}
       </h3>
       <div className="h-[2px] my-2 bg-slate-200" />
       <form onSubmit={handleSubmit} className="w-full max-w-3xl">
@@ -98,14 +113,14 @@ const PositionForm: React.FC<PositionFormProps> = ({
             <div className="space-y-4">
               <div className="flex flex-col">
                 <label htmlFor="name" className="text-slate-700 text-sm">
-                  Nombre del Cargo
+                  Nombre
                 </label>
                 <input
                   type="text"
                   name="name"
                   id="name"
                   className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
-                  placeholder="Ej: Gerente de Operaciones"
+                  placeholder="Nombre completo"
                   onChange={handleInputChange}
                   value={formData.name}
                   required
@@ -113,40 +128,86 @@ const PositionForm: React.FC<PositionFormProps> = ({
               </div>
 
               <div className="flex flex-col">
-                <label htmlFor="description" className="text-slate-700 text-sm">
-                  Descripción
+                <label htmlFor="email" className="text-slate-700 text-sm">
+                  Email
                 </label>
-                <textarea
-                  name="description"
-                  id="description"
-                  rows={4}
-                  className="border-2 border-gray-300 rounded-md p-2 outline-none focus:border-sky-300 transition-all duration-300"
-                  placeholder="Descripción del cargo y sus responsabilidades"
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                  placeholder="usuario@logex.ec"
                   onChange={handleInputChange}
-                  value={formData.description}
+                  value={formData.email}
+                  required
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="status"
-                  id="status"
-                  checked={formData.status}
-                  onChange={handleInputChange}
-                  className="w-4 h-4"
-                />
-                <label htmlFor="status" className="text-slate-700 text-sm">
-                  Cargo Activo
+              {mode === "create" && (
+                <>
+                  <div className="flex flex-col">
+                    <label
+                      htmlFor="password"
+                      className="text-slate-700 text-sm"
+                    >
+                      Contraseña
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                      onChange={handleInputChange}
+                      value={formData.password}
+                      required
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label
+                      htmlFor="confirmPassword"
+                      className="text-slate-700 text-sm"
+                    >
+                      Confirmar Contraseña
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      id="confirmPassword"
+                      className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      value={confirmPassword}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex flex-col">
+                <label htmlFor="role_id" className="text-slate-700 text-sm">
+                  Rol
                 </label>
+                <select
+                  name="role_id"
+                  id="role_id"
+                  className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                  onChange={handleInputChange}
+                  value={formData.role_id}
+                  required
+                >
+                  <option value="">Seleccionar rol</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             {/* Permisos */}
             <div className="space-y-4">
-              <h4 className="text-slate-700 text-sm font-medium">
-                Permisos asignados al cargo
-              </h4>
+              <h4 className="text-slate-700 text-sm font-medium">Permisos</h4>
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-4">
                 {Object.entries(groupedPermissions).map(([category, perms]) => (
                   <div key={category} className="space-y-2">
@@ -189,4 +250,4 @@ const PositionForm: React.FC<PositionFormProps> = ({
   );
 };
 
-export default PositionForm;
+export default UserForm;

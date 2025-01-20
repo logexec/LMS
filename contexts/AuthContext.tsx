@@ -1,13 +1,6 @@
-// src/contexts/AuthContext.tsx
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  JSX,
-} from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import {
@@ -15,13 +8,24 @@ import {
   logout as logoutService,
 } from "@/services/auth.service";
 
+interface Permission {
+  id: number;
+  name: string;
+}
+
+interface Role {
+  id: number;
+  name: string;
+}
+
 interface User {
   id: string;
   name: string;
   email: string;
-  proyecto: string;
-  area: string;
-  permisos: string[];
+  proyecto?: string;
+  area?: string;
+  role: Role;
+  permissions: Permission[];
 }
 
 interface AuthContextType {
@@ -30,15 +34,48 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isLoading: boolean;
   hasPermission: (permission: string | string[]) => boolean;
+  hasRole: (role: string | string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}): JSX.Element {
+function formatUserData(userData: any): User {
+  // Asegurarse de que role tenga la estructura correcta
+  const role: Role = {
+    id: typeof userData.role === "object" ? userData.role.id : 0,
+    name:
+      typeof userData.role === "object"
+        ? userData.role.name
+        : userData.role || "user",
+  };
+
+  // Asegurarse de que permissions tenga la estructura correcta
+  let permissions: Permission[] = [];
+  if (Array.isArray(userData.permissions)) {
+    permissions = userData.permissions.map(
+      (p: Permission | string | { id?: number; name?: string }) => {
+        if (typeof p === "object" && "id" in p && "name" in p) {
+          return { id: p.id || 0, name: p.name || "" };
+        }
+        return { id: 0, name: typeof p === "string" ? p : String(p) };
+      }
+    );
+  } else if (Array.isArray(userData.permisos)) {
+    permissions = userData.permisos.map((p: string) => ({ id: 0, name: p }));
+  }
+
+  return {
+    id: userData.id.toString(),
+    name: userData.name,
+    email: userData.email,
+    proyecto: userData.proyecto,
+    area: userData.area,
+    role,
+    permissions,
+  };
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -55,7 +92,9 @@ export function AuthProvider({
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          const formattedUser = formatUserData(parsedUser);
+          setUser(formattedUser);
         } else {
           router.push("/login");
         }
@@ -74,8 +113,10 @@ export function AuthProvider({
     setIsLoading(true);
     try {
       const response = await loginService({ email, password });
-      setUser(response.user);
-      router.push("/"); // o a donde quieras redirigir después del login
+      const formattedUser = formatUserData(response.user);
+      setUser(formattedUser);
+      localStorage.setItem("user", JSON.stringify(formattedUser));
+      router.push("/");
     } finally {
       setIsLoading(false);
     }
@@ -96,21 +137,24 @@ export function AuthProvider({
   };
 
   const hasPermission = (permission: string | string[]): boolean => {
-    if (!user?.permisos) return false;
+    if (!user?.permissions) return false;
+
+    const userPermissions = user.permissions.map((p) => p.name);
 
     if (Array.isArray(permission)) {
-      return permission.some((p) => user.permisos.includes(p));
+      return permission.some((p) => userPermissions.includes(p));
     }
-    return user.permisos.includes(permission);
+    return userPermissions.includes(permission);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
+  const hasRole = (role: string | string[]): boolean => {
+    if (!user?.role) return false;
+
+    if (Array.isArray(role)) {
+      return role.includes(user.role.name);
+    }
+    return user.role.name === role;
+  };
 
   return (
     <AuthContext.Provider
@@ -120,6 +164,7 @@ export function AuthProvider({
         logout: handleLogout,
         isLoading,
         hasPermission,
+        hasRole,
       }}
     >
       {children}

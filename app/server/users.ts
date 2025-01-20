@@ -1,4 +1,3 @@
-// app/server/users.ts
 import { Personal, PersonalForm } from "@/utils/types";
 
 interface ApiResponseRaw {

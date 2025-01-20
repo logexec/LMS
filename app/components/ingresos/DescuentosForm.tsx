@@ -1,8 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Input from "../Input";
 import File from "../File";
 import Select from "../Select";
+import { Sheet } from "lucide-react";
+import Loader from "@/app/Loader";
 
 const DescuentosForm = () => {
   const [formData, setFormData] = React.useState({
@@ -56,6 +58,48 @@ const DescuentosForm = () => {
     },
   ];
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleDownload = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/download-excel-template`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al descargar la plantilla");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Crear un enlace temporal para descargar el archivo
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "plantilla.xlsx"; // Cambia el nombre del archivo si es necesario
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpiar el enlace temporal
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("Hubo un problema al descargar la plantilla.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <section className="container pt-10">
@@ -68,8 +112,8 @@ const DescuentosForm = () => {
               Por favor, carga tu archivo .xlsx, .xls o .csv.
             </p>
           </div>
-          <div className="w-3/4">
-            <form>
+          <div className="w-3/4 grid grid-cols-[auto_auto] items-center">
+            <form className="w-full">
               <div className="grid w-full max-w-xs items-center gap-1.5">
                 <File
                   name="archivo"
@@ -85,6 +129,29 @@ const DescuentosForm = () => {
                 Registrar Descuento
               </button>
             </form>
+            <div className="w-full flex flex-col">
+              <p className="text-slate-500 font-semibold text-sm">
+                ¿Necesitas la plantilla actualizada?
+              </p>
+              <button
+                onClick={handleDownload}
+                disabled={isLoading}
+                className={`w-max mt-4 bg-emerald-600 text-white py-1 px-4 border rounded font-semibold shadow-md flex items-center transition-all duration-300 ${
+                  isLoading
+                    ? "!bg-white cursor-not-allowed hover:scale-100 border-slate-100"
+                    : "hover:bg-emerald-700 hover:scale-[.98] border-slate-600"
+                }`}
+              >
+                {isLoading ? (
+                  <Loader text="Descargando..." fullScreen={false} />
+                ) : (
+                  <>
+                    <Sheet size={16} className="mr-2 inline" />
+                    Descargar Plantilla
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

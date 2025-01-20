@@ -1,60 +1,43 @@
-import { ElementType } from "react";
-import { GrDocumentUser, GrSubtractCircle } from "react-icons/gr";
-import { VscRequestChanges } from "react-icons/vsc";
-import { GiPayMoney } from "react-icons/gi";
 import { LuUsers } from "react-icons/lu";
-import {
-  HandHelping,
-  LayoutDashboard,
-  SquarePlus,
-  Truck,
-  User2,
-} from "lucide-react";
+import { SquarePlus, LayoutDashboard } from "lucide-react";
+import { GrSubtractCircle, GrDocumentUser } from "react-icons/gr";
+import { GiPayMoney } from "react-icons/gi";
+import { VscRequestChanges } from "react-icons/vsc";
+import { HandHelping } from "lucide-react";
 
-type NavLink = {
+export interface NavLink {
   category: string;
-  requiredPermissions?: string[]; // Permisos requeridos para ver toda la categoría
-  links: Link[];
-};
-
-type Link = {
-  label: string;
-  url: string;
-  icon: ElementType;
-  requiredPermissions?: string[]; // Permisos requeridos para ver este link específico
-};
+  requiredPermissions?: string[];
+  links: {
+    label: string;
+    url: string;
+    icon: React.ElementType;
+    requiredPermissions?: string[];
+  }[];
+}
 
 export const sidenavLinks: NavLink[] = [
   {
     category: "Administración General",
-    requiredPermissions: ["admin"],
+    requiredPermissions: ["manage_users"],
     links: [
       {
         label: "Usuarios",
         url: "/usuarios",
         icon: LuUsers,
+        requiredPermissions: ["manage_users", "view_users"],
       },
-      // {
-      //   label: "Empleados",
-      //   url: "/employees",
-      //   icon: User2,
-      // },
-      // {
-      //   label: "Transporte",
-      //   url: "/usuarios",
-      //   icon: Truck,
-      // },
     ],
   },
   {
     category: "Ingresos",
-    requiredPermissions: ["admin", "revisar"],
+    requiredPermissions: ["register_income"],
     links: [
       {
         label: "Nuevo Registro",
         url: "/registrar-ingreso",
         icon: SquarePlus,
-        requiredPermissions: ["admin"], // Solo admin puede registrar
+        requiredPermissions: ["register_income"],
       },
     ],
   },
@@ -65,13 +48,13 @@ export const sidenavLinks: NavLink[] = [
         label: "Descuentos",
         url: "/registros/descuentos",
         icon: GrSubtractCircle,
-        requiredPermissions: ["admin", "revisar", "user"],
+        requiredPermissions: ["view_discounts", "manage_discounts"],
       },
       {
         label: "Gastos",
         url: "/registros/gastos",
         icon: GiPayMoney,
-        requiredPermissions: ["admin", "revisar", "user"],
+        requiredPermissions: ["view_expenses", "manage_expenses"],
       },
     ],
   },
@@ -82,19 +65,19 @@ export const sidenavLinks: NavLink[] = [
         label: "Solicitudes",
         url: "/gestion/solicitudes",
         icon: VscRequestChanges,
-        requiredPermissions: ["admin", "revisar", "pagar", "user"],
+        requiredPermissions: ["view_requests", "manage_requests"],
       },
       {
         label: "Reportes Personales",
         url: "/gestion/reportes-personales",
         icon: GrDocumentUser,
-        requiredPermissions: ["admin", "revisar", "user"],
+        requiredPermissions: ["view_reports", "manage_reports"],
       },
     ],
   },
   {
     category: "Ingresos Especiales",
-    requiredPermissions: ["admin"],
+    requiredPermissions: ["manage_special_income"],
     links: [
       {
         label: "Inicio",
@@ -105,7 +88,7 @@ export const sidenavLinks: NavLink[] = [
   },
   {
     category: "Presupuesto",
-    requiredPermissions: ["user"],
+    requiredPermissions: ["view_budget", "manage_budget"],
     links: [
       {
         label: "Inicio",
@@ -116,7 +99,7 @@ export const sidenavLinks: NavLink[] = [
   },
   {
     category: "Provisiones",
-    requiredPermissions: ["user"],
+    requiredPermissions: ["manage_provisions"],
     links: [
       {
         label: "Inicio",
@@ -127,7 +110,7 @@ export const sidenavLinks: NavLink[] = [
   },
   {
     category: "Soporte",
-    requiredPermissions: ["user", "admin", "developer"],
+    requiredPermissions: ["manage_support"],
     links: [
       {
         label: "Tickets",

@@ -20,7 +20,7 @@ interface ProjectApiResponse {
 export const getProjects = async () => {
   try {
     const response = await fetch(
-      `${process.env.STAGING_PROJECTS_URI}/projects`,
+      `${process.env.NEXT_PUBLIC_API_URI}/projects`,
       {
         method: "GET",
         headers: {

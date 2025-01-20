@@ -24,7 +24,9 @@ const LoginPage = () => {
       window.location.href = "/";
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Error al iniciar sesión"
+        error instanceof Error
+          ? error.message
+          : `Error al iniciar sesión: ${error}`
       );
     } finally {
       setIsLoading(false);
@@ -170,31 +172,31 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {/* <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                  id="remember-me"
-                  name="remember-me"
+                  id="remember"
+                  name="remember"
                   type="checkbox"
                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                 />
                 <label
-                  htmlFor="remember-me"
+                  htmlFor="remember"
                   className="ml-2 block text-sm text-gray-700"
                 >
                   Recordarme
                 </label>
               </div>
 
-              <div className="text-sm">
+              {/* <div className="text-sm">
                 <a
                   href="/forgot-password"
                   className="font-medium text-red-600 hover:text-red-500 transition-colors duration-150"
                 >
                   ¿Olvidaste tu contraseña?
                 </a>
-              </div>
-            </div> */}
+              </div> */}
+            </div>
 
             <motion.button
               whileHover={{ scale: 1.01 }}

@@ -11,8 +11,8 @@ export interface LoginResponse {
     name: string;
     email: string;
     proyecto: string;
-    area: string;
-    permisos: string[];
+    role: string | number;
+    permissions: string[];
   };
 }
 
@@ -31,7 +31,7 @@ export async function login(
       Accept: "application/json",
     },
     credentials: "include",
-    body: JSON.stringify(credentials),
+    body: JSON.stringify({ ...credentials, remember: false }),
   });
 
   if (!response.ok) {
@@ -41,7 +41,6 @@ export async function login(
 
   const data = await response.json();
 
-  // Guardar tokens en cookies
   Cookies.set("access_token", data.access_token, { expires: 1 });
   Cookies.set("jwt_token", data.jwt_token, { expires: 1 });
   localStorage.setItem("user", JSON.stringify(data.user));
