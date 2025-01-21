@@ -21,6 +21,7 @@ type InputProps = {
   error?: string;
   hint?: string;
   icon?: React.ReactNode;
+  disabled?: boolean;
 };
 
 const Input: React.FC<InputProps> = ({
@@ -40,6 +41,7 @@ const Input: React.FC<InputProps> = ({
   error,
   hint,
   icon,
+  disabled,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -84,6 +86,7 @@ const Input: React.FC<InputProps> = ({
               : "#9e9e9e",
           }}
           transition={{ duration: 0.2 }}
+          disabled={disabled}
         />
 
         <motion.label

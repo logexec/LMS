@@ -17,6 +17,7 @@ type SelectProps = {
   className?: string;
   options: Option[];
   defaultOption?: string;
+  disabled?: boolean;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -29,6 +30,7 @@ const Select: React.FC<SelectProps> = ({
   className,
   options,
   defaultOption = "Selecciona una opción",
+  disabled = false,
 }) => {
   return (
     <div className="custom-select-group">
@@ -39,12 +41,13 @@ const Select: React.FC<SelectProps> = ({
         id={id}
         value={value}
         onChange={onChange}
+        disabled={disabled}
       >
         <option value="" hidden>
           {defaultOption}
         </option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
+        {options.map((option, idx) => (
+          <option key={`${option.value}-${idx}`} value={option.value}>
             {option.label}
           </option>
         ))}
