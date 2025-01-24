@@ -40,7 +40,6 @@ export type PrimitiveValue =
   | null
   | undefined
   | string[];
-
 export type RecordValue = Record<string, PrimitiveValue>;
 
 export interface BaseTableData extends RecordValue {
@@ -58,16 +57,6 @@ export interface Role {
   name: string;
 }
 
-export interface User extends BaseTableData {
-  name: string;
-  email: string;
-  role_id: number;
-  role: Role;
-  permissions: Permission[];
-  [key: string]: any;
-}
-
-// Interfaz para la respuesta cruda de la API
 export interface ApiResponseRaw {
   data: User[];
   meta: {
@@ -80,7 +69,6 @@ export interface ApiResponseRaw {
   };
 }
 
-// Interfaz para los datos procesados
 export interface ApiResponse {
   data: User[];
   meta: {
@@ -93,20 +81,20 @@ export interface ApiResponse {
   };
 }
 
-// Interfaz para el formulario de creación/edición
 export interface UserFormData {
   id?: string | number;
   name: string;
   email: string;
   password?: string;
   role_id: number;
-  permissions: number[]; // Solo IDs de permisos para enviar al servidor
+  permissions: number[];
 }
 
 export interface ErrorMessage {
   status: number;
   message: string;
 }
+
 export type PrimitiveType = string | number | boolean | string[];
 
 export interface PaginationInfo {
@@ -130,6 +118,116 @@ export interface Column<T extends BaseTableData> {
   render?: <K extends keyof T>(value: T[K], row: T) => React.ReactNode;
 }
 
+export interface SortConfig<T> {
+  key: keyof T;
+  direction: "asc" | "desc";
+}
+
+// Descuentos
+export interface FormData {
+  fechaGasto: string;
+  tipo: string;
+  factura: string;
+  cuenta: string;
+  valor: string;
+  proyecto: string;
+  area?: string;
+  responsable: string;
+  transporte: string;
+  adjunto: File | null;
+  observacion: string;
+}
+
+export interface BaseFormData {
+  fechaGasto: string;
+  tipo: string;
+  factura: string;
+  cuenta: string;
+  valor: string;
+  proyecto: string;
+  observacion: string;
+}
+
+export interface NormalFormData extends BaseFormData {
+  responsable: string;
+  transporte: string;
+  adjunto: File | null;
+}
+
+export interface MassiveFormData extends BaseFormData {
+  area: string;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  area: string;
+  project: string;
+  selected: boolean;
+}
+
+export interface LoadingState {
+  submit: boolean;
+  projects: boolean;
+  responsibles: boolean;
+  transports: boolean;
+  accounts: boolean;
+  areas: boolean;
+}
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export interface OptionsState {
+  projects: SelectOption[];
+  responsibles: SelectOption[];
+  transports: SelectOption[];
+  accounts: SelectOption[];
+  areas: SelectOption[];
+}
+
+export interface RequestData {
+  type: "discount";
+  personnel_type: string;
+  request_date: string;
+  invoice_number: string;
+  account_id: string;
+  amount: string;
+  project: string;
+  area?: string;
+  responsible_id?: string;
+  transport_id?: string | null;
+  note: string;
+}
+
+export interface NormalRequestData {
+  type: "discount";
+  personnel_type: string;
+  request_date: string;
+  invoice_number: string;
+  account_id: string;
+  amount: string;
+  project: string;
+  responsible_id?: string;
+  transport_id?: string | null;
+  note: string;
+  adjunto: File | null;
+}
+
+export interface MassiveRequestData {
+  type: "massive_discount";
+  request_date: string;
+  invoice_number: string;
+  account_id: string;
+  total_amount: string;
+  project: string;
+  area: string;
+  employees: string[];
+  note: string;
+}
+
 export interface DataTableProps<T extends BaseTableData> {
   data: PaginatedResponse<T>;
   columns: Column<T>[];
@@ -140,38 +238,4 @@ export interface DataTableProps<T extends BaseTableData> {
   className?: string;
   showActions?: boolean;
   showExport?: boolean;
-}
-
-export interface BasePersonal {
-  correo_electronico: string;
-  permisos: string[];
-}
-
-// Interfaz para el formulario
-export interface PersonalForm extends BasePersonal {
-  [key: string]: PrimitiveType;
-}
-
-// Interfaz para la tabla
-export interface PersonalTable extends BasePersonal {
-  id: string | number;
-  role_id: number;
-  name: string;
-  email: string;
-  permissions: string[];
-  [key: string]: PrimitiveType;
-}
-
-export interface SortConfig<T> {
-  key: keyof T;
-  direction: "asc" | "desc";
-}
-
-export interface Personal extends BaseTableData {
-  id: string | number;
-  role_id: number;
-  name: string;
-  email: string;
-  permissions: string[];
-  [key: string]: string | number | string[];
 }

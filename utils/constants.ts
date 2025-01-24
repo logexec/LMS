@@ -1,9 +1,12 @@
-import { LuUsers } from "react-icons/lu";
+import { LuMonitor, LuUsers } from "react-icons/lu";
 import { SquarePlus, LayoutDashboard } from "lucide-react";
 import { GrSubtractCircle, GrDocumentUser } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
 import { VscRequestChanges } from "react-icons/vsc";
 import { HandHelping } from "lucide-react";
+
+export const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface NavLink {
   category: string;
@@ -25,6 +28,12 @@ export const sidenavLinks: NavLink[] = [
         label: "Usuarios",
         url: "/usuarios",
         icon: LuUsers,
+        requiredPermissions: ["manage_users", "view_users"],
+      },
+      {
+        label: "Monitoreo",
+        url: "/monitoreo",
+        icon: LuMonitor,
         requiredPermissions: ["manage_users", "view_users"],
       },
     ],

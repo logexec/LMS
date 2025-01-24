@@ -5,11 +5,13 @@ import Image from "next/image";
 interface LoaderProps {
   fullScreen?: boolean;
   text?: string;
+  className?: string;
 }
 
 const Loader: React.FC<LoaderProps> = ({
   fullScreen = true,
   text = "Cargando...",
+  className,
 }) => {
   return (
     <div
@@ -17,7 +19,7 @@ const Loader: React.FC<LoaderProps> = ({
         fullScreen
           ? "min-h-screen min-w-screen w-screen h-screen bg-black/60 z-50 fixed top-0 left-0 flex flex-col items-center justify-center m-0 p-0"
           : "h-auto flex flex-col items-center justify-center"
-      }`}
+      } ${className}`}
     >
       {fullScreen && (
         <>

@@ -1,19 +1,26 @@
+"use server";
 import Image from "next/image";
 import Card from "./components/Card";
 import Link from "next/link";
 import Hr from "./components/Hr";
 import { Inbox, Users, UsersRound } from "lucide-react";
+import User from "./components/User";
+import Personnel from "./components/Personnel";
+import {
+  PendingRequests,
+  ApprovedRequests,
+  RejectedRequests,
+} from "./components/PendingRequests";
+import Transport from "./components/Transport";
 
 const subtractHours = (date: Date) => {
   const currentHour = date.getHours();
   if (currentHour < 8 || currentHour >= 16) {
-    return 0; // Fuera del horario laboral (antes de las 8:00 o después de las 17:00)
+    return 0;
   }
-
   const remainingHours = 16 - currentHour;
-
   if (remainingHours <= 0 || remainingHours > 9) {
-    return 0; // Si la hora actual es exactamente 17:00 o más, mostrar 0
+    return 0;
   }
   return remainingHours;
 };
@@ -22,7 +29,6 @@ const subtractMinutes = (date: Date) => {
   const currentHour = date.getHours();
   const currentMinute = date.getMinutes();
 
-  // Si estamos fuera del horario laboral, devuelve a 0 minutos
   if (currentHour < 8 || currentHour >= 17) {
     return 0;
   }
@@ -44,13 +50,43 @@ const subtractMinutes = (date: Date) => {
 const isShiftOver =
   subtractHours(new Date()) === 0 && subtractMinutes(new Date()) === 0;
 
-const Home = () => {
+const Home = async () => {
   return (
     <div className="grid grid-rows-2 items-center">
-      <section className="grid grid-cols-3 gap-5 justify-evenly w-full">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 justify-evenly w-full">
+        <Card>
+          <Link href="/gestion/solicitudes" className="block mx-5">
+            <h3 className="text-slate-500 font-semibold text-lg">
+              Solicitudes
+            </h3>
+            <p className="text-slate-400 text-[0.65rem] font-normal">
+              (Los números se actualizan mensualmente)
+            </p>
+            <Hr variant="red" />
+            <div className="flex flex-col gap-3 mt-5 items-center">
+              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
+                <Inbox size={35} className="text-slate-400" />
+              </div>
+              <div className="flex flex-row gap-5 items-center flex-wrap justify-evenly">
+                <span className="text-3xl font-semibold text-slate-800">
+                  <PendingRequests />
+                </span>
+                <span className="text-3xl font-semibold text-emerald-600">
+                  <ApprovedRequests />
+                </span>
+                <span className="text-3xl font-semibold text-red-600">
+                  <RejectedRequests />
+                </span>
+              </div>
+            </div>
+            <p className="text-slate-400 text-sm font-normal mt-4">
+              Haz clic para gestionar
+            </p>
+          </Link>
+        </Card>
         <Card>
           <Link href="/usuarios" className="block px-3">
-            <h3 className="text-slate-600 font-semibold text-xl">
+            <h3 className="text-slate-500 font-semibold text-lg">
               Usuarios de LMS
             </h3>
             <Hr variant="red" />
@@ -59,7 +95,7 @@ const Home = () => {
                 <UsersRound size={35} className="text-slate-400" />
               </div>
               <span className="text-3xl font-semibold text-slate-800 ml-5">
-                15{" "}
+                <User />
                 <span className="text-sm text-slate-400 font-normal ml-3">
                   Usuarios
                 </span>
@@ -70,10 +106,10 @@ const Home = () => {
             </p>
           </Link>
         </Card>
-
         <Card>
-          <Link href="/usuarios" className="block px-3">
-            <h3 className="text-slate-600 font-semibold text-xl">
+          <div className="block px-3">
+            {/* Link */}
+            <h3 className="text-slate-500 font-semibold text-lg">
               Personal de Logex
             </h3>
             <Hr variant="red" />
@@ -82,39 +118,39 @@ const Home = () => {
                 <Users size={35} className="text-slate-400" />
               </div>
               <span className="text-3xl font-semibold text-slate-800">
-                5516
+                <Personnel />
                 <span className="text-sm text-slate-400 font-normal ml-3">
                   Empleados
                 </span>
               </span>
             </div>
-            <p className="text-slate-400 text-sm font-normal mt-4">
-              Haz clic para ver el personal
-            </p>
-          </Link>
+            {/* <p className="text-slate-400 text-sm font-normal mt-4 italic">
+              (Información visual únicamente)
+            </p> */}
+          </div>
         </Card>
 
         <Card>
-          <Link href="/solicitudes" className="block mx-5">
-            <h3 className="text-slate-600 font-semibold text-xl">
-              Solicitudes Pendientes
+          <div className="block px-3">
+            <h3 className="text-slate-500 font-semibold text-lg">
+              Camiones activos de Logex
             </h3>
             <Hr variant="red" />
             <div className="flex gap-3 mt-5 items-center">
               <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
-                <Inbox size={35} className="text-slate-400" />
+                <Users size={35} className="text-slate-400" />
               </div>
               <span className="text-3xl font-semibold text-slate-800">
-                271{" "}
+                <Transport />
                 <span className="text-sm text-slate-400 font-normal ml-3">
-                  Nuevas
+                  Camiones
                 </span>
               </span>
             </div>
-            <p className="text-slate-400 text-sm font-normal mt-4">
-              Haz clic para gestionar
-            </p>
-          </Link>
+            {/* <p className="text-slate-400 text-sm font-normal mt-4 italic">
+              (Información visual únicamente)
+            </p> */}
+          </div>
         </Card>
       </section>
 

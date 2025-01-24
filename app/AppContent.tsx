@@ -11,7 +11,7 @@ import Loader from "./Loader";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative min-h-screen bg-slate-100">
+    <div className="relative min-h-screen bg-slate-100 antialiased">
       <Sidenav />
       <div className="lg:ml-[17rem]">
         <Navigation />

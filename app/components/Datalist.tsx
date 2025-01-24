@@ -1,6 +1,6 @@
 import React from "react";
 import { ChevronDown } from "lucide-react";
-import "./select.component.css";
+import "./datalist.component.css";
 
 type Option = {
   value: string | number;
@@ -9,62 +9,59 @@ type Option = {
   className?: string;
 };
 
-type SelectProps = {
+type DatalistProps = {
   label: string;
   name: string;
   id: string;
   required?: boolean;
   value?: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   options: Option[];
-  defaultOption?: string;
+  placeholder?: string;
   disabled?: boolean;
 };
 
-const Select: React.FC<SelectProps> = ({
+const Datalist: React.FC<DatalistProps> = ({
   label,
   name,
   id,
-  required = false,
+  required,
   value,
   onChange,
   className,
   options,
-  defaultOption = "Selecciona...",
+  placeholder = "Comienza a escribir...",
   disabled = false,
 }) => {
   return (
-    <div className="custom-select-group">
-      <select
+    <div className="custom-datalist-group">
+      <input
         required={required}
         name={name}
-        className={`select ${className ? className : ""}`}
+        placeholder={placeholder}
+        className={`datalist ${className ? className : ""}`}
         id={id}
         value={value}
         onChange={onChange}
         disabled={disabled}
-      >
-        <option value="" hidden>
-          {defaultOption}
-        </option>
+        list={`${id}-list`}
+      />
+      <label htmlFor={id} className="datalist-label">
+        {label}
+      </label>
+      <datalist id={`${id}-list`}>
         {options.map((option, idx) => (
           <option
             className={`capitalize ${option.className}`}
             key={`${option.value}-${idx}`}
-            value={option.value}
+            value={option.label}
             disabled={option.optionDisabled}
-          >
-            {option.label}
-          </option>
+          ></option>
         ))}
-      </select>
-      <label htmlFor={id} className="select-label">
-        {label}
-      </label>
-      <ChevronDown className="select-icon" size={20} />
+      </datalist>
     </div>
   );
 };
 
-export default Select;
+export default Datalist;

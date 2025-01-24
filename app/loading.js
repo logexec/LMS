@@ -17,7 +17,7 @@ export default function loading() {
             className="logo"
           />
       <p className="text">
-          CargandoING...
+          Cargando...
       </p>
     </div>
   );

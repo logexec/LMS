@@ -22,6 +22,31 @@ type InputProps = {
   hint?: string;
   icon?: React.ReactNode;
   disabled?: boolean;
+  pattern?: string;
+  numericInput?: boolean;
+  containerClassName?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  allowPastDates?: boolean;
+  min?: number;
+};
+
+const handleNumericInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const allowedKeys = [
+    "Backspace",
+    "Delete",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+    "Tab",
+    ".",
+    ",",
+    "-",
+  ];
+
+  if (!/\d/.test(e.key) && !allowedKeys.includes(e.key)) {
+    e.preventDefault();
+  }
 };
 
 const Input: React.FC<InputProps> = ({
@@ -40,8 +65,14 @@ const Input: React.FC<InputProps> = ({
   step,
   error,
   hint,
+  pattern,
   icon,
   disabled,
+  onKeyDown,
+  numericInput,
+  containerClassName,
+  allowPastDates = true,
+  min,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -50,7 +81,7 @@ const Input: React.FC<InputProps> = ({
   const showLabel = isFocused || hasValue;
 
   return (
-    <div className="custom-input-container">
+    <div className={`custom-input-container ${containerClassName}`}>
       <motion.div
         className={`custom-input-group ${error ? "has-error" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
@@ -87,6 +118,9 @@ const Input: React.FC<InputProps> = ({
           }}
           transition={{ duration: 0.2 }}
           disabled={disabled}
+          pattern={pattern}
+          onKeyDown={numericInput ? handleNumericInput : onKeyDown}
+          min={allowPastDates ? min : new Date().toISOString().split("T")[0]}
         />
 
         <motion.label
@@ -134,7 +168,7 @@ const Input: React.FC<InputProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      <div className="input-footer">
+      <div className={`input-footer ${error ? "block" : "hidden"}`}>
         <AnimatePresence>
           {error && (
             <motion.span

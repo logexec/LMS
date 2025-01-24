@@ -5,7 +5,6 @@ import ModalStatus from "../components/ModalStatus";
 import "./registro.component.css";
 import DescuentosForm from "../components/ingresos/DescuentosForm";
 import GastosForm from "../components/ingresos/GastosForm";
-import { getProjects } from "../server/projects";
 
 const RegistroPage: React.FC = () => {
   const [view, setView] = useState<"descuentos" | "gastos">("descuentos");

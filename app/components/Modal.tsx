@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 
 interface ModalProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   children: React.ReactNode;
 }
 

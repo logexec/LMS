@@ -13,7 +13,7 @@ const Navigation = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-30 w-full bg-slate-950 text-white shadow-lg backdrop-blur-sm bg-opacity-80"
+      className="sticky top-0 z-30 w-full bg-slate-950/70 text-white shadow-lg backdrop-blur-sm"
     >
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         <motion.div

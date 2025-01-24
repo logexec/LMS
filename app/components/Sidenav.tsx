@@ -9,6 +9,7 @@ import logo from "@/public/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import "./sidenav.component.css";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -55,8 +56,6 @@ const Sidenav = () => {
       ),
     }));
 
-  // console.log("Filtered links:", filteredNavLinks);
-
   const sidenavAnimationProps = isDesktop
     ? {
         initial: { x: 0 },
@@ -76,7 +75,9 @@ const Sidenav = () => {
           initial={false}
           animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
           className={`relative z-50 rounded-lg p-3 text-white lg:hidden ${
-            isMobileMenuOpen ? "-top-[12.5rem] left-28" : "top-12 left-4"
+            isMobileMenuOpen
+              ? "-top-[12.5rem] left-28"
+              : "-top-20 md:top-[2.5rem] lg:top-12 left-0 md:left-4 lg:left-4"
           }`}
           onClick={toggleMobileMenu}
         >
@@ -85,7 +86,7 @@ const Sidenav = () => {
           ) : (
             <Menu
               size={20}
-              className="absolute top-[15.5rem] left-[11.965rem]"
+              className="absolute top-0 lg:top-[15.5rem] -left-[1rem] md:left-[.25rem] lg:left-[11.965rem]"
             />
           )}
         </motion.button>
@@ -113,7 +114,7 @@ const Sidenav = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-6 flex justify-center h-8 w-36 mx-auto relative"
+          className="mb-6 flex justify-center h-9 w-full mx-auto relative"
         >
           <Link href="/" className="block">
             <Image
@@ -127,7 +128,7 @@ const Sidenav = () => {
           </Link>
         </motion.div>
 
-        <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-6 overflow-y-auto">
           {filteredNavLinks.map((item, categoryIndex) => (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
