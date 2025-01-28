@@ -1,13 +1,27 @@
-import ComingSoon from "@/app/components/ComingSoon";
+"use client";
+
+import RequestsTable from "@/app/registros/components/RequestsTable";
+import { motion } from "motion/react";
 import React from "react";
 
 const page = () => {
-  return <ComingSoon />;
+  return (
+    <motion.div
+      initial={{ scale: 0.75 }}
+      animate={{ scale: 1 }}
+      exit={{ scale: 0.75 }}
+      transition={{ duration: 0.45 }}
+      className="w-full h-full"
+    >
+      <RequestsTable mode="requests" type="discount" />
+    </motion.div>
+  );
   //TODO: Llega la informacion de lo que se ingresa en descuentos: Unicamente se aprueba o se elimina. No se puede modificar.
   //TODO: NO PERMITE DESCONTAR MESES PASADOS.
   //TODO: EN DETALLE MOSTRAR EL DESCUENTO
   //TODO: Revisar es aprobar  (cambiar)
-  //TODO: Rechazar: Cambia estado de descuento. Mostrar unicamente si es que es que es pendiente
+  //TODO: Rechazar: Cambia estado de descuento.
+  //TODO: Mostrar unicamente si es que es que es pendiente
   //TODO: Aprueba: Cambia status.
 
   //TODO: WEBsockets para notificaciones cada que se ingresa una solicitud.

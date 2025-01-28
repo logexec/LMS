@@ -1,6 +1,6 @@
 import { LuMonitor, LuUsers } from "react-icons/lu";
 import { SquarePlus, LayoutDashboard } from "lucide-react";
-import { GrSubtractCircle, GrDocumentUser } from "react-icons/gr";
+import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
 import { VscRequestChanges } from "react-icons/vsc";
 import { HandHelping } from "lucide-react";
@@ -63,6 +63,12 @@ export const sidenavLinks: NavLink[] = [
         label: "Gastos",
         url: "/registros/gastos",
         icon: GiPayMoney,
+        requiredPermissions: ["view_expenses", "manage_expenses"],
+      },
+      {
+        label: "Reposiciones",
+        url: "/registros/reposiciones",
+        icon: GrMoney,
         requiredPermissions: ["view_expenses", "manage_expenses"],
       },
     ],

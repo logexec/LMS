@@ -3,15 +3,14 @@ import Image from "next/image";
 import Card from "./components/Card";
 import Link from "next/link";
 import Hr from "./components/Hr";
-import { Inbox, Users, UsersRound } from "lucide-react";
 import User from "./components/User";
 import Personnel from "./components/Personnel";
+import Transport from "./components/Transport";
 import {
   PendingRequests,
   ApprovedRequests,
   RejectedRequests,
-} from "./components/PendingRequests";
-import Transport from "./components/Transport";
+} from "./components/Requests";
 
 const subtractHours = (date: Date) => {
   const currentHour = date.getHours();
@@ -53,99 +52,71 @@ const isShiftOver =
 const Home = async () => {
   return (
     <div className="grid grid-rows-2 items-center">
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 justify-evenly w-full">
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 justify-evenly w-full">
         <Card>
           <Link href="/gestion/solicitudes" className="block mx-5">
-            <h3 className="text-slate-500 font-semibold text-lg">
+            <h3 className="text-slate-500 font-semibold text-base">
               Solicitudes
             </h3>
-            <p className="text-slate-400 text-[0.65rem] font-normal">
-              (Los números se actualizan mensualmente)
+            <p className="text-slate-400 text-xs font-normal">
+              (Los números se inicializan mensualmente)
             </p>
             <Hr variant="red" />
-            <div className="flex flex-col gap-3 mt-5 items-center">
-              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
-                <Inbox size={35} className="text-slate-400" />
-              </div>
+            <div className="flex flex-col md:flex-row gap-3 mt-5 items-center">
               <div className="flex flex-row gap-5 items-center flex-wrap justify-evenly">
-                <span className="text-3xl font-semibold text-slate-800">
+                <span className="text-3xl font-semibold">
                   <PendingRequests />
                 </span>
-                <span className="text-3xl font-semibold text-emerald-600">
+                <span className="text-3xl font-semibold">
                   <ApprovedRequests />
                 </span>
-                <span className="text-3xl font-semibold text-red-600">
+                <span className="text-3xl font-semibold">
                   <RejectedRequests />
                 </span>
               </div>
             </div>
-            <p className="text-slate-400 text-sm font-normal mt-4">
-              Haz clic para gestionar
-            </p>
           </Link>
         </Card>
         <Card>
           <Link href="/usuarios" className="block px-3">
-            <h3 className="text-slate-500 font-semibold text-lg">
+            <h3 className="text-slate-500 font-semibold text-base">
               Usuarios de LMS
             </h3>
+            <p className="opacity-0 text-xs font-normal">
+              (Los números se actualizan diariamente)
+            </p>
             <Hr variant="red" />
             <div className="flex gap-3 mt-5 items-center">
-              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
-                <UsersRound size={35} className="text-slate-400" />
-              </div>
-              <span className="text-3xl font-semibold text-slate-800 ml-5">
-                <User />
-                <span className="text-sm text-slate-400 font-normal ml-3">
-                  Usuarios
-                </span>
-              </span>
+              <User />
             </div>
-            <p className="text-slate-400 text-sm font-normal mt-4">
-              Haz clic para administrar
-            </p>
           </Link>
         </Card>
         <Card>
           <div className="block px-3">
-            {/* Link */}
-            <h3 className="text-slate-500 font-semibold text-lg">
-              Personal de Logex
+            <h3 className="text-slate-500 font-semibold text-base">
+              Personal activo de Logex
             </h3>
+            <p className="opacity-0 text-xs font-normal">
+              (Los números se actualizan diariamente)
+            </p>
             <Hr variant="red" />
             <div className="flex gap-3 mt-5 items-center">
-              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
-                <Users size={35} className="text-slate-400" />
-              </div>
-              <span className="text-3xl font-semibold text-slate-800">
-                <Personnel />
-                <span className="text-sm text-slate-400 font-normal ml-3">
-                  Empleados
-                </span>
-              </span>
+              <Personnel />
             </div>
-            {/* <p className="text-slate-400 text-sm font-normal mt-4 italic">
-              (Información visual únicamente)
-            </p> */}
           </div>
         </Card>
 
         <Card>
           <div className="block px-3">
-            <h3 className="text-slate-500 font-semibold text-lg">
+            <h3 className="text-slate-500 font-semibold text-base">
               Camiones activos de Logex
             </h3>
+            <p className="opacity-0 text-xs font-normal">
+              (Los números se actualizan diariamente)
+            </p>
             <Hr variant="red" />
             <div className="flex gap-3 mt-5 items-center">
-              <div className="rounded-full bg-gray-100/70 object-contain border border-slate-400 p-[5px] overflow-hidden">
-                <Users size={35} className="text-slate-400" />
-              </div>
-              <span className="text-3xl font-semibold text-slate-800">
-                <Transport />
-                <span className="text-sm text-slate-400 font-normal ml-3">
-                  Camiones
-                </span>
-              </span>
+              <Transport />
             </div>
             {/* <p className="text-slate-400 text-sm font-normal mt-4 italic">
               (Información visual únicamente)

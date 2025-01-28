@@ -1,19 +1,13 @@
 import React, { ChangeEvent, FormEvent, useEffect } from "react";
 import Input from "../Input";
 import Select from "../Select";
-import {
-  LoadingState,
-  OptionsState,
-  NormalFormData,
-  NormalRequestData,
-} from "@/utils/types";
+import { LoadingState, OptionsState, NormalFormData } from "@/utils/types";
 import Datalist from "../Datalist";
-import File from "../File";
 
 interface NormalDiscountFormProps {
   options: OptionsState;
   loading: LoadingState;
-  onSubmit: (data: NormalRequestData) => Promise<void>;
+  onSubmit: (data: FormData) => Promise<void>;
 }
 
 const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
@@ -30,11 +24,10 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     proyecto: "",
     responsable: "",
     transporte: "",
-    adjunto: null,
+    adjunto: new Blob([]),
     observacion: "",
   });
 
-  // Estado local para las opciones de los selects
   const [localOptions, setLocalOptions] = React.useState<OptionsState>({
     projects: [],
     responsibles: [],
@@ -43,7 +36,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     areas: [],
   });
 
-  // Estado de carga local
   const [localLoading, setLocalLoading] = React.useState<LoadingState>({
     submit: false,
     projects: false,
@@ -127,13 +119,13 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
         if (!response.ok) throw new Error();
 
-        const data: Array<{ nombres: string; id: string }> =
+        const data: Array<{ nombre_completo: string; id: string }> =
           await response.json();
 
         setLocalOptions((prev) => ({
           ...prev,
           responsibles: data.map((responsible) => ({
-            label: responsible.nombres,
+            label: responsible.nombre_completo,
             value: responsible.id,
           })),
         }));
@@ -202,36 +194,55 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    if (!e.target.files?.length) return;
+
     setNormalFormData((prev) => ({
       ...prev,
-      [name]: value,
+      adjunto: e.target.files![0],
     }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const requestData: NormalRequestData = {
-      type: "discount",
-      personnel_type: normalFormData.tipo,
-      request_date: normalFormData.fechaGasto,
-      invoice_number: normalFormData.factura,
-      account_id: normalFormData.cuenta,
-      amount: normalFormData.valor,
-      project: normalFormData.proyecto,
-      responsible_id: normalFormData.responsable,
-      adjunto: normalFormData.adjunto,
-      transport_id:
-        normalFormData.tipo === "transportista"
-          ? normalFormData.transporte
-          : null,
-      note: normalFormData.observacion,
-    };
+    const formData = new FormData();
 
-    console.table(requestData);
+    formData.append("type", "discount");
+    formData.append("personnel_type", normalFormData.tipo);
+    formData.append("request_date", normalFormData.fechaGasto);
+    formData.append("invoice_number", normalFormData.factura);
+    formData.append("account_id", normalFormData.cuenta);
+    formData.append("amount", normalFormData.valor);
+    formData.append("project", normalFormData.proyecto);
+    formData.append("note", normalFormData.observacion);
 
-    await onSubmit(requestData);
+    if (normalFormData.tipo === "nomina" && normalFormData.responsable) {
+      formData.append("responsible_id", normalFormData.responsable);
+    } else if (
+      normalFormData.tipo === "transportista" &&
+      normalFormData.transporte
+    ) {
+      formData.append("transport_id", normalFormData.transporte);
+    }
+
+    if (normalFormData.adjunto) {
+      formData.append("attachment", normalFormData.adjunto);
+    }
+
+    await onSubmit(formData);
+
+    setNormalFormData({
+      fechaGasto: new Date().toISOString().split("T")[0],
+      tipo: "",
+      factura: "",
+      cuenta: "",
+      valor: "",
+      proyecto: "",
+      responsable: "",
+      transporte: "",
+      adjunto: new Blob([]),
+      observacion: "",
+    });
   };
 
   const isFormValid = (): boolean => {
@@ -287,7 +298,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
             disabled={localLoading.submit}
           />
 
-          <Select
+          <Datalist
             label="Proyecto"
             name="proyecto"
             id="proyecto"
@@ -297,12 +308,12 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                 ? [{ value: "0", label: "Cargando proyectos..." }]
                 : options.projects
             }
-            onChange={handleSelectChange}
+            onChange={handleInputChange}
             value={normalFormData.proyecto}
             disabled={!normalFormData.tipo || loading.projects}
           />
 
-          <Select
+          <Datalist
             label="Cuenta"
             name="cuenta"
             id="cuenta"
@@ -312,7 +323,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                 ? [{ value: "0", label: "Cargando cuentas..." }]
                 : localOptions.accounts
             }
-            onChange={handleSelectChange}
+            onChange={handleInputChange}
             value={normalFormData.cuenta}
             disabled={!normalFormData.tipo || localLoading.accounts}
           />
@@ -345,7 +356,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
           {normalFormData.tipo === "nomina" && (
             <div>
-              <Select
+              <Datalist
                 label="Responsable"
                 name="responsable"
                 id="responsable"
@@ -363,7 +374,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                       ]
                     : localOptions.responsibles
                 }
-                onChange={handleSelectChange}
+                onChange={handleInputChange}
                 disabled={!normalFormData.proyecto || localLoading.responsibles}
               />
             </div>
@@ -401,14 +412,18 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
           />
 
           <div className="-mt-2 lg:col-span-2 xl:col-span-4">
-            <File
-              label="Adjunto"
+            <input
+              type="file"
+              id="adjunto"
               name="adjunto"
-              required
               onChange={handleFileChange}
-              variant="red"
-              disabled={loading.submit || localLoading.submit}
-              labelClassName="font-normal text-sm"
+              required
+              className="block w-full text-sm text-slate-500
+                           file:mr-4 file:py-2 file:px-4
+                           file:rounded file:border-0
+                           file:text-sm file:font-semibold
+                           file:bg-red-50 file:text-red-700
+                            hover:file:bg-red-100 border border-slate-300 focus:border-sky-200 rounded-lg [&:not(:empty)]:border-green-500"
             />
           </div>
         </div>
@@ -428,7 +443,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                 proyecto: "",
                 responsable: "",
                 transporte: "",
-                adjunto: null,
+                adjunto: new Blob([]),
                 observacion: "",
               })
             }
@@ -436,24 +451,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
             Borrar Formulario
           </button>
           <button
-            type="button"
+            type="submit"
             className="bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none transition-all duration-300 w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading.submit || localLoading.submit || !formValid}
-            onClick={() => {
-              handleSubmit;
-              setNormalFormData({
-                fechaGasto: new Date().toISOString().split("T")[0],
-                tipo: "",
-                factura: "",
-                cuenta: "",
-                valor: "",
-                proyecto: "",
-                responsable: "",
-                transporte: "",
-                adjunto: null,
-                observacion: "",
-              });
-            }}
           >
             {loading.submit ? "Procesando..." : "Registrar Descuento"}
           </button>

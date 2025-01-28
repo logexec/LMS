@@ -28,6 +28,7 @@ type InputProps = {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   allowPastDates?: boolean;
   min?: number;
+  readonly?: boolean;
 };
 
 const handleNumericInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -73,6 +74,7 @@ const Input: React.FC<InputProps> = ({
   containerClassName,
   allowPastDates = true,
   min,
+  readonly,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -121,6 +123,7 @@ const Input: React.FC<InputProps> = ({
           pattern={pattern}
           onKeyDown={numericInput ? handleNumericInput : onKeyDown}
           min={allowPastDates ? min : new Date().toISOString().split("T")[0]}
+          readOnly={readonly}
         />
 
         <motion.label

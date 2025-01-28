@@ -1,3 +1,85 @@
+//Tabla de Reposiciones, Gastos y Descuentos
+
+export enum Status {
+  pending = "pending",
+  approved = "approved",
+  rejected = "rejected",
+  review = "review",
+  in_reposition = "in_reposition",
+}
+
+export type TableMode = "requests" | "reposiciones";
+export type RequestType = "discount" | "expense";
+
+export interface BaseEntity {
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RequestProps extends BaseEntity {
+  unique_id: string;
+  type: RequestType;
+  status: Status;
+  invoice_number: string;
+  account_id: number;
+  amount: number;
+  project: string;
+  responsible_id: string | null;
+  transport_id: string | null;
+  attachment_path: string | null;
+  note: string | null;
+  personnel_type?: string;
+  request_date?: string;
+}
+
+export interface AccountProps extends BaseEntity {
+  name: string;
+  account_number: string;
+  account_type: string;
+}
+
+export interface ResponsibleProps {
+  id: string;
+  nombre_completo: string;
+}
+
+export interface TransportProps {
+  id: string;
+  name: string;
+}
+
+export interface ReposicionProps extends BaseEntity {
+  fecha_reposicion: string;
+  total_reposicion: number;
+  status: Status;
+  project: string;
+  detail: string[];
+  month: string;
+  when:
+    | "rol"
+    | "liquidación"
+    | "decimo_tercero"
+    | "decimo_cuarto"
+    | "utilidades";
+  note: string;
+  requests?: RequestProps[];
+}
+
+export interface ReposicionFormData {
+  month: string;
+  when: string;
+  note: string;
+}
+
+export interface DataTableProps<TData> {
+  mode: "requests" | "reposiciones";
+  type?: "discount" | "expense";
+  onStatusChange?: (id: number, status: Status) => Promise<void>;
+  onCreateReposicion?: (requestIds: string[]) => Promise<void>;
+  onUpdateReposicion?: (id: number, status: Status) => Promise<void>;
+}
+
 // Auth
 export interface User {
   id: string;
@@ -32,6 +114,49 @@ export interface NavLink {
 }
 
 // General
+export interface LoadingState {
+  submit: boolean;
+  projects: boolean;
+  responsibles: boolean;
+  transports: boolean;
+  accounts: boolean;
+  areas: boolean;
+}
+
+export interface OptionsState {
+  projects: Array<{ label: string; value: string }>;
+  responsibles: Array<{ label: string; value: string }>;
+  transports: Array<{ label: string; value: string }>;
+  accounts: Array<{ label: string; value: string }>;
+  areas: Array<{ label: string; value: string }>;
+}
+
+export interface NormalFormData {
+  fechaGasto: string;
+  tipo: string;
+  factura: string;
+  cuenta: string;
+  valor: string;
+  proyecto: string;
+  responsable: string;
+  transporte: string;
+  adjunto: Blob;
+  observacion: string;
+}
+
+export interface NormalRequestData {
+  type: string;
+  personnel_type: string;
+  request_date: string;
+  invoice_number: string;
+  account_id: string;
+  amount: string;
+  project: string;
+  responsible_id: string;
+  transport_id: string | null;
+  note: string;
+}
+
 export type PrimitiveValue =
   | string
   | number
@@ -134,7 +259,7 @@ export interface FormData {
   area?: string;
   responsable: string;
   transporte: string;
-  adjunto: File | null;
+  adjunto: Blob;
   observacion: string;
 }
 
@@ -151,7 +276,7 @@ export interface BaseFormData {
 export interface NormalFormData extends BaseFormData {
   responsable: string;
   transporte: string;
-  adjunto: File | null;
+  adjunto: Blob;
 }
 
 export interface MassiveFormData extends BaseFormData {
@@ -203,17 +328,16 @@ export interface RequestData {
 }
 
 export interface NormalRequestData {
-  type: "discount";
+  type: string;
   personnel_type: string;
   request_date: string;
   invoice_number: string;
   account_id: string;
   amount: string;
   project: string;
-  responsible_id?: string;
-  transport_id?: string | null;
+  responsible_id: string;
+  transport_id: string | null;
   note: string;
-  adjunto: File | null;
 }
 
 export interface MassiveRequestData {
@@ -226,16 +350,4 @@ export interface MassiveRequestData {
   area: string;
   employees: string[];
   note: string;
-}
-
-export interface DataTableProps<T extends BaseTableData> {
-  data: PaginatedResponse<T>;
-  columns: Column<T>[];
-  onSelectionChange?: (selectedItems: T[]) => void;
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  onPageChange: (page: number, sortConfig?: SortConfig<T>) => void;
-  className?: string;
-  showActions?: boolean;
-  showExport?: boolean;
 }

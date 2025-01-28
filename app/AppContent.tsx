@@ -8,10 +8,12 @@ import Navigation from "./components/Navigation";
 import Sidenav from "./components/Sidenav";
 import LoginPage from "./login/page";
 import Loader from "./Loader";
+import { Toaster } from "sonner";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="relative min-h-screen bg-slate-100 antialiased">
+      <Toaster position="top-right" richColors closeButton expand />
       <Sidenav />
       <div className="lg:ml-[17rem]">
         <Navigation />

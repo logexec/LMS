@@ -118,7 +118,8 @@ const Sidenav = () => {
         >
           <Link href="/" className="block">
             <Image
-              fill
+              width={175}
+              height={100}
               priority
               src={logo.src}
               alt="LogeX logo"

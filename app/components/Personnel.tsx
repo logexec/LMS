@@ -3,15 +3,20 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import Loader from "../Loader";
+import { animate, motion, useMotionValue } from "motion/react";
+import { useTransform } from "motion/react";
 
-const fetchPersonnel = async (): Promise<any> => {
-  const response = await fetch("http://localhost:8000/api/responsibles", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  });
+const fetchPersonnel = async (): Promise<number> => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/responsibles?action=count`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch personnel");
@@ -22,8 +27,9 @@ const fetchPersonnel = async (): Promise<any> => {
 };
 
 const Personnel = () => {
-  const [personnel, setPersonnel] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [personnel, setPersonnel] = useState<number>(0);
+  const count = useMotionValue(personnel);
+  const rounded = useTransform(count, (value) => Math.round(value));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,19 +38,24 @@ const Personnel = () => {
         setPersonnel(personnel);
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando personal..." />;
-  }
+  useEffect(() => {
+    if (personnel > 0) {
+      animate(count, personnel, { duration: 0.5 });
+    }
+  }, [personnel, count]);
 
-  return <>{personnel.length}</>;
+  return (
+    <span className="text-3xl font-semibold text-slate-800 ml-5 flex flex-row items-center">
+      <motion.pre>{rounded}</motion.pre>
+      <span className="text-sm text-slate-400 font-normal ml-3">Empleados</span>
+    </span>
+  );
 };
 
 export default Personnel;

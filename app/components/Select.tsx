@@ -17,9 +17,10 @@ type SelectProps = {
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   className?: string;
-  options: Option[];
+  options?: Option[];
   defaultOption?: string;
   disabled?: boolean;
+  readonly?: boolean;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -33,6 +34,7 @@ const Select: React.FC<SelectProps> = ({
   options,
   defaultOption = "Selecciona...",
   disabled = false,
+  readonly = false,
 }) => {
   return (
     <div className="custom-select-group">
@@ -44,16 +46,18 @@ const Select: React.FC<SelectProps> = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
+        aria-readonly={readonly}
       >
         <option value="" hidden>
           {defaultOption}
         </option>
-        {options.map((option, idx) => (
+        {options?.map((option, idx) => (
           <option
             className={`capitalize ${option.className}`}
             key={`${option.value}-${idx}`}
             value={option.value}
             disabled={option.optionDisabled}
+            aria-readonly={readonly}
           >
             {option.label}
           </option>
@@ -62,7 +66,7 @@ const Select: React.FC<SelectProps> = ({
       <label htmlFor={id} className="select-label">
         {label}
       </label>
-      <ChevronDown className="select-icon" size={20} />
+      {!readonly && <ChevronDown className="select-icon" size={20} />}
     </div>
   );
 };

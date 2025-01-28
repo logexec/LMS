@@ -91,8 +91,7 @@ const DescuentosForm = () => {
       const timer = setTimeout(() => {
         setError(null);
         setSuccess(null);
-      }, 3500);
-      // Clear the timeout if error or success change before the timeout ends
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, [error, success]);
@@ -151,24 +150,32 @@ const DescuentosForm = () => {
     }
   };
 
-  const handleNormalSubmit = async (data: NormalRequestData) => {
+  const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(data),
+          body: formData,
         }
       );
 
-      if (!response.ok) throw new Error("Error al crear el descuento");
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || "Error al crear el descuento");
+      }
 
       setSuccess("Descuento registrado con éxito");
     } catch (error) {
-      setError("Error al procesar el descuento");
+      console.error("Error details:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Error al procesar el descuento"
+      );
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }

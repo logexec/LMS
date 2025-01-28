@@ -1,16 +1,20 @@
 "use client";
 
+import { animate, motion, useTransform } from "motion/react";
+import { useMotionValue } from "motion/react";
 import { useEffect, useState } from "react";
-import Loader from "../Loader";
 
 const fetchVehicles = async (): Promise<any> => {
-  const response = await fetch("http://localhost:8000/api/transports", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/transports?action=count`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch users");
@@ -21,8 +25,9 @@ const fetchVehicles = async (): Promise<any> => {
 };
 
 const Transport = () => {
-  const [vehicles, setVehicles] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [vehicles, setVehicles] = useState<number>(0);
+  const count = useMotionValue(vehicles);
+  const rounded = useTransform(count, (value) => Math.round(value));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,19 +36,24 @@ const Transport = () => {
         setVehicles(vehicles);
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando vehículos..." />;
-  }
+  useEffect(() => {
+    if (vehicles > 0) {
+      animate(count, vehicles, { duration: 0.25 });
+    }
+  }, [vehicles, count]);
 
-  return <>{vehicles.length}</>;
+  return (
+    <span className="text-3xl font-semibold text-slate-800 ml-5 flex flex-row items-center">
+      <motion.pre>{rounded}</motion.pre>
+      <span className="text-sm text-slate-400 font-normal ml-3">Camiones</span>
+    </span>
+  );
 };
 
 export default Transport;

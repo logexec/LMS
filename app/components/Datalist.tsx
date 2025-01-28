@@ -1,5 +1,4 @@
-import React from "react";
-import { ChevronDown } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import "./datalist.component.css";
 
 type Option = {
@@ -34,6 +33,33 @@ const Datalist: React.FC<DatalistProps> = ({
   placeholder = "Comienza a escribir...",
   disabled = false,
 }) => {
+  const [displayValue, setDisplayValue] = useState<string | number>("");
+
+  useEffect(() => {
+    // Set the displayed label based on the current value
+    const matchedOption = options.find((option) => option.value === value);
+    if (matchedOption) {
+      setDisplayValue(matchedOption.label);
+    }
+  }, [value, options]);
+
+  // Manejar el cambio de input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setDisplayValue(inputValue); // Mostrar el label en el input
+
+    const matchedOption = options.find((option) => option.label === inputValue);
+    if (matchedOption && onChange) {
+      onChange({
+        target: { name, value: matchedOption.value },
+      } as React.ChangeEvent<HTMLInputElement>);
+    } else if (onChange) {
+      onChange({
+        target: { name, value: inputValue },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+  };
+
   return (
     <div className="custom-datalist-group">
       <input
@@ -42,8 +68,8 @@ const Datalist: React.FC<DatalistProps> = ({
         placeholder={placeholder}
         className={`datalist ${className ? className : ""}`}
         id={id}
-        value={value}
-        onChange={onChange}
+        value={displayValue} // Muestra el label (displayValue) en lugar del value real
+        onChange={handleInputChange}
         disabled={disabled}
         list={`${id}-list`}
       />
@@ -55,9 +81,10 @@ const Datalist: React.FC<DatalistProps> = ({
           <option
             className={`capitalize ${option.className}`}
             key={`${option.value}-${idx}`}
-            value={option.label}
+            value={option.label} // Label como valor visible
+            data-value={option.value} // Valor real en data-value
             disabled={option.optionDisabled}
-          ></option>
+          />
         ))}
       </datalist>
     </div>
