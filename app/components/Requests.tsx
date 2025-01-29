@@ -54,7 +54,7 @@ export const PendingRequests = () => {
       const controls = animate(count, requests, { duration: 0.25 });
       return () => controls.stop(); // Detener la animación si el componente se desmonta
     }
-  }, [requests, count]); // Solo ejecutar cuando `requests` cambie
+  }, [requests, count]);
 
   if (isLoading) {
     return <Loader fullScreen={false} text="Cargando solicitudes..." />;
@@ -69,7 +69,7 @@ export const PendingRequests = () => {
 };
 
 export const ApprovedRequests = () => {
-  const [approvedRequests, setApprovedRequests] = useState([]); // Mover aquí dentro del componente
+  const [approvedRequests, setApprovedRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -126,6 +126,37 @@ export const RejectedRequests = () => {
     <div className="flex flex-row flex-wrap text-red-500 items-center">
       {rejectedRequests}
       <span className="text-xs font-normal ml-2">Rechazadas</span>
+    </div>
+  );
+};
+
+export const InRepositionRequests = () => {
+  const [inRepositionRequests, setInRepositionRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchRequests("in_reposition");
+        setInRepositionRequests(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return <Loader fullScreen={false} text="Cargando solicitudes..." />;
+  }
+
+  return (
+    <div className="flex flex-row flex-wrap text-indigo-500 items-center">
+      {inRepositionRequests}
+      <span className="text-xs font-normal ml-2">En proceso de reposición</span>
     </div>
   );
 };

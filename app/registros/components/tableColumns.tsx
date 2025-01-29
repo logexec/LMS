@@ -34,7 +34,7 @@ export const getRequestColumns = ({
   responsibleMap,
   vehicleMap,
   onStatusChange,
-}: ColumnHelpers): ColumnDef<RequestProps>[] => [
+}: ColumnHelpers): ColumnDef<RequestProps, any>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -138,7 +138,7 @@ export const getReposicionColumns = ({
   responsibleMap,
   vehicleMap,
   onUpdateReposicion,
-}: ColumnHelpers): ColumnDef<ReposicionProps>[] => [
+}: ColumnHelpers): ColumnDef<ReposicionProps, any>[] => [
   {
     accessorKey: "fecha_reposicion",
     header: "Fecha",

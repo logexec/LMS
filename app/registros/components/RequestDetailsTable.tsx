@@ -1,15 +1,26 @@
+// RequestDetailsTable.tsx
 "use client";
-import { Download } from "lucide-react";
+
+import { Download, RefreshCw, Search } from "lucide-react";
 import {
   AccountProps,
   RequestProps,
   ResponsibleProps,
   TransportProps,
 } from "@/utils/types";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import Loader from "@/app/Loader";
+import { motion, AnimatePresence } from "motion/react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
@@ -57,34 +68,86 @@ const fetchVehicles = async () => {
   return response.json();
 };
 
+const StatusBadge = ({ status }: { status: string }) => {
+  const statusConfig = {
+    approved: {
+      color: "bg-green-100 text-green-800 border-green-600",
+      text: "Aprobado",
+    },
+    pending: {
+      color: "bg-yellow-100 text-yellow-800 border-yellow-600",
+      text: "Pendiente",
+    },
+    rejected: {
+      color: "bg-red-100 text-red-800 border-red-600",
+      text: "Rechazado",
+    },
+    review: {
+      color: "bg-sky-100 text-sky-800 border-sky-600",
+      text: "Revisar",
+    },
+    in_reposition: {
+      color: "bg-indigo-100 text-indigo-800 border-indigo-600",
+      text: "Reposición",
+    },
+  };
+
+  const config = statusConfig[status as keyof typeof statusConfig];
+
+  return (
+    <Badge
+      variant="outline"
+      className={`${config.color} transition-all duration-200 hover:scale-105`}
+    >
+      {config.text}
+    </Badge>
+  );
+};
+
 const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
   const [vehicles, setVehicles] = useState<TransportProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filteredRequests, setFilteredRequests] = useState(requests);
+
+  const loadData = useCallback(async () => {
+    try {
+      setIsRefreshing(true);
+      const [accountsData, responsiblesData, vehiclesData] = await Promise.all([
+        fetchAccounts(),
+        fetchResponsibles(),
+        fetchVehicles(),
+      ]);
+      setAccounts(accountsData);
+      setResponsibles(responsiblesData);
+      setVehicles(vehiclesData);
+      toast.success("Datos actualizados correctamente");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Error al cargar los datos");
+    } finally {
+      setIsRefreshing(false);
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [accountsData, responsiblesData, vehiclesData] =
-          await Promise.all([
-            fetchAccounts(),
-            fetchResponsibles(),
-            fetchVehicles(),
-          ]);
-        setAccounts(accountsData);
-        setResponsibles(responsiblesData);
-        setVehicles(vehiclesData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Error al cargar los datos");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadData();
-  }, [requests]);
+  }, [loadData]);
+
+  useEffect(() => {
+    const filtered = requests.filter((request) =>
+      Object.values(request).some(
+        (value) =>
+          value &&
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+    setFilteredRequests(filtered);
+  }, [searchTerm, requests]);
 
   // Mapear los datos para las columnas
   const accountMap = accounts.reduce((acc, account) => {
@@ -103,120 +166,195 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
   }, {} as Record<string, string>);
 
   return (
-    <div className="overflow-auto">
-      <table className="w-full border-collapse my-4">
-        <thead>
-          <tr className="bg-slate-100">
-            <th className="px-4 py-2 text-left">ID</th>
-            <th className="px-4 py-2 text-left">Tipo</th>
-            <th className="px-4 py-2 text-left">Area</th>
-            <th className="px-4 py-2 text-left">Fecha de solicitud</th>
-            <th className="px-4 py-2 text-left">Estado</th>
-            <th className="px-4 py-2 text-left">Número de Factura</th>
-            <th className="px-4 py-2 text-left">Cuenta</th>
-            <th className="px-4 py-2 text-left">Monto</th>
-            <th className="px-4 py-2 text-left">Proyecto</th>
-            {requests.some((request) => request.responsible_id) && (
-              <th className="px-4 py-2 text-left">Responsable</th>
-            )}
-            {requests.some((request) => request.transport_id) && (
-              <th className="px-4 py-2 text-left">Transporte</th>
-            )}
-            <th className="px-4 py-2 text-left">Archivo Adjunto</th>
-            <th className="px-4 py-2 text-left">Observación</th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((request) => (
-            <tr
-              key={request.unique_id}
-              className="border-b hover:bg-slate-50 text-left"
-            >
-              <td className="px-4 min-w-28 w-max">{request.unique_id}</td>
-              <td className="px-4 min-w-fit">
-                {request.type === "discount" ? "Descuento" : "Gasto"}
-              </td>
-              <td className="px-4 w-max">
-                {request.personnel_type === "nomina" ? "Nómina" : "Transporte"}
-              </td>
-              <td className="px-4 min-w-36 w-max">
-                {request.request_date &&
-                  new Date(request.request_date).toLocaleDateString("es-ES", {
-                    day: "numeric",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-              </td>
-              <td
-                className={`min-w-24 w-fit rounded-full flex items-center justify-center my-9 border font-medium ${
-                  request.status === "approved"
-                    ? "text-green-600 border-green-600 bg-green-100"
-                    : request.status === "pending"
-                    ? "text-yellow-600 border-yellow-600 bg-yellow-100"
-                    : request.status === "rejected"
-                    ? "text-red-600 border-red-600 bg-red-100"
-                    : request.status === "review"
-                    ? "text-sky-600 border-sky-600 bg-sky-100"
-                    : "text-indigo-600 border-indigo-600 bg-indigo-100"
-                }`}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4"
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Buscar en todas las columnas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-4"
+          />
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={loadData}
+                disabled={isRefreshing}
               >
-                {request.status === "approved"
-                  ? "Aprobado"
-                  : request.status === "pending"
-                  ? "Pendiente"
-                  : request.status === "rejected"
-                  ? "Rechazado"
-                  : request.status === "review"
-                  ? "Revisar"
-                  : "Reposición"}
-              </td>
-              <td className="px-4 min-w-36 w-max">{request.invoice_number}</td>
-              <td className="px-4 min-w-48 w-max">
-                {request.account_id && !isLoading ? (
-                  accountMap[request.account_id]
-                ) : (
-                  <Loader fullScreen={false} text="Cargando..." />
-                )}
-              </td>
-              <td className="px-4 min-w-36 w-max text-left font-semibold text-red-700">
-                ${new Intl.NumberFormat().format(request.amount)}
-              </td>
-              <td className="px-4 min-w-36 w-max">{request.project}</td>
-              {requests.some((request) => request.responsible_id) && (
-                <td className="px-4 min-w-36 w-max">
-                  {request.responsible_id && !isLoading ? (
-                    responsibleMap[request.responsible_id]
-                  ) : (
-                    <Loader fullScreen={false} text="Cargando..." />
-                  )}
-                </td>
+                <RefreshCw
+                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Actualizar datos</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      <div className="overflow-auto rounded-lg border shadow-sm">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-slate-50">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                ID
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Tipo
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Area
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Fecha
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Estado
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Factura
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Cuenta
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Monto
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Proyecto
+              </th>
+              {filteredRequests.some((request) => request.responsible_id) && (
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                  Responsable
+                </th>
               )}
-              {requests.some((request) => request.transport_id) && (
-                <td className="px-4 min-w-36 w-max">
-                  {request.transport_id && !isLoading ? (
-                    vehicleMap[request.transport_id]
-                  ) : (
-                    <Loader fullScreen={false} text="Cargando..." />
-                  )}
-                </td>
+              {filteredRequests.some((request) => request.transport_id) && (
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                  Transporte
+                </th>
               )}
-              <td className="px-4 min-w-36 w-max text-center">
-                <a
-                  href={`${process.env.NEXT_PUBLIC_API_URL}/${request.attachment_path}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sky-600 hover:text-sky-800 flex gap-2 items-center justify-center hover:underline hover:underline-offset-4"
-                >
-                  <Download className="inline h-5 w-5 mr-1" />
-                  Descargar
-                </a>
-              </td>
-              <td className="px-4 min-w-36 w-max">{request.note}</td>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Archivo
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Observación
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={12} className="text-center py-8">
+                    <Loader fullScreen={false} text="Cargando datos..." />
+                  </td>
+                </tr>
+              ) : filteredRequests.length === 0 ? (
+                <tr>
+                  <td colSpan={12} className="text-center py-8 text-slate-500">
+                    No se encontraron resultados
+                  </td>
+                </tr>
+              ) : (
+                filteredRequests.map((request) => (
+                  <motion.tr
+                    key={request.unique_id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="border-b hover:bg-slate-50 transition-colors group"
+                  >
+                    <td className="px-4 py-3">{request.unique_id}</td>
+                    <td className="px-4 py-3">
+                      {request.type === "discount" ? "Descuento" : "Gasto"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {request.personnel_type === "nomina"
+                        ? "Nómina"
+                        : "Transporte"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {request.request_date &&
+                        new Date(request.request_date).toLocaleDateString(
+                          "es-ES",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={request.status} />
+                    </td>
+                    <td className="px-4 py-3">{request.invoice_number}</td>
+                    <td className="px-4 py-3">
+                      {request.account_id && accountMap[request.account_id]}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-red-700">
+                      ${new Intl.NumberFormat("es-ES").format(request.amount)}
+                    </td>
+                    <td className="px-4 py-3">{request.project}</td>
+                    {filteredRequests.some((r) => r.responsible_id) && (
+                      <td className="px-4 py-3">
+                        {request.responsible_id &&
+                          responsibleMap[request.responsible_id]}
+                      </td>
+                    )}
+                    {filteredRequests.some((r) => r.transport_id) && (
+                      <td className="px-4 py-3">
+                        {request.transport_id &&
+                          vehicleMap[request.transport_id]}
+                      </td>
+                    )}
+                    <td className="px-4 py-3">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={`${process.env.NEXT_PUBLIC_API_URL}/${request.attachment_path}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sky-600 hover:text-sky-800 flex items-center gap-2 transition-colors group-hover:underline"
+                            >
+                              <Download className="h-4 w-4" />
+                              <span className="hidden sm:inline">
+                                Descargar
+                              </span>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Descargar archivo adjunto
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </td>
+                    <td className="px-4 py-3 max-w-xs truncate">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="text-left">
+                            {request.note}
+                          </TooltipTrigger>
+                          <TooltipContent>{request.note}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
   );
 };
 

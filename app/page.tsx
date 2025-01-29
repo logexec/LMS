@@ -1,16 +1,33 @@
-"use server";
-import Image from "next/image";
+"use client";
+
+import { motion } from "motion/react";
 import Card from "./components/Card";
 import Link from "next/link";
 import Hr from "./components/Hr";
-import User from "./components/User";
 import Personnel from "./components/Personnel";
 import Transport from "./components/Transport";
 import {
   PendingRequests,
   ApprovedRequests,
   RejectedRequests,
+  InRepositionRequests,
 } from "./components/Requests";
+import ChartComponent from "./components/Chart";
+import { useEffect, useState } from "react";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 },
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 const subtractHours = (date: Date) => {
   const currentHour = date.getHours();
@@ -46,110 +63,204 @@ const subtractMinutes = (date: Date) => {
   return remainingMinutes;
 };
 
-const isShiftOver =
-  subtractHours(new Date()) === 0 && subtractMinutes(new Date()) === 0;
+const Home = () => {
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0
+  );
+  const [isShiftOver, setIsShiftOver] = useState(false);
 
-const Home = async () => {
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    const checkShiftStatus = () => {
+      setIsShiftOver(
+        subtractHours(new Date()) === 0 && subtractMinutes(new Date()) === 0
+      );
+    };
+
+    window.addEventListener("resize", handleResize);
+    const interval = setInterval(checkShiftStatus, 60000);
+
+    checkShiftStatus();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const getChartDimensions = () => {
+    if (windowWidth < 640) {
+      // sm
+      return { width: windowWidth - 40, height: 300 };
+    } else if (windowWidth < 1024) {
+      // md
+      return { width: windowWidth - 80, height: 350 };
+    }
+    return { width: 500, height: 400 }; // lg y superiores
+  };
+
+  const chartDimensions = getChartDimensions();
+
   return (
-    <div className="grid grid-rows-2 items-center">
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 justify-evenly w-full">
-        <Card>
-          <Link href="/gestion/solicitudes" className="block mx-5">
-            <h3 className="text-slate-500 font-semibold text-base">
-              Solicitudes
-            </h3>
-            <p className="text-slate-400 text-xs font-normal">
-              (Los números se inicializan mensualmente)
-            </p>
-            <Hr variant="red" />
-            <div className="flex flex-col md:flex-row gap-3 mt-5 items-center">
-              <div className="flex flex-row gap-5 items-center flex-wrap justify-evenly">
-                <span className="text-3xl font-semibold">
+    <motion.div
+      initial="initial"
+      animate="animate"
+      className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8"
+    >
+      <motion.section
+        variants={staggerContainer}
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6"
+      >
+        <motion.div variants={fadeInUp}>
+          <Card className="h-52 p-4 md:p-5">
+            <Link href="/gestion/solicitudes" className="block ">
+              <h3 className="text-slate-500 font-semibold text-base md:text-lg">
+                Solicitudes
+              </h3>
+              <p className="text-slate-400 text-xs md:text-sm font-normal">
+                (Los números se inicializan mensualmente)
+              </p>
+              <Hr variant="red" />
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                <motion.span
+                  className="text-2xl md:text-3xl font-semibold"
+                  whileHover={{ scale: 1.05 }}
+                >
                   <PendingRequests />
-                </span>
-                <span className="text-3xl font-semibold">
+                </motion.span>
+                <motion.span
+                  className="text-2xl md:text-3xl font-semibold"
+                  whileHover={{ scale: 1.05 }}
+                >
                   <ApprovedRequests />
-                </span>
-                <span className="text-3xl font-semibold">
+                </motion.span>
+                <motion.span
+                  className="text-2xl md:text-3xl font-semibold"
+                  whileHover={{ scale: 1.05 }}
+                >
                   <RejectedRequests />
-                </span>
+                </motion.span>
+                <motion.span
+                  className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <InRepositionRequests />
+                </motion.span>
               </div>
-            </div>
-          </Link>
-        </Card>
-        <Card>
-          <Link href="/usuarios" className="block px-3">
-            <h3 className="text-slate-500 font-semibold text-base">
-              Usuarios de LMS
-            </h3>
-            <p className="opacity-0 text-xs font-normal">
-              (Los números se actualizan diariamente)
-            </p>
-            <Hr variant="red" />
-            <div className="flex gap-3 mt-5 items-center">
-              <User />
-            </div>
-          </Link>
-        </Card>
-        <Card>
-          <div className="block px-3">
-            <h3 className="text-slate-500 font-semibold text-base">
+            </Link>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={fadeInUp}>
+          <Card className="h-52 p-4 md:p-5">
+            <h3 className="text-slate-500 font-semibold text-base md:text-lg">
               Personal activo de Logex
             </h3>
-            <p className="opacity-0 text-xs font-normal">
+            <p className="opacity-0 text-xs md:text-sm font-normal">
               (Los números se actualizan diariamente)
             </p>
             <Hr variant="red" />
-            <div className="flex gap-3 mt-5 items-center">
+            <div className="flex gap-3 mt-4">
               <Personnel />
             </div>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <div className="block px-3">
-            <h3 className="text-slate-500 font-semibold text-base">
+        <motion.div variants={fadeInUp}>
+          <Card className="h-52 p-4 md:p-5">
+            <h3 className="text-slate-500 font-semibold text-base md:text-lg">
               Camiones activos de Logex
             </h3>
-            <p className="opacity-0 text-xs font-normal">
+            <p className="opacity-0 text-xs md:text-sm font-normal">
               (Los números se actualizan diariamente)
             </p>
             <Hr variant="red" />
-            <div className="flex gap-3 mt-5 items-center">
+            <div className="flex gap-3 mt-4">
               <Transport />
             </div>
-            {/* <p className="text-slate-400 text-sm font-normal mt-4 italic">
-              (Información visual únicamente)
-            </p> */}
-          </div>
-        </Card>
-      </section>
+          </Card>
+        </motion.div>
+      </motion.section>
 
-      <section className="mx-auto mt-24 flex flex-col text-center items-center justify-center">
-        <p className="text-lg">
-          Bienvenido a{" "}
-          <dfn
-            title="Logex Management System"
-            className="text-slate-950 underline text-base cursor-default"
-          >
-            LMS
-          </dfn>
-          , tu sistema amigable de gestión de{" "}
-          <span className="text-[#e53430] font-extrabold tracking-normal text-lg italic">
-            Log
-          </span>
-          <span className="text-[#5c5d5e] font-extrabold tracking-normal text-lg italic">
-            eX
-          </span>
-        </p>
-        <Image
-          src="/images/logex_logo.png"
-          alt="LogeX logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <p>
+      <motion.section
+        variants={fadeInUp}
+        className="mt-8 md:mt-12 lg:mt-16 grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8"
+      >
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:col-span-3">
+          <motion.div variants={fadeInUp} className="w-full">
+            <ChartComponent
+              width={chartDimensions.width}
+              height={chartDimensions.height}
+              currentMonth={true}
+            />
+          </motion.div>
+          <motion.div variants={fadeInUp} className="w-full">
+            <ChartComponent
+              width={chartDimensions.width}
+              height={chartDimensions.height}
+              currentMonth={false}
+            />
+          </motion.div>
+        </section>
+
+        <motion.section
+          variants={staggerContainer}
+          className="grid grid-cols-2 lg:grid-cols-1 gap-4"
+        >
+          {[
+            {
+              label: "Ingresos del mes",
+              amount: 100000,
+              color: "text-green-600",
+            },
+            {
+              label: "Egresos del mes",
+              amount: -100000,
+              color: "text-red-600",
+            },
+            {
+              label: "Balance del mes",
+              amount: 100000,
+              color: "text-blue-600",
+            },
+            {
+              label: "Ingresos del mes",
+              amount: 100000,
+              color: "text-orange-600",
+            },
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              variants={fadeInUp}
+              whileHover={{ scale: 1.02 }}
+              className="w-full"
+            >
+              <Card className="p-4">
+                <p className="text-slate-400/80 font-medium text-sm mb-2">
+                  {item.label}
+                </p>
+                <h3 className="font-semibold text-base">
+                  <span className={`text-xl md:text-2xl ${item.color}`}>
+                    {item.amount < 0 && "-"}
+                    <strong>$</strong>
+                    {Math.abs(item.amount).toLocaleString()}
+                  </span>
+                </h3>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.section>
+      </motion.section>
+
+      <motion.section variants={fadeInUp} className="mt-8 md:mt-12 text-center">
+        <motion.p
+          animate={{ scale: [1, 1.02, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="text-sm md:text-base lg:text-lg"
+        >
           {isShiftOver ? (
             <span>
               ¡Lo lograste! Sobreviviste a otro día en el trabajo, ¡La jornada
@@ -157,17 +268,16 @@ const Home = async () => {
             </span>
           ) : (
             <>
-              {subtractHours(new Date(Date.now())) !== 1 ? "Quedan" : "Queda"}{" "}
-              {subtractHours(new Date(Date.now()))}{" "}
-              {subtractHours(new Date(Date.now())) !== 1 ? "horas" : "hora"} y{" "}
-              {subtractMinutes(new Date(Date.now()))} minutos para que se
-              termine la jornada, ¡&Aacute;nimo!{" "}
-              <span className="text-3xl">🙌🏻</span>
+              {subtractHours(new Date()) !== 1 ? "Quedan" : "Queda"}{" "}
+              {subtractHours(new Date())}{" "}
+              {subtractHours(new Date()) !== 1 ? "horas" : "hora"} y{" "}
+              {subtractMinutes(new Date())} minutos para que se termine la
+              jornada, ¡&Aacute;nimo! <span className="text-3xl">🙌🏻</span>
             </>
           )}
-        </p>
-      </section>
-    </div>
+        </motion.p>
+      </motion.section>
+    </motion.div>
   );
 };
 
