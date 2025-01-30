@@ -66,9 +66,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
 
       const data = await response.json();
       toast.success("Reposición creada correctamente");
-
-      // Aquí podrías redirigir a la página de edición de la reposición
-      // o refrescar la tabla según tu flujo de UI
+      // Refrescar la tabla
     } catch (error: any) {
       toast.error(error.message || "Error al crear la reposición");
       throw error;

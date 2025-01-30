@@ -163,7 +163,7 @@ const UserManagementPage: React.FC = () => {
   ): Promise<void> => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8000/api/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -226,7 +226,7 @@ const UserManagementPage: React.FC = () => {
                   onChange={handleInputChange}
                   value={formData.email}
                 />
-                <span className="text-slate-400 text-xs font-normal -mt-6">
+                <span className="text-slate-400 text-xs font-normal mt-0.5">
                   La contraseña asignada por defecto es{" "}
                   <strong className="text-slate-800 italic">L0g3X2025*</strong>
                 </span>

@@ -233,7 +233,7 @@ const Home = () => {
             },
           ].map((item, index) => (
             <motion.div
-              key={index}
+              key={`${item}-${index}`}
               variants={fadeInUp}
               whileHover={{ scale: 1.02 }}
               className="w-full"

@@ -1,21 +1,35 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "motion/react";
 import Input from "../Input";
 import Select from "../Select";
-import { EmployeeTable } from "./EmployeeTable";
+import { MassDiscountTable } from "./MassDiscountTable";
 import {
   MassiveFormData,
   LoadingState,
   OptionsState,
   Employee,
-  MassiveRequestData,
+  RequestData,
 } from "@/utils/types";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
+import debounce from "lodash/debounce";
 import Datalist from "../Datalist";
-import { Modal } from "../Modal";
 
-interface MassDiscountFormProps {
+export interface MassDiscountFormProps {
   options: OptionsState;
   loading: LoadingState;
-  onSubmit: (data: MassiveRequestData) => Promise<void>;
+  onSubmit: (data: RequestData | FormData) => Promise<void>;
 }
 
 const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
@@ -23,7 +37,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   loading,
   onSubmit,
 }) => {
-  const [formData, setFormData] = useState<MassiveFormData>({
+  const [massFormData, setMassFormData] = useState<MassiveFormData>({
     fechaGasto: new Date().toISOString().split("T")[0],
     tipo: "nomina",
     factura: "",
@@ -31,14 +45,17 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     valor: "",
     proyecto: "",
     area: "",
+    responsable: "",
+    transporte: "",
+    adjunto: new Blob([]),
     observacion: "",
   });
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Estado local para las cuentas
-  const [localOptions, setLocalOptions] = React.useState<OptionsState>({
+  const localOptions: OptionsState = {
     accounts: [
       {
         label: "Recuperación Valores Comisión de Reparto",
@@ -53,56 +70,106 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     responsibles: [],
     transports: [],
     areas: [],
-  });
-
-  const fetchEmployees = async (proyecto: string, area: string) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) throw new Error("Error al cargar empleados");
-
-      const data = await response.json();
-      setEmployees(
-        data.map((emp: any) => ({
-          name: emp.nombres,
-          area: emp.area,
-          project: emp.proyecto,
-          selected: false,
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-    } finally {
-      setIsLoading(false);
-    }
   };
+
+  const fetchEmployees = useCallback(
+    debounce(async (proyecto: string, area: string) => {
+      if (!proyecto || !area) return;
+
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`,
+          { credentials: "include" }
+        );
+
+        if (!response.ok) throw new Error("Error al cargar empleados");
+
+        const data = await response.json();
+        setEmployees(
+          data.map((emp: any) => ({
+            id: emp.id,
+            name: emp.nombre_completo,
+            area: emp.area,
+            project: emp.proyecto,
+            selected: false,
+          }))
+        );
+      } catch (error) {
+        toast.error("Error al cargar los empleados");
+        console.error("Error fetching employees:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300),
+    []
+  );
 
   useEffect(() => {
-    if (formData.proyecto && formData.area) {
-      fetchEmployees(formData.proyecto, formData.area);
+    if (massFormData.proyecto && massFormData.area) {
+      fetchEmployees(massFormData.proyecto, massFormData.area);
     }
-  }, [formData.proyecto, formData.area]);
+  }, [massFormData.proyecto, massFormData.area, fetchEmployees]);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
+  const validateField = (name: string, value: string) => {
+    const errors: Record<string, string> = {};
+
+    switch (name) {
+      case "valor":
+        if (parseFloat(value) <= 0) {
+          errors[name] = "El valor debe ser mayor a 0";
+          setFormErrors((prev) => ({
+            ...prev,
+            valor: "El valor debe ser mayor a 0",
+          }));
+        } else {
+          setFormErrors((prev) => ({
+            ...prev,
+            valor: "",
+          }));
+        }
+        break;
+      case "factura":
+        if (value.length < 3) {
+          errors[name] =
+            "El número de factura debe tener al menos 3 caracteres";
+          setFormErrors((prev) => ({
+            ...prev,
+            factura: "El número de factura debe tener al menos 3 caracteres",
+          }));
+        } else {
+          setFormErrors((prev) => ({
+            ...prev,
+            factura: "",
+          }));
+        }
+        break;
+    }
+
+    setFormErrors((prev) => ({
       ...prev,
-      [name]: value,
+      ...errors,
     }));
+
+    return Object.keys(errors).length === 0;
   };
 
-  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setMassFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    validateField(name, value);
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setMassFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    validateField(name, value);
   };
 
   const handleSelectionChange = (employeeId: string) => {
@@ -121,170 +188,240 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     setEmployees((prev) => prev.map((emp) => ({ ...emp, selected: false })));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const selectedEmployeeIds = employees
-      .filter((emp) => emp.selected)
-      .map((emp) => emp.id);
-
-    if (selectedEmployeeIds.length === 0) {
-      return <Modal>Por favor, selecciona al menos un empleado</Modal>;
-    }
-
-    const requestData: MassiveRequestData = {
-      type: "massive_discount",
-      request_date: formData.fechaGasto,
-      invoice_number: formData.factura,
-      account_id: formData.cuenta,
-      total_amount: formData.valor,
-      project: formData.proyecto,
-      area: formData.area,
-      employees: selectedEmployeeIds,
-      note: formData.observacion,
-    };
-
-    await onSubmit(requestData);
+  const resetForm = () => {
+    setMassFormData({
+      fechaGasto: new Date().toISOString().split("T")[0],
+      tipo: "nomina",
+      factura: "",
+      cuenta: "",
+      valor: "",
+      proyecto: "",
+      area: "",
+      responsable: "",
+      transporte: "",
+      adjunto: new Blob([]),
+      observacion: "",
+    });
+    setEmployees([]);
+    setFormErrors({});
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const selectedEmployees = employees.filter((emp) => emp.selected);
+    if (selectedEmployees.length === 0) {
+      toast.error("Debes seleccionar al menos un empleado");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const amountPerEmployee = (
+        parseFloat(massFormData.valor) / selectedEmployees.length
+      ).toFixed(2);
+
+      // Crear una solicitud individual para cada empleado
+      const requests = selectedEmployees.map(async (employee) => {
+        const formData = new FormData();
+        formData.append("request_date", massFormData.fechaGasto);
+        formData.append("type", "discount");
+        formData.append("status", "pending");
+        formData.append("invoice_number", massFormData.factura);
+        formData.append("account_id", massFormData.cuenta);
+        formData.append("amount", amountPerEmployee);
+        formData.append("project", massFormData.proyecto);
+        formData.append("responsible_id", employee.id);
+        formData.append("transport_id", "");
+        formData.append("attachment", massFormData.adjunto);
+        formData.append("note", massFormData.observacion);
+        formData.append("personnel_type", "nomina");
+
+        return onSubmit(formData);
+      });
+
+      await Promise.all(requests);
+      toast.success("Descuentos registrados exitosamente");
+      resetForm();
+    } catch (error) {
+      toast.error("Error al procesar los descuentos");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isFormValid =
+    Object.keys(formErrors).length === 0 &&
+    massFormData.valor &&
+    massFormData.factura;
+
   return (
-    <>
-      <div className="flex w-full mr-3">
-        <div className="w-1/4">
-          <h3 className="text-slate-700 text-sm font-bold">
-            ¿Descuentos masivos?
-          </h3>
-          <p className="text-sm text-slate-500">
-            <strong>
-              <i>Todos</i>
-            </strong>{" "}
-            los campos son obligatorios.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="w-3/4 ml-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            <Input
-              required
-              id="fechaGasto"
-              name="fechaGasto"
-              currentDate={true}
-              label="Fecha del Gasto"
-              type="date"
-              value={formData.fechaGasto}
-              onChange={handleInputChange}
-              allowPastDates={false}
-            />
-
-            <Select
-              label="Tipo"
-              name="tipo"
-              id="tipo"
-              value="nomina"
-              options={[{ value: "nomina", label: "Nómina" }]}
-              disabled
-            />
-
-            <Select
-              label="Proyecto"
-              name="proyecto"
-              id="proyecto"
-              value={formData.proyecto}
-              options={options.projects}
-              onChange={handleSelectChange}
-              disabled={loading.projects}
-            />
-
-            <Select
-              label="Área"
-              name="area"
-              id="area"
-              value={formData.area}
-              options={options.areas}
-              onChange={handleSelectChange}
-              disabled={!formData.proyecto || loading.areas}
-            />
-
-            <Select
-              label="Cuenta"
-              name="cuenta"
-              id="cuenta"
-              value={formData.cuenta}
-              options={localOptions.accounts}
-              onChange={handleSelectChange}
-              disabled={loading.accounts}
-            />
-
-            <Input
-              required
-              type="number"
-              id="factura"
-              name="factura"
-              value={formData.factura}
-              onChange={handleInputChange}
-              label="No. Factura o Vale"
-            />
-
-            <Input
-              required
-              type="number"
-              step="0.01"
-              id="valor"
-              name="valor"
-              value={formData.valor}
-              onChange={handleInputChange}
-              label="Valor Total"
-            />
-
-            <Input
-              required
-              type="text"
-              id="observacion"
-              name="observacion"
-              value={formData.observacion}
-              onChange={handleInputChange}
-              label="Observación"
-            />
-          </div>
-
-          {employees.length > 0 && (
-            <div className="mt-6">
-              <div className="flex justify-end space-x-2 mb-2">
-                <button
-                  type="button"
-                  onClick={handleSelectAll}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Seleccionar todos
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeselectAll}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Deseleccionar todos
-                </button>
-              </div>
-              <EmployeeTable
-                employees={employees}
-                totalAmount={Number(formData.valor) || 0}
-                onSelectionChange={handleSelectionChange}
-                isLoading={isLoading}
-              />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Descuento Masivo</CardTitle>
+          <CardDescription>
+            Completa el formulario y selecciona los empleados para aplicar el
+            descuento
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Completa todos los campos y selecciona al menos un empleado
+                  para continuar.
+                </AlertDescription>
+              </Alert>
             </div>
-          )}
 
-          <div className="flex w-full items-center justify-end gap-5 mt-6">
-            <button
-              type="submit"
-              className="bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading.submit || isLoading || employees.length === 0}
-            >
-              {loading.submit ? "Procesando..." : "Registrar Descuento Masivo"}
-            </button>
+            <div className="md:col-span-2">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Input
+                    required
+                    id="fechaGasto"
+                    name="fechaGasto"
+                    currentDate={true}
+                    label="Fecha del Gasto"
+                    type="date"
+                    value={massFormData.fechaGasto}
+                    onChange={handleInputChange}
+                    allowPastDates={false}
+                    error={formErrors.fechaGasto}
+                  />
+
+                  <Select
+                    label="Tipo"
+                    name="tipo"
+                    id="tipo"
+                    value="nomina"
+                    options={[{ value: "nomina", label: "Nómina" }]}
+                    disabled
+                  />
+
+                  <Datalist
+                    label="Proyecto"
+                    name="proyecto"
+                    id="proyecto"
+                    value={massFormData.proyecto}
+                    options={options.projects}
+                    onChange={handleInputChange}
+                    disabled={loading.projects}
+                    error={formErrors.proyecto}
+                  />
+
+                  <Select
+                    label="Área"
+                    name="area"
+                    id="area"
+                    value={massFormData.area}
+                    options={options.areas}
+                    onChange={handleSelectChange}
+                    disabled={!massFormData.proyecto || loading.areas}
+                    error={formErrors.area}
+                  />
+
+                  <Datalist
+                    label="Cuenta"
+                    name="cuenta"
+                    id="cuenta"
+                    value={massFormData.cuenta}
+                    options={localOptions.accounts}
+                    onChange={handleInputChange}
+                    error={formErrors.cuenta}
+                  />
+
+                  <Input
+                    required
+                    type="number"
+                    id="factura"
+                    name="factura"
+                    value={massFormData.factura}
+                    onChange={handleInputChange}
+                    label="No. Factura o Vale"
+                    error={formErrors.factura}
+                  />
+
+                  <Input
+                    required
+                    type="number"
+                    step="0.01"
+                    id="valor"
+                    name="valor"
+                    value={massFormData.valor}
+                    onChange={handleInputChange}
+                    label="Valor Total"
+                    error={formErrors.valor}
+                  />
+
+                  <Input
+                    required
+                    type="text"
+                    id="observacion"
+                    name="observacion"
+                    value={massFormData.observacion}
+                    onChange={handleInputChange}
+                    label="Observación"
+                    error={formErrors.observacion}
+                    className="col-span-full"
+                  />
+                </div>
+
+                {massFormData.proyecto && massFormData.area && (
+                  <div className="mt-6">
+                    <MassDiscountTable
+                      employees={employees}
+                      totalAmount={Number(massFormData.valor) || 0}
+                      onSelectionChange={handleSelectionChange}
+                      isLoading={isLoading}
+                      onSelectAll={handleSelectAll}
+                      onDeselectAll={handleDeselectAll}
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetForm}
+                    disabled={loading.submit}
+                  >
+                    Limpiar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={
+                      loading.submit ||
+                      !isFormValid ||
+                      employees.filter((e) => e.selected).length === 0
+                    }
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    {loading.submit ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      "Registrar Descuento Masivo"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
-      </div>
-    </>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

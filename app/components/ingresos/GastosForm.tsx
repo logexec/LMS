@@ -1,15 +1,56 @@
-import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
+"use client";
+
+import React, { ChangeEvent, FormEvent, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import Input from "../Input";
 import Select from "../Select";
-import { OptionsState, LoadingState } from "@/utils/types";
 import Datalist from "../Datalist";
 import { toast } from "sonner";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Upload, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import debounce from "lodash/debounce";
 
-const GastosForm = () => {
-  const [formData, setFormData] = useState({
+interface GastosFormProps {
+  onSubmit?: (data: FormData) => Promise<void>;
+}
+
+const GastosForm: React.FC<GastosFormProps> = ({
+  onSubmit = async (formData: FormData) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/requests`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Error al crear el gasto");
+      }
+
+      toast.success("Gasto registrado exitosamente");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Error al procesar el gasto"
+      );
+    }
+  },
+}) => {
+  const [formData, setFormData] = React.useState({
     fechaGasto: new Date().toISOString().split("T")[0],
     type: "expense",
-    tipo: "",
+    tipo: "nomina",
     factura: "",
     cuenta: "",
     valor: "",
@@ -17,44 +58,157 @@ const GastosForm = () => {
     empresa: "",
     responsable: "",
     transporte: "",
-    adjunto: null as File | null,
+    adjunto: new Blob([]),
     observacion: "",
   });
 
-  const [localOptions, setLocalOptions] = React.useState<OptionsState>({
+  const [localOptions, setLocalOptions] = React.useState({
+    accounts: [],
     projects: [],
     responsibles: [],
     transports: [],
-    accounts: [],
-    areas: [],
   });
 
-  const [localLoading, setLocalLoading] = React.useState<LoadingState>({
+  const [localLoading, setLocalLoading] = React.useState({
     submit: false,
+    accounts: false,
     projects: false,
     responsibles: false,
     transports: false,
-    accounts: false,
-    areas: false,
   });
 
+  const [formErrors, setFormErrors] = React.useState<Record<string, string>>(
+    {}
+  );
   const [formValid, setFormValid] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const tipoOptions = [
-    { value: "nomina", label: "Nómina" },
-    { value: "transportista", label: "Transportista" },
-  ];
+  // Validation method
+  const validateField = (name: string, value: string | Blob): boolean => {
+    const newErrors = { ...formErrors };
 
-  const empresaOptions = [
-    { value: "SERSUPPORT", label: "SERSUPPORT" },
-    { value: "PREBAM", label: "PREBAM" },
-  ];
+    switch (name) {
+      case "tipo":
+        newErrors[name] = value === "" ? "Debes seleccionar un tipo" : "";
+        break;
+      case "fechaGasto":
+        newErrors[name] =
+          typeof value === "string" && value.length < 10
+            ? "Debes seleccionar una fecha"
+            : "";
+        break;
+      case "valor":
+        newErrors[name] =
+          typeof value === "string" && parseFloat(value) <= 0
+            ? "El valor debe ser mayor a 0"
+            : "";
+        break;
+      case "factura":
+        newErrors[name] =
+          typeof value === "string" && value.length < 3
+            ? "El número de factura debe tener al menos 3 caracteres"
+            : "";
+        break;
+      case "proyecto":
+        newErrors[name] =
+          typeof value === "string" && value.length < 2
+            ? "El proyecto es obligatorio"
+            : "";
+        break;
+      case "cuenta":
+        newErrors[name] =
+          typeof value === "string" && value.length < 2
+            ? "La cuenta es obligatoria"
+            : "";
+        break;
+      case "empresa":
+        newErrors[name] =
+          typeof value === "string" && value.length < 2
+            ? "La empresa es obligatoria"
+            : "";
+        break;
+      case "observacion":
+        newErrors[name] =
+          typeof value === "string" && value.trim().length < 1
+            ? "Debes escribir una observación"
+            : "";
+        break;
+      case "adjunto":
+        newErrors[name] =
+          value instanceof Blob && value.size === 0
+            ? "El adjunto es obligatorio"
+            : "";
+        break;
+      case "transporte":
+        if (formData.tipo === "transportista") {
+          newErrors[name] =
+            typeof value === "string" && value.length < 1
+              ? "Debes seleccionar un transporte"
+              : "";
+        }
+        break;
+      case "responsable":
+        if (formData.tipo === "nomina") {
+          newErrors[name] =
+            typeof value === "string" && value.length < 1
+              ? "Debes seleccionar un responsable"
+              : "";
+        }
+        break;
+    }
 
+    setFormErrors(newErrors);
+
+    // console.log(newErrors);
+
+    const isValid = !Object.values(newErrors).some((error) => error !== "");
+    setFormValid(isValid);
+
+    return isValid;
+  };
+
+  // Input change handlers
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    validateField(name, value);
+  };
+
+  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    validateField(name, value);
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (file.size > maxSize) {
+      toast.error(
+        "El archivo es demasiado grande. El tamaño máximo permitido es de 5MB."
+      );
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      adjunto: file,
+    }));
+    validateField("adjunto", file);
+  };
+
+  // Reset form method
   const resetForm = () => {
     setFormData({
       fechaGasto: new Date().toISOString().split("T")[0],
       type: "expense",
-      tipo: "",
+      tipo: "nomina",
       factura: "",
       cuenta: "",
       valor: "",
@@ -62,473 +216,382 @@ const GastosForm = () => {
       empresa: "",
       responsable: "",
       transporte: "",
-      adjunto: null,
+      adjunto: new Blob([]),
       observacion: "",
     });
+    setFormErrors({});
+    setFormValid(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
-  useEffect(() => {
-    if (!formData.tipo) return;
+  // Submit handler
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    const fetchAccounts = async () => {
-      setLocalLoading((prev) => ({ ...prev, accounts: true }));
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/accounts/?account_type=${formData.tipo}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
+    // Final validation
+    const hasErrors = Object.keys(formData).some(
+      (key) => !validateField(key, formData[key as keyof typeof formData])
+    );
 
-        if (!response.ok) throw new Error();
+    if (hasErrors) {
+      toast.error("Por favor, corrije los errores antes de continuar.");
+      return;
+    }
 
-        const data: Array<{ name: string; id: string }> = await response.json();
-        setLocalOptions((prev) => ({
-          ...prev,
-          accounts: data.map((account) => ({
-            label: account.name,
-            value: account.id,
-          })),
-        }));
-      } catch (error) {
-        console.error("Error cargando cuentas:", error);
-      } finally {
-        setLocalLoading((prev) => ({ ...prev, accounts: false }));
+    setLocalLoading((prev) => ({ ...prev, submit: true }));
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("request_date", formData.fechaGasto);
+      formDataToSend.append("type", "expense");
+      formDataToSend.append("status", "pending");
+      formDataToSend.append("invoice_number", formData.factura);
+      formDataToSend.append("account_id", formData.cuenta);
+      formDataToSend.append("amount", formData.valor);
+      formDataToSend.append("project", formData.proyecto);
+      formDataToSend.append("company", formData.empresa);
+      formDataToSend.append("note", formData.observacion);
+      formDataToSend.append("personnel_type", "nomina");
+
+      // Conditional fields
+      if (formData.responsable) {
+        formDataToSend.append("responsible_id", formData.responsable);
       }
-    };
-
-    fetchAccounts();
-  }, [formData.tipo]);
-
-  useEffect(() => {
-    if (!formData.tipo) return;
-
-    const fetchProjects = async () => {
-      setLocalLoading((prev) => ({ ...prev, projects: true }));
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/projects`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) throw new Error();
-
-        const data: Array<{ name: string; id: string }> = await response.json();
-        setLocalOptions((prev) => ({
-          ...prev,
-          projects: data.map((project) => ({
-            label: project.name,
-            value: project.id,
-          })),
-        }));
-      } catch (error) {
-        console.error("Error cargando proyectos:", error);
-      } finally {
-        setLocalLoading((prev) => ({ ...prev, projects: false }));
+      // Append attachment if exists
+      if (formData.adjunto instanceof Blob && formData.adjunto.size > 0) {
+        formDataToSend.append("attachment", formData.adjunto);
       }
-    };
 
-    fetchProjects();
-  }, [formData.tipo]);
+      await onSubmit(formDataToSend);
+      resetForm();
+    } catch (error) {
+      toast.error("Error al procesar el gasto");
+    } finally {
+      setLocalLoading((prev) => ({ ...prev, submit: false }));
+      resetForm();
+    }
+  };
 
-  // Efecto para cargar responsables cuando cambia el proyecto
-  useEffect(() => {
-    if (!formData.proyecto || !formData.tipo) return;
+  // Fetch methods
+  const fetchAccounts = useCallback(async () => {
+    setLocalLoading((prev) => ({ ...prev, accounts: true }));
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/accounts/?account_type=nomina`,
+        {
+          credentials: "include",
+        }
+      );
 
-    const fetchResponsibles = async () => {
+      if (!response.ok) throw new Error("Error al cargar las cuentas");
+
+      const data = await response.json();
+      setLocalOptions((prev) => ({
+        ...prev,
+        accounts: data.map((account: any) => ({
+          label: account.name,
+          value: account.id,
+        })),
+      }));
+    } catch (error) {
+      toast.error("Error al cargar las cuentas");
+    } finally {
+      setLocalLoading((prev) => ({ ...prev, accounts: false }));
+    }
+  }, []);
+
+  const fetchResponsibles = useCallback(
+    debounce(async (proyecto: string) => {
+      if (!proyecto) return;
+
       setLocalLoading((prev) => ({ ...prev, responsibles: true }));
       try {
         const response = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL
-          }/responsibles?proyecto=${formData.proyecto.toUpperCase()}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
           {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
             credentials: "include",
           }
         );
 
-        if (!response.ok) throw new Error();
+        if (!response.ok) throw new Error("Error al cargar responsables");
 
-        const data: Array<{ nombre_completo: string; id: string }> =
-          await response.json();
-
+        const data = await response.json();
         setLocalOptions((prev) => ({
           ...prev,
-          responsibles: data.map((responsible) => ({
+          responsibles: data.map((responsible: any) => ({
             label: responsible.nombre_completo,
             value: responsible.id,
           })),
         }));
       } catch (error) {
-        console.error("Error cargando responsables:", error);
+        toast.error("Error al cargar responsables");
       } finally {
         setLocalLoading((prev) => ({ ...prev, responsibles: false }));
       }
-    };
+    }, 300),
+    []
+  );
 
-    fetchResponsibles();
-  }, [formData.proyecto, formData.tipo]);
-
-  // Efecto para cargar transportes cuando el tipo es transportista
-  useEffect(() => {
-    if (formData.tipo !== "transportista") return;
-
-    const fetchTransports = async () => {
-      setLocalLoading((prev) => ({ ...prev, transports: true }));
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/transports`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) throw new Error();
-
-        const data: Array<{ name: string; id: string }> = await response.json();
-        setLocalOptions((prev) => ({
-          ...prev,
-          transports: data.map((transport) => ({
-            label: transport.name,
-            value: transport.id,
-          })),
-        }));
-      } catch (error) {
-        console.error("Error cargando transportes:", error);
-      } finally {
-        setLocalLoading((prev) => ({ ...prev, transports: false }));
-      }
-    };
-
-    fetchTransports();
-  }, [formData.tipo]);
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        adjunto: e.target.files![0],
-      }));
-    }
-  };
-
-  const submitForm = async (formData: FormData) => {
-    setLocalLoading((prev) => ({ ...prev, submit: true }));
+  const fetchProjects = useCallback(async () => {
+    setLocalLoading((prev) => ({ ...prev, projects: true }));
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/requests`,
+        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
         {
-          method: "POST",
           credentials: "include",
-          body: formData, // No incluir Content-Type para que el navegador lo maneje
         }
       );
 
-      if (!response.ok) {
-        const responseData = await response.json();
-        throw new Error(responseData.message || "Error al crear el gasto");
-      }
+      if (!response.ok) throw new Error("Error al cargar proyectos");
 
-      toast.success("Gasto registrado con éxito");
-
-      // Limpiar formulario solo si fue exitoso
-      setFormData({
-        fechaGasto: new Date().toISOString().split("T")[0],
-        type: "expense",
-        tipo: "",
-        factura: "",
-        cuenta: "",
-        valor: "",
-        proyecto: "",
-        empresa: "",
-        responsable: "",
-        transporte: "",
-        adjunto: null as File | null,
-        observacion: "",
-      });
+      const data = await response.json();
+      setLocalOptions((prev) => ({
+        ...prev,
+        projects: data.map((project: any) => ({
+          label: project.name,
+          value: project.id,
+        })),
+      }));
     } catch (error) {
-      console.error("Error details:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Error al procesar el gasto"
-      );
+      toast.error("Error al cargar proyectos");
     } finally {
-      setLocalLoading((prev) => ({ ...prev, submit: false }));
+      setLocalLoading((prev) => ({ ...prev, projects: false }));
     }
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Validar campos requeridos antes de enviar
-    if (
-      !formData.fechaGasto ||
-      !formData.tipo ||
-      !formData.factura ||
-      !formData.cuenta ||
-      !formData.valor ||
-      !formData.proyecto ||
-      !formData.empresa ||
-      !formData.observacion
-    ) {
-      toast.error("Todos los campos son obligatorios");
-      return;
-    }
-
-    const submitData = new FormData();
-
-    // Campos con los nombres exactos que espera el backend
-    submitData.append("type", "expense");
-    submitData.append("request_date", formData.fechaGasto);
-    submitData.append("personnel_type", formData.tipo);
-    submitData.append("invoice_number", formData.factura);
-    submitData.append("account_id", formData.cuenta);
-    submitData.append("amount", formData.valor);
-    submitData.append("project", formData.proyecto);
-    submitData.append("company", formData.empresa);
-    submitData.append("note", formData.observacion);
-
-    // Campos condicionales
-    if (formData.tipo === "nomina" && formData.responsable) {
-      submitData.append("responsible_id", formData.responsable);
-    } else if (formData.tipo === "transportista" && formData.transporte) {
-      submitData.append("transport_id", formData.transporte);
-    }
-
-    // Archivo adjunto
-    if (formData.adjunto instanceof File) {
-      // Cambio de Blob a File
-      submitData.append("attachment", formData.adjunto);
-    }
-
-    console.log("Datos a enviar:", Object.fromEntries(submitData.entries()));
-    await submitForm(submitData);
-  };
-
-  const isFormValid = (): boolean => {
-    const requiredFields: { [key: string]: string | File | boolean } = {
-      request_date: formData.fechaGasto,
-      personnel_type: formData.tipo,
-      invoice_number: formData.factura,
-      account_id: formData.cuenta,
-      amount: formData.valor,
-      project: formData.proyecto,
-      company: formData.empresa,
-      note: formData.observacion,
-      attachment: formData.adjunto instanceof File,
-    };
-
-    // Validación específica según el tipo
-    if (formData.tipo === "nomina") {
-      requiredFields["responsible_id"] = formData.responsable;
-    } else if (formData.tipo === "transportista") {
-      requiredFields["transport_id"] = formData.transporte;
-    }
-
-    const isValid = Object.entries(requiredFields).every(([key, value]) => {
-      const valid = Boolean(value);
-      if (!valid) {
-        console.log(`Campo requerido vacío: ${key}`);
-      }
-      return valid;
-    });
-
-    return isValid;
-  };
+  }, []);
 
   useEffect(() => {
-    setFormValid(isFormValid());
-  }, [handleInputChange, handleSelectChange, handleFileChange]);
+    fetchAccounts();
+  }, []);
+
+  useEffect(() => {
+    if (formData.proyecto) {
+      fetchResponsibles(formData.proyecto);
+    }
+  }, [formData.proyecto, fetchResponsibles]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  // Options for dropdowns
+
+  const empresaOptions = [
+    { value: "SERSUPPORT", label: "SERSUPPORT" },
+    { value: "PREBAM", label: "PREBAM" },
+  ];
 
   return (
-    <section className="container pt-10">
-      <div className="flex">
-        <div className="w-1/4">
-          <h3 className="text-slate-700 text-sm font-bold">Detalles gastos</h3>
-          <p className="text-sm text-slate-500">
-            <strong>
-              <i>Todos</i>
-            </strong>{" "}
-            los campos son obligatorios.
-          </p>
-        </div>
-
-        <form className="w-3/4 mr-5" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            <Input
-              required
-              id="fechaGasto"
-              name="fechaGasto"
-              currentDate={true}
-              label="Fecha del Gasto"
-              type="date"
-              value={formData.fechaGasto}
-              onChange={handleInputChange}
-              allowPastDates={false}
-            />
-            <Select
-              label="Tipo"
-              name="tipo"
-              id="tipo"
-              options={tipoOptions}
-              onChange={handleSelectChange}
-              value={formData.tipo}
-            />
-            <Datalist
-              label="Cuenta"
-              name="cuenta"
-              id="cuenta"
-              options={localOptions.accounts}
-              onChange={handleInputChange}
-              value={formData.cuenta}
-              disabled={localLoading.accounts}
-            />
-            <Datalist
-              label="Proyecto"
-              name="proyecto"
-              id="proyecto"
-              options={
-                localLoading.projects
-                  ? [{ label: "Cargando...", value: "" }]
-                  : localOptions.projects
-              }
-              onChange={handleInputChange}
-              disabled={localLoading.projects}
-            />
-            <Select
-              label="Empresa"
-              name="empresa"
-              id="empresa"
-              options={empresaOptions}
-              onChange={handleSelectChange}
-            />
-
-            {formData.tipo === "nomina" && (
-              <Datalist
-                label="Responsable"
-                name="responsable"
-                id="responsable"
-                options={
-                  localLoading.responsibles
-                    ? [{ label: "Cargando...", value: "" }]
-                    : localOptions.responsibles
-                }
-                onChange={handleInputChange}
-                disabled={localLoading.responsibles}
-              />
-            )}
-
-            {formData.tipo === "transportista" && (
-              <Datalist
-                label="No. De Transporte"
-                name="transporte"
-                id="transporte"
-                options={
-                  localLoading.transports
-                    ? [{ label: "Cargando...", value: "" }]
-                    : localOptions.transports
-                }
-                onChange={handleInputChange}
-                disabled={localLoading.transports}
-              />
-            )}
-
-            <Input
-              required
-              type="number"
-              step="0.01"
-              id="factura"
-              name="factura"
-              value={formData.factura}
-              onChange={handleInputChange}
-              label="No. Factura o Vale"
-              disabled={localLoading.submit}
-            />
-            <Input
-              required
-              type="number"
-              step="0.01"
-              id="valor"
-              name="valor"
-              value={formData.valor}
-              onChange={handleInputChange}
-              label="Valor"
-              disabled={localLoading.submit}
-            />
-            <Input
-              required
-              type="text"
-              id="observacion"
-              name="observacion"
-              value={formData.observacion}
-              onChange={handleInputChange}
-              label="Observación"
-              disabled={localLoading.submit}
-            />
-
-            <div className="col-span-1 md:col-span-2 lg:col-span-3">
-              <input
-                type="file"
-                id="adjunto"
-                name="adjunto"
-                onChange={handleFileChange}
-                required
-                className="block w-full text-sm text-slate-500
-                           file:mr-4 file:py-2 file:px-4
-                           file:rounded file:border-0
-                           file:text-sm file:font-semibold
-                           file:bg-red-50 file:text-red-700
-                           hover:file:bg-red-100 border border-slate-300 focus:border-sky-200 rounded-lg [&:not(:empty)]:border-green-500"
-              />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="container"
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Registro de Gastos</CardTitle>
+          <CardDescription>
+            Complete todos los campos requeridos para registrar un nuevo gasto
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Todos los campos son obligatorios y deben ser completados
+                  correctamente.
+                </AlertDescription>
+              </Alert>
             </div>
-          </div>
 
-          <div className="flex w-full items-center justify-end gap-5 mt-6">
-            <button
-              type="reset"
-              className="bg-slate-600 hover:bg-slate-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none transition-all duration-300"
-              onClick={() => resetForm}
-            >
-              Borrar Formulario
-            </button>
-            <button
-              type="submit"
-              className="bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none transition-all duration-300"
-              disabled={localLoading.submit || !formValid}
-            >
-              {localLoading.submit ? "Procesando..." : "Registrar Gasto"}
-            </button>
+            <form onSubmit={handleSubmit} className="md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Input
+                  required
+                  id="fechaGasto"
+                  name="fechaGasto"
+                  currentDate={true}
+                  label="Fecha del Gasto"
+                  type="date"
+                  value={formData.fechaGasto}
+                  onChange={handleInputChange}
+                  allowPastDates={false}
+                  error={formErrors.fechaGasto}
+                />
+
+                <Datalist
+                  label="Tipo"
+                  name="tipo"
+                  id="tipo"
+                  options={[{ value: "nomina", label: "Nómina" }]}
+                  value={"nomina"}
+                  error={formErrors.tipo}
+                  disabled
+                />
+
+                <Datalist
+                  label="Proyecto"
+                  name="proyecto"
+                  id="proyecto"
+                  options={localOptions.projects}
+                  onChange={handleInputChange}
+                  value={formData.proyecto}
+                  error={formErrors.proyecto}
+                />
+
+                <Select
+                  label="Empresa"
+                  name="empresa"
+                  id="empresa"
+                  options={empresaOptions}
+                  onChange={handleSelectChange}
+                  value={formData.empresa}
+                  error={formErrors.empresa}
+                />
+
+                <Datalist
+                  label="Cuenta"
+                  name="cuenta"
+                  id="cuenta"
+                  options={localOptions.accounts}
+                  onChange={handleInputChange}
+                  value={formData.cuenta}
+                  error={formErrors.cuenta}
+                />
+
+                {formData.tipo === "nomina" && (
+                  <Datalist
+                    label="Responsable"
+                    name="responsable"
+                    id="responsable"
+                    options={localOptions.responsibles}
+                    onChange={handleInputChange}
+                    value={formData.responsable}
+                    error={formErrors.responsable}
+                  />
+                )}
+
+                {formData.tipo === "transportista" && (
+                  <Datalist
+                    label="Transporte"
+                    name="transporte"
+                    id="transporte"
+                    options={localOptions.transports}
+                    onChange={handleInputChange}
+                    value={formData.transporte}
+                    error={formErrors.transporte}
+                  />
+                )}
+
+                <Input
+                  required
+                  id="factura"
+                  name="factura"
+                  label="Factura"
+                  type="text"
+                  value={formData.factura}
+                  onChange={handleInputChange}
+                  error={formErrors.factura}
+                />
+
+                <Input
+                  required
+                  id="valor"
+                  name="valor"
+                  label="Valor"
+                  type="number"
+                  value={formData.valor}
+                  onChange={handleInputChange}
+                  error={formErrors.valor}
+                />
+
+                <Input
+                  required
+                  id="observacion"
+                  name="observacion"
+                  label="Observación"
+                  type="text"
+                  value={formData.observacion}
+                  onChange={handleInputChange}
+                  error={formErrors.observacion}
+                />
+
+                <div className="col-span-full">
+                  <div className="mt-2">
+                    <label
+                      className={`
+                        flex justify-center w-full h-32 px-4 transition 
+                        bg-white border-2 border-gray-300 border-dashed rounded-md 
+                        appearance-none cursor-pointer hover:border-gray-400 
+                        focus:outline-none ${
+                          formData.adjunto instanceof Blob &&
+                          formData.adjunto.size > 0
+                            ? "border-green-500"
+                            : ""
+                        }
+                      `}
+                    >
+                      <span className="flex items-center space-x-2">
+                        <Upload className="w-6 h-6 text-gray-600" />
+                        <span className="font-medium text-gray-600">
+                          {formData.adjunto instanceof Blob &&
+                          formData.adjunto.size > 0
+                            ? (formData.adjunto as File).name ||
+                              "Archivo adjunto"
+                            : "Arrastra un archivo o haz click aquí"}
+                        </span>
+                      </span>
+                      <input
+                        type="file"
+                        name="adjunto"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        ref={fileInputRef}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                      />
+                    </label>
+                    {formErrors.adjunto && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.adjunto}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  disabled={localLoading.submit}
+                >
+                  Limpiar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={localLoading.submit || !formValid}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {localLoading.submit ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    "Registrar Gasto"
+                  )}
+                </Button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </section>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

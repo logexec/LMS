@@ -1,18 +1,11 @@
-"use client";
 import React, { useState, useEffect } from "react";
-import { Sheet } from "lucide-react";
-import Loader from "@/app/Loader";
-import ModalStatus from "../ModalStatus";
-import File from "../File";
-import { Card } from "@/components/ui/card";
-import {
-  LoadingState,
-  OptionsState,
-  NormalRequestData,
-  MassiveRequestData,
-} from "@/utils/types";
+import { motion, AnimatePresence } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { LoadingState, OptionsState, RequestData } from "@/utils/types";
 import NormalDiscountForm from "./NormalDiscountForm";
 import MassDiscountForm from "./MassDiscountForm";
+import ExcelUploadSection from "./ExcelUploadSection";
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -32,38 +25,30 @@ const DescuentosForm = () => {
     areas: [],
   });
 
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [activeTab, setActiveTab] = useState("normal");
 
-  // Fetch de datos iniciales
+  // Fetch inicial de datos
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading((prev) => ({ ...prev, projects: true, areas: true }));
       try {
-        // Fetch proyectos
-        const projectsRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/projects`,
-          {
+        const [projectsRes, areasRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
             credentials: "include",
-          }
-        );
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/areas`, {
+            credentials: "include",
+          }),
+        ]);
 
         if (!projectsRes.ok) throw new Error("Error al cargar proyectos");
-
-        const projectsData = await projectsRes.json();
-
-        // Fetch áreas
-        const areasRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/areas`,
-          {
-            credentials: "include",
-          }
-        );
-
         if (!areasRes.ok) throw new Error("Error al cargar áreas");
 
-        const areasData = await areasRes.json();
+        const [projectsData, areasData] = await Promise.all([
+          projectsRes.json(),
+          areasRes.json(),
+        ]);
 
         setOptions((prev) => ({
           ...prev,
@@ -77,7 +62,7 @@ const DescuentosForm = () => {
           })),
         }));
       } catch (error) {
-        setError("Error al cargar datos iniciales");
+        toast.error("Error al cargar datos iniciales");
       } finally {
         setLoading((prev) => ({ ...prev, projects: false, areas: false }));
       }
@@ -85,16 +70,6 @@ const DescuentosForm = () => {
 
     fetchInitialData();
   }, []);
-
-  useEffect(() => {
-    if (error || success) {
-      const timer = setTimeout(() => {
-        setError(null);
-        setSuccess(null);
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [error, success]);
 
   const handleExcelUpload = async (file: File) => {
     setLoading((prev) => ({ ...prev, submit: true }));
@@ -113,9 +88,9 @@ const DescuentosForm = () => {
 
       if (!response.ok) throw new Error("Error al procesar el archivo");
 
-      setSuccess("Archivo procesado correctamente");
+      toast.success("Archivo procesado correctamente");
     } catch (error) {
-      setError("Error al procesar el archivo");
+      toast.error("Error al procesar el archivo");
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
@@ -143,8 +118,9 @@ const DescuentosForm = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      toast.success("Plantilla descargada correctamente");
     } catch (error) {
-      setError("Error al descargar la plantilla");
+      toast.error("Error al descargar la plantilla");
     } finally {
       setIsDownloading(false);
     }
@@ -162,16 +138,15 @@ const DescuentosForm = () => {
         }
       );
 
-      const responseData = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.message || "Error al crear el descuento");
+        throw new Error(data.message || "Error al crear el descuento");
       }
 
-      setSuccess("Descuento registrado con éxito");
+      toast.success("Descuento registrado con éxito");
     } catch (error) {
-      console.error("Error details:", error);
-      setError(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Error al procesar el descuento"
@@ -181,118 +156,135 @@ const DescuentosForm = () => {
     }
   };
 
-  const handleMassSubmit = async (data: MassiveRequestData) => {
+  const handleMassSubmit = async (data: RequestData | FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/massive-requests`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(data),
+          body: data instanceof FormData ? data : JSON.stringify(data),
+          headers:
+            data instanceof FormData
+              ? {}
+              : { "Content-Type": "application/json" },
         }
       );
 
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error("Error al crear los descuentos masivos");
-      setSuccess("Descuentos masivos registrados con éxito");
+      }
+
+      toast.success("Descuentos masivos registrados con éxito");
     } catch (error) {
-      setError("Error al procesar los descuentos masivos");
+      toast.error("Error al procesar los descuentos masivos");
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
   };
 
   return (
-    <>
-      {error && <ModalStatus error text={error} />}
-      {success && <ModalStatus success text={success} />}
+    <div className="container pb-8 space-y-8">
+      {/* Sección de Excel */}
+      <motion.div
+        key="excel-upload"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ExcelUploadSection
+          onFileUpload={handleExcelUpload}
+          onDownloadTemplate={handleDownloadTemplate}
+          isUploading={loading.submit}
+          isDownloading={isDownloading}
+        />
+      </motion.div>
 
-      <section className="container pt-10">
-        {/* Sección de carga de Excel */}
-        <Card className="p-6 mb-8">
-          <div className="flex w-full">
-            <div className="w-1/4 mr-2">
-              <h3 className="text-slate-700 text-sm font-bold">
-                ¿Tienes información en Excel?
-              </h3>
+      {/* Sección de Formularios */}
+      <motion.div
+        key="form-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="mt-8"
+      >
+        <Tabs
+          defaultValue="normal"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div className="space-y-1 mb-4 sm:mb-0">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Registrar Descuentos
+              </h2>
               <p className="text-sm text-slate-500">
-                Por favor, carga tu archivo .xlsx, .xls o .csv.
+                Selecciona el tipo de descuento que deseas registrar
               </p>
             </div>
-            <div className="w-3/4 items-center ml-2">
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 w-full items-center gap-2 lg:gap-16 xl:gap-24 3xl:gap-36">
-                <form
-                  className="max-w-md col-span-1 md:col-span-2"
-                  onSubmit={(e) => e.preventDefault()}
-                >
-                  <File
-                    name="adjunto"
-                    label="Archivo"
-                    accept=".xlsx, .xls, .csv"
-                    variant="green"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      if (e.target.files?.[0]) {
-                        handleExcelUpload(e.target.files[0]);
-                      }
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading.submit}
-                    className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-1 px-4 rounded font-semibold shadow-md hover:shadow-none hover:scale-[.98] transition-all duration-300 disabled:opacity-50 w-full"
-                  >
-                    {loading.submit ? "Procesando..." : "Registrar Descuento"}
-                  </button>
-                </form>
-                <div className="w-full flex flex-col col-span-1 md:col-span-2 lg:col-start-3">
-                  <p className="text-slate-500 font-semibold text-sm">
-                    ¿Necesitas la plantilla actualizada?
-                  </p>
-                  <button
-                    onClick={handleDownloadTemplate}
-                    disabled={isDownloading}
-                    className={`w-max mt-4 bg-emerald-600 text-white py-1 px-4 border rounded font-semibold shadow-md flex items-center transition-all duration-300 ${
-                      isDownloading
-                        ? "!bg-white cursor-not-allowed hover:scale-100 border-slate-100"
-                        : "hover:bg-emerald-700 hover:scale-[.98] border-slate-600"
-                    }`}
-                  >
-                    {isDownloading ? (
-                      <Loader text="Descargando..." fullScreen={false} />
-                    ) : (
-                      <>
-                        <Sheet size={16} className="mr-2 inline" />
-                        Descargar Plantilla
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <TabsList className="bg-slate-100 p-1">
+              <TabsTrigger
+                value="normal"
+                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+              >
+                Individual
+              </TabsTrigger>
+              <TabsTrigger
+                value="masivo"
+                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+              >
+                Masivo
+              </TabsTrigger>
+            </TabsList>
           </div>
-        </Card>
 
-        {/* Formulario de Descuento Normal */}
-        <Card className="p-6 mb-8">
-          <NormalDiscountForm
-            options={options}
-            loading={loading}
-            onSubmit={handleNormalSubmit}
-          />
-        </Card>
+          <AnimatePresence mode="wait">
+            {activeTab === "normal" && (
+              <motion.div
+                key="normal-form"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <NormalDiscountForm
+                  options={options}
+                  loading={loading}
+                  onSubmit={handleNormalSubmit}
+                />
+              </motion.div>
+            )}
 
-        {/* Formulario de Descuento Masivo */}
-        <Card className="p-6">
-          <MassDiscountForm
-            options={options}
-            loading={loading}
-            onSubmit={handleMassSubmit}
-          />
-        </Card>
-      </section>
-    </>
+            {activeTab === "masivo" && (
+              <motion.div
+                key="mass-form"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <MassDiscountForm
+                  options={options}
+                  loading={loading}
+                  onSubmit={handleMassSubmit}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Tabs>
+      </motion.div>
+
+      {/* Feedback global */}
+      <div
+        className="fixed bottom-0 right-0 p-6 pointer-events-none"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <AnimatePresence />
+      </div>
+    </div>
   );
 };
 

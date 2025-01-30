@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./datalist.component.css";
+import { motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 type Option = {
   value: string | number;
@@ -19,6 +22,8 @@ type DatalistProps = {
   options: Option[];
   placeholder?: string;
   disabled?: boolean;
+  error?: string;
+  loading?: boolean;
 };
 
 const Datalist: React.FC<DatalistProps> = ({
@@ -32,6 +37,8 @@ const Datalist: React.FC<DatalistProps> = ({
   options,
   placeholder = "Comienza a escribir...",
   disabled = false,
+  error,
+  loading,
 }) => {
   const [displayValue, setDisplayValue] = useState<string | number>("");
 
@@ -73,6 +80,23 @@ const Datalist: React.FC<DatalistProps> = ({
         disabled={disabled}
         list={`${id}-list`}
       />
+      {loading && (
+        <div className="datalist-loading">
+          <Loader2 className="text-primary" size={18} />
+        </div>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="input-error-icon"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
+            <AlertCircle className="text-red-500" size={18} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <label htmlFor={id} className="datalist-label">
         {label}
       </label>

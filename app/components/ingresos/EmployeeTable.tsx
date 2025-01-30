@@ -42,7 +42,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
           </TableHeader>
           <TableBody>
             {[1, 2, 3].map((index) => (
-              <TableRow key={index}>
+              <TableRow key={`employee=${index}`}>
                 <TableCell>
                   <Skeleton className="h-4 w-4" />
                 </TableCell>

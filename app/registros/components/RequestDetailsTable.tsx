@@ -1,4 +1,3 @@
-// RequestDetailsTable.tsx
 "use client";
 
 import { Download, RefreshCw, Search } from "lucide-react";
@@ -250,7 +249,7 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               {isLoading ? (
                 <tr>
                   <td colSpan={12} className="text-center py-8">

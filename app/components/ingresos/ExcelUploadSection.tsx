@@ -1,0 +1,200 @@
+"use client";
+
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Sheet, FileSpreadsheet, Loader2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+interface ExcelUploadSectionProps {
+  onFileUpload: (file: File) => Promise<void>;
+  onDownloadTemplate: () => Promise<void>;
+  isUploading: boolean;
+  isDownloading: boolean;
+}
+
+const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
+  onFileUpload,
+  onDownloadTemplate,
+  isUploading,
+  isDownloading,
+}) => {
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      await onFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="bg-white">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Sección de carga */}
+            <motion.div
+              className="space-y-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Carga de Excel
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Importa tus descuentos desde un archivo Excel
+                </p>
+              </div>
+
+              <div
+                className={`
+                  relative rounded-lg border-2 border-dashed p-8
+                  transition-colors duration-200 ease-in-out
+                  ${
+                    dragActive
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }
+                `}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <div className="relative">
+                    <AnimatePresence mode="wait">
+                      {isUploading ? (
+                        <motion.div
+                          key="loading"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          <Loader2 className="h-10 w-10 text-emerald-500 animate-spin" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="upload"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          <FileSpreadsheet className="h-10 w-10 text-emerald-500" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-slate-700">
+                      {isUploading
+                        ? "Procesando archivo..."
+                        : "Arrastra tu archivo aquí o"}
+                    </p>
+                    {!isUploading && (
+                      <label className="mt-2 inline-block">
+                        <span className="text-sm font-medium text-emerald-600 hover:text-emerald-500 cursor-pointer">
+                          selecciona un archivo
+                        </span>
+                        <input
+                          type="file"
+                          name="excel-upload"
+                          accept=".xlsx,.xls,.csv"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              onFileUpload(e.target.files[0]);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Archivos soportados: .xlsx, .xls, .csv
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Sección de plantilla */}
+            <motion.div
+              className="space-y-4 flex flex-col justify-between"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  ¿Necesitas la plantilla?
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Descarga la plantilla actualizada para asegurar una
+                  importación exitosa
+                </p>
+              </div>
+
+              <div className="flex items-center justify-start">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={onDownloadTemplate}
+                        disabled={isDownloading}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200"
+                      >
+                        {isDownloading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Descargando...
+                          </>
+                        ) : (
+                          <>
+                            <Sheet className="mr-2 h-4 w-4" />
+                            Descargar Plantilla
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Descarga la plantilla oficial para importar descuentos
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+export default ExcelUploadSection;

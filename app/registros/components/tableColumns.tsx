@@ -138,7 +138,7 @@ export const getReposicionColumns = ({
   responsibleMap,
   vehicleMap,
   onUpdateReposicion,
-}: ColumnHelpers): ColumnDef<ReposicionProps, any>[] => [
+}: ColumnHelpers): ColumnDef<ReposicionProps>[] => [
   {
     accessorKey: "fecha_reposicion",
     header: "Fecha",
@@ -153,7 +153,10 @@ export const getReposicionColumns = ({
     header: "Total",
     cell: ({ row }) => (
       <p className="font-medium text-slate-900 w-max px-1">
-        ${new Intl.NumberFormat().format(row.getValue("total_reposicion"))}
+        $
+        {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2 }).format(
+          row.getValue<number>("total_reposicion")
+        )}
       </p>
     ),
   },
@@ -227,10 +230,10 @@ export const getReposicionColumns = ({
             console.log(e.target.value);
           }}
         >
-          <option value={"decimo_cuarto"}>Décimo Cuarto</option>
+          <option value="decimo_cuarto">Décimo Cuarto</option>
           <option value="decimo_tercero">Décimo Tercero</option>
           <option value="liquidacion">Liquidación</option>
-          <option value="rol" selected>
+          <option value="rol" defaultChecked>
             Rol
           </option>
           <option value="utilidades">Utilidades</option>

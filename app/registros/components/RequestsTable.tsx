@@ -171,10 +171,8 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           // Formatear monto
           total_reposicion:
             typeof item.total_reposicion === "number"
-              ? new Intl.NumberFormat("es-ES", {
-                  minimumFractionDigits: 2,
-                }).format(item.total_reposicion)
-              : "0.00",
+              ? item.total_reposicion
+              : parseFloat(item.total_reposicion) || 0,
         }));
       }
       return rawData;
@@ -316,13 +314,16 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       }
 
       if (!onCreateReposicion) {
-        toast.error("Error en la configuración");
+        toast.error(
+          "Hay un error en la configuración. Por favor, contacta a soporte para solucionar este problema."
+        );
         return;
       }
 
       await onCreateReposicion(requestIds);
       setRowSelection({});
       await fetchData(tableState);
+      handleRefresh();
     } catch (error: any) {
       console.error("Error:", error);
       toast.error(error.message || "Error al crear la reposición");
@@ -468,7 +469,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
             ))}
           </TableHeader>
           <TableBody>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               {isLoading ? (
                 <TableSkeleton />
               ) : data && data.length > 0 ? (

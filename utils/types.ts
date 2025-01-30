@@ -279,7 +279,7 @@ export interface NormalFormData extends BaseFormData {
   adjunto: Blob;
 }
 
-export interface MassiveFormData extends BaseFormData {
+export interface MassiveFormData extends NormalFormData {
   area: string;
 }
 
@@ -325,6 +325,7 @@ export interface RequestData {
   responsible_id?: string;
   transport_id?: string | null;
   note: string;
+  [key: string]: string | Blob | null | undefined;
 }
 
 export interface NormalRequestData {
@@ -337,17 +338,5 @@ export interface NormalRequestData {
   project: string;
   responsible_id: string;
   transport_id: string | null;
-  note: string;
-}
-
-export interface MassiveRequestData {
-  type: "massive_discount";
-  request_date: string;
-  invoice_number: string;
-  account_id: string;
-  total_amount: string;
-  project: string;
-  area: string;
-  employees: string[];
   note: string;
 }

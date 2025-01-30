@@ -1,6 +1,8 @@
 import React from "react";
-import { ChevronDown } from "lucide-react";
+import { AlertCircle, ChevronDown, Loader2 } from "lucide-react";
 import "./select.component.css";
+import { motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 
 type Option = {
   value: string | number;
@@ -21,6 +23,8 @@ type SelectProps = {
   defaultOption?: string;
   disabled?: boolean;
   readonly?: boolean;
+  loading?: boolean;
+  error?: string;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -35,6 +39,8 @@ const Select: React.FC<SelectProps> = ({
   defaultOption = "Selecciona...",
   disabled = false,
   readonly = false,
+  loading = false,
+  error,
 }) => {
   return (
     <div className="custom-select-group">
@@ -67,6 +73,23 @@ const Select: React.FC<SelectProps> = ({
         {label}
       </label>
       {!readonly && <ChevronDown className="select-icon" size={20} />}
+      {loading && (
+        <div className="select-loading">
+          <Loader2 className="text-primary" size={18} />
+        </div>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="input-error-icon"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
+            <AlertCircle className="text-red-500" size={18} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
