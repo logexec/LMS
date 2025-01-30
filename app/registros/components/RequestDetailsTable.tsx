@@ -87,7 +87,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     },
     in_reposition: {
       color: "bg-indigo-100 text-indigo-800 border-indigo-600",
-      text: "Reposición",
+      text: "En Reposición",
     },
   };
 

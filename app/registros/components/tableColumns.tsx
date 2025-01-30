@@ -1,16 +1,28 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { RequestProps, ReposicionProps, Status } from "@/utils/types";
+import { Status, RequestProps, ReposicionProps } from "@/utils/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Check, FileText, ScanSearch, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger,
   TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Checkbox from "@/app/components/Checkbox";
+import { toast } from "sonner";
+import UndoableToast from "./UndoableToast";
 import {
   Dialog,
   DialogContent,
@@ -20,14 +32,91 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import RequestDetailsTable from "./RequestDetailsTable";
+import Checkbox from "@/app/components/Checkbox";
 
 interface ColumnHelpers {
   accountMap: Record<string, string>;
   responsibleMap: Record<string, string>;
   vehicleMap: Record<string, string>;
   onStatusChange?: (id: number, status: Status) => Promise<void>;
-  onUpdateReposicion?: (id: number, status: Status) => Promise<void>;
+  onUpdateReposicion?: (
+    id: number,
+    newStatus: Status,
+    previousStatus: Status
+  ) => Promise<void>;
 }
+
+const getStatusMessages = (status: Status) => {
+  const messages = {
+    [Status.approved]: {
+      title: "Aprobar Reposición",
+      description: "¿Estás seguro de que deseas aprobar esta reposición?",
+      action: "Aprobar",
+      toast: "Reposición aprobada correctamente",
+    },
+    [Status.rejected]: {
+      title: "Rechazar Reposición",
+      description: "¿Estás seguro de que deseas rechazar esta reposición?",
+      action: "Rechazar",
+      toast: "Reposición rechazada",
+    },
+    [Status.review]: {
+      title: "Enviar a Revisión",
+      description:
+        "¿Estás seguro de que deseas enviar esta reposición a revisión?",
+      action: "Enviar a revisión",
+      toast: "Reposición enviada a revisión",
+    },
+    [Status.pending]: {
+      title: "Marcar como Pendiente",
+      description:
+        "¿Estás seguro de que deseas marcar esta reposición como pendiente?",
+      action: "Marcar como pendiente",
+      toast: "Reposición marcada como pendiente",
+    },
+    [Status.in_reposition]: {
+      title: "Marcar en Reposición",
+      description:
+        "¿Estás seguro de que deseas marcar esta reposición en proceso de reposición?",
+      action: "Marcar en proceso",
+      toast: "Reposición marcada en proceso",
+    },
+  };
+  return messages[status];
+};
+
+const handleStatusUpdate = (
+  id: number,
+  newStatus: Status,
+  currentStatus: Status,
+  onUpdateReposicion?: (
+    id: number,
+    newStatus: Status,
+    previousStatus: Status
+  ) => Promise<void>
+) => {
+  // Mostrar toast con opción de deshacer
+  toast.custom(
+    (t) => (
+      <UndoableToast
+        message={getStatusMessages(newStatus).toast}
+        status={newStatus}
+        onUndo={() => {
+          // Restaurar el estado anterior
+          onUpdateReposicion?.(id, currentStatus, newStatus);
+          toast.dismiss(t);
+        }}
+      />
+    ),
+    {
+      duration: 5000,
+      onAutoClose: () => {
+        // Confirmar la acción cuando el toast se cierre
+        onUpdateReposicion?.(id, newStatus, currentStatus);
+      },
+    }
+  );
+};
 
 export const getRequestColumns = ({
   accountMap,
@@ -230,12 +319,10 @@ export const getReposicionColumns = ({
             console.log(e.target.value);
           }}
         >
+          <option value="rol">Rol</option>
           <option value="decimo_cuarto">Décimo Cuarto</option>
           <option value="decimo_tercero">Décimo Tercero</option>
           <option value="liquidacion">Liquidación</option>
-          <option value="rol" defaultChecked>
-            Rol
-          </option>
           <option value="utilidades">Utilidades</option>
         </select>
       );
@@ -285,70 +372,150 @@ export const getReposicionColumns = ({
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row }) => (
-      <div className="flex flex-row flex-wrap items-center gap-1 w-36">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="text-white bg-red-600 hover:bg-red-700 size-7"
-                onClick={() =>
-                  onUpdateReposicion?.(row.original.id, Status.rejected)
-                }
-              >
-                <X />
-                <span className="sr-only">Rechazar</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="bg-red-600 font-medium px-1.5 py-0.5 rounded-xl text-white">
-                Rechazar
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="text-white bg-indigo-600 hover:bg-indigo-700 size-7"
-                onClick={() =>
-                  onUpdateReposicion?.(row.original.id, Status.review)
-                }
-              >
-                <ScanSearch />
-                <span className="sr-only">Revisar</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="bg-indigo-600 font-medium px-1.5 py-0.5 rounded-xl text-white">
-                Revisar
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="text-white bg-emerald-600 hover:bg-emerald-700 size-7"
-                onClick={() =>
-                  onUpdateReposicion?.(row.original.id, Status.approved)
-                }
-              >
-                <Check />
-                <span className="sr-only">Aprobar</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="bg-emerald-600 font-medium px-1.5 pt-0.5 pb-1 rounded-xl text-white">
-                Aprobar
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const currentStatus = row.original.status;
+      return (
+        <div className="flex flex-row flex-wrap items-center gap-1 w-36">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="text-white bg-red-600 hover:bg-red-700 size-7">
+                      <X />
+                      <span className="sr-only">Rechazar</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {getStatusMessages(Status.rejected).title}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {getStatusMessages(Status.rejected).description}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={() =>
+                          handleStatusUpdate(
+                            row.original.id,
+                            Status.rejected,
+                            currentStatus,
+                            onUpdateReposicion
+                          )
+                        }
+                      >
+                        {getStatusMessages(Status.rejected).action}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="bg-red-600 font-medium px-1.5 py-0.5 rounded-xl text-white">
+                  Rechazar
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="text-white bg-indigo-600 hover:bg-indigo-700 size-7">
+                      <ScanSearch />
+                      <span className="sr-only">Revisar</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {getStatusMessages(Status.review).title}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {getStatusMessages(Status.review).description}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() =>
+                          handleStatusUpdate(
+                            row.original.id,
+                            Status.review,
+                            currentStatus,
+                            onUpdateReposicion
+                          )
+                        }
+                      >
+                        {getStatusMessages(Status.review).action}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="bg-indigo-600 font-medium px-1.5 py-0.5 rounded-xl text-white">
+                  Revisar
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="text-white bg-emerald-600 hover:bg-emerald-700 size-7">
+                      <Check />
+                      <span className="sr-only">Aprobar</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {getStatusMessages(Status.approved).title}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {getStatusMessages(Status.approved).description}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() =>
+                          handleStatusUpdate(
+                            row.original.id,
+                            Status.approved,
+                            currentStatus,
+                            onUpdateReposicion
+                          )
+                        }
+                      >
+                        {getStatusMessages(Status.approved).action}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="bg-emerald-600 font-medium px-1.5 pt-0.5 pb-1 rounded-xl text-white">
+                  Aprobar
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      );
+    },
   },
 ];
 

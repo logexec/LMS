@@ -28,7 +28,7 @@ const UsersPage = () => {
         </div>
         <div className="flex gap-2">
           <Button asChild className="bg-red-600 hover:bg-red-700">
-            <Link href="/usuarios/roles" className="flex items-center gap-2">
+            <Link href="/roles" className="flex items-center gap-2">
               <TbHierarchy2 className="h-4 w-4" />
               Gestionar Roles
             </Link>

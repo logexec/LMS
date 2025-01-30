@@ -1,5 +1,5 @@
 import { LuMonitor, LuUsers } from "react-icons/lu";
-import { SquarePlus, LayoutDashboard } from "lucide-react";
+import { SquarePlus, LayoutDashboard, Shield } from "lucide-react";
 import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
 import { VscRequestChanges } from "react-icons/vsc";
@@ -25,15 +25,21 @@ export const sidenavLinks: NavLink[] = [
     requiredPermissions: ["manage_users"],
     links: [
       {
+        label: "Monitoreo",
+        url: "/monitoreo",
+        icon: LuMonitor,
+        requiredPermissions: ["manage_users", "view_users"],
+      },
+      {
         label: "Usuarios",
         url: "/usuarios",
         icon: LuUsers,
         requiredPermissions: ["manage_users", "view_users"],
       },
       {
-        label: "Monitoreo",
-        url: "/monitoreo",
-        icon: LuMonitor,
+        label: "Roles",
+        url: "/roles",
+        icon: Shield,
         requiredPermissions: ["manage_users", "view_users"],
       },
     ],

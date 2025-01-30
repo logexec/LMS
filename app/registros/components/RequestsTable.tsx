@@ -7,7 +7,6 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
-  ColumnFiltersState,
   SortingState,
   VisibilityState,
   RowSelectionState,
@@ -87,6 +86,48 @@ const TableSkeleton = () => (
     ))}
   </>
 );
+
+const fetchAccounts = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error fetching accounts");
+  }
+
+  return response.json();
+};
+
+const fetchResponsibles = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
+    {
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Error fetching responsibles");
+  }
+
+  return response.json();
+};
+
+const fetchVehicles = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
+    {
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Error fetching vehicles");
+  }
+
+  return response.json();
+};
 
 export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   mode,
@@ -168,6 +209,12 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           fecha_reposicion: new Date(item.fecha_reposicion).toLocaleDateString(
             "es-ES"
           ),
+          responsible_id:
+            typeof item.responsible_id === "string" && item.responsible_id,
+          account_id:
+            typeof item.account_id === "number"
+              ? item.account_id
+              : parseInt(item.account_id),
           // Formatear monto
           total_reposicion:
             typeof item.total_reposicion === "number"
@@ -180,22 +227,29 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     [mode]
   );
 
-  // Función para cargar los datos
   const fetchData = useCallback(
     async (tableState: TableState) => {
       try {
         setIsRefreshing(true);
-        const response = await fetch(buildQueryUrl(tableState), {
-          credentials: "include",
-        });
 
-        if (!response.ok) {
+        // Fetch table data and related data in parallel
+        const [tableResponse, accounts, responsibles, vehicles] =
+          await Promise.all([
+            fetch(buildQueryUrl(tableState), {
+              credentials: "include",
+            }),
+            fetchAccounts(),
+            fetchResponsibles(),
+            fetchVehicles(),
+          ]);
+
+        if (!tableResponse.ok) {
           throw new Error("Error al cargar los datos");
         }
 
-        const result = await response.json();
+        const result = await tableResponse.json();
 
-        // Normalizar la estructura de la respuesta
+        // Process table data
         const normalizedData = {
           data: Array.isArray(result.data)
             ? processData(result.data)
@@ -210,6 +264,31 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
             has_more: false,
           },
         };
+
+        // Update data maps
+        setDataMaps({
+          accountMap: accounts.reduce(
+            (acc: Record<string, string>, account: any) => {
+              acc[account.id] = account.name;
+              return acc;
+            },
+            {}
+          ),
+          responsibleMap: responsibles.reduce(
+            (acc: Record<string, string>, responsible: any) => {
+              acc[responsible.id] = responsible.nombre_completo;
+              return acc;
+            },
+            {}
+          ),
+          vehicleMap: vehicles.reduce(
+            (acc: Record<string, string>, vehicle: any) => {
+              acc[vehicle.id] = vehicle.name;
+              return acc;
+            },
+            {}
+          ),
+        });
 
         setData(normalizedData.data);
         setMeta(normalizedData.meta);
@@ -388,7 +467,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           <div className="relative flex-1 sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Buscar en todas las columnas..."
+              placeholder="Buscar..."
               value={tableState.globalFilter}
               onChange={(e) =>
                 setTableState((prev) => ({
@@ -431,7 +510,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                 >
                   <SendHorizontal className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">Enviar</span>
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge
+                    variant="outline"
+                    className="ml-2 text-white bg-emerald-700"
+                  >
                     {Object.keys(rowSelection).length}
                   </Badge>
                 </Button>

@@ -53,7 +53,7 @@ const ExcelUpload: React.FC<ExcelUploadSectionProps> = ({
             <button
               onClick={onDownload}
               disabled={isLoading}
-              className={`w-max mt-4 bg-emerald-600 text-white py-1 px-4 border rounded font-semibold shadow-md flex items-center transition-all duration-300 ${
+              className={`w-max bg-emerald-600 text-white py-1 px-4 border rounded font-semibold shadow-md flex items-center transition-all duration-300 ${
                 isLoading
                   ? "!bg-white cursor-not-allowed hover:scale-100 border-slate-100"
                   : "hover:bg-emerald-700 hover:scale-[.98] border-slate-600"
