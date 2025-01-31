@@ -229,7 +229,12 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
           row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
         }`}
       >
-        {row.getValue("month")}
+        {row.original.status === "rejected" ||
+        row.getValue("month") === "0000-00-00" ||
+        row.getValue("month") === null ||
+        row.getValue("month") === undefined
+          ? "No especificado"
+          : row.getValue("month")}
       </p>
     ),
   },
@@ -242,7 +247,12 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
           row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
         }`}
       >
-        {row.getValue("when")}
+        {row.getValue("when") === "" ||
+        row.getValue("when") === null ||
+        row.getValue("when") === undefined ||
+        (row.original.status === "rejected" && row.getValue("when") === null)
+          ? "No especificado"
+          : row.getValue("when")}
       </p>
     ),
   },
@@ -255,7 +265,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
           row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
         }`}
       >
-        {row.getValue("note") || "Sin observaciones"}
+        {row.getValue("note") !== null || row.getValue("note") !== ""
+          ? row.getValue("note")
+          : "Sin observaciones"}
       </p>
     ),
   },
