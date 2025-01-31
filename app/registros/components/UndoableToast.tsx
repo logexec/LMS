@@ -50,7 +50,6 @@ const UndoableToast = ({
   status,
 }: UndoableToastProps) => {
   const [progress, setProgress] = useState(100);
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const config = getStatusConfig(status);
   const StatusIcon = config.icon;
 
@@ -64,25 +63,18 @@ const UndoableToast = ({
       if (remaining <= 0) {
         clearInterval(interval);
       }
-    }, 10);
+    }, 50);
 
-    setIntervalId(interval);
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [duration]);
 
   const handleUndo = () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
     onUndo();
     toast.dismiss();
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white rounded-lg p-4 shadow-md border border-slate-200 relative">
       <div className="flex items-center gap-3 mb-2">
         <div className={`p-2 rounded-full ${config.bgColor}`}>
           <StatusIcon className={`h-4 w-4 ${config.color}`} />
@@ -98,8 +90,12 @@ const UndoableToast = ({
         >
           Deshacer
         </Button>
-        <div className="flex-1">
-          <Progress value={progress} className="h-1" />
+        <div className="flex-1 relative">
+          <Progress value={progress} className="h-1 bg-gray-200" />
+          <div
+            className="absolute top-0 left-0 h-1 bg-gray-500 transition-all"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     </div>

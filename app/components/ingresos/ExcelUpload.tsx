@@ -60,7 +60,10 @@ const ExcelUpload: React.FC<ExcelUploadSectionProps> = ({
               }`}
             >
               {isLoading ? (
-                <Loader text="Descargando..." fullScreen={false} />
+                <Loader
+                  text="Actualizando plantilla con la base de datos..."
+                  fullScreen={false}
+                />
               ) : (
                 <>
                   <Sheet size={16} className="mr-2 inline" />

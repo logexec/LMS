@@ -1,14 +1,7 @@
-"use client";
-
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  Status,
-  RequestProps,
-  ReposicionProps,
-  ReposicionUpdateData,
-} from "@/utils/types";
+import { ReposicionProps, RequestProps, Status } from "@/utils/types";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { Check, FileText, ScanSearch, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,74 +10,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import RequestDetailsTable from "./table/RequestDetailsTable";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import RequestDetailsTable from "./RequestDetailsTable";
+import { ActionButtons } from "./ActionButtons";
 import Checkbox from "@/app/components/Checkbox";
-import { ActionButtons } from "./table/ActionButtons";
+import { MonthCell } from "./EditableCell";
+import { TextCell } from "./EditableCell";
+import { SelectCell } from "./EditableCell";
 
 interface ColumnHelpers {
   accountMap: Record<string, string>;
   responsibleMap: Record<string, string>;
   vehicleMap: Record<string, string>;
   onStatusChange?: (id: number, status: Status) => Promise<void>;
-  onUpdateReposicion?: (
-    id: number,
-    data: ReposicionUpdateData,
-    previousStatus: Status
-  ) => Promise<void>;
 }
-
-interface TableMeta {
-  updateData: (rowIndex: number, columnId: string, value: any) => void;
-}
-
-const whenOptions = {
-  rol: "Rol",
-  decimo_cuarto: "Décimo Cuarto",
-  decimo_tercero: "Décimo Tercero",
-  liquidacion: "Liquidación",
-  utilidades: "Utilidades",
-} as const;
-
-type WhenOption = keyof typeof whenOptions;
-
-const getStatusMessages = (status: Status) => {
-  const messages = {
-    [Status.approved]: {
-      title: "Aprobar Reposición",
-      description: "¿Estás seguro de que deseas aprobar esta reposición?",
-      action: "Aprobar",
-      toast: "Reposición aprobada correctamente",
-    },
-    [Status.rejected]: {
-      title: "Rechazar Reposición",
-      description: "¿Estás seguro de que deseas rechazar esta reposición?",
-      action: "Rechazar",
-      toast: "Reposición rechazada",
-    },
-    [Status.review]: {
-      title: "Enviar a Revisión",
-      description:
-        "¿Estás seguro de que deseas enviar esta reposición a revisión?",
-      action: "Enviar a revisión",
-      toast: "Reposición enviada a revisión",
-    },
-    [Status.pending]: {
-      title: "Marcar como Pendiente",
-      description:
-        "¿Estás seguro de que deseas marcar esta reposición como pendiente?",
-      action: "Marcar como pendiente",
-      toast: "Reposición marcada como pendiente",
-    },
-    [Status.in_reposition]: {
-      title: "Marcar en Reposición",
-      description:
-        "¿Estás seguro de que deseas marcar esta reposición en proceso de reposición?",
-      action: "Marcar en proceso",
-      toast: "Reposición marcada en proceso",
-    },
-  };
-  return messages[status];
-};
 
 export const getRequestColumns = ({
   accountMap,
@@ -171,8 +116,9 @@ export const getRequestColumns = ({
       const id = row.getValue("transport_id") as string;
       return id ? (
         <p className="px-1 w-max">
-          {`${vehicleMap[id].slice(0, 3)}-${vehicleMap[id].slice(3, 7)}` ||
-            "No encontrado"}
+          {vehicleMap[id]
+            ? `${vehicleMap[id].slice(0, 3)}-${vehicleMap[id].slice(3, 7)}`
+            : "No encontrado"}
         </p>
       ) : (
         <p className="w-max px-1">No aplica</p>
@@ -192,30 +138,30 @@ export const getRequestColumns = ({
 
 export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
   {
-    accessorKey: "id",
+    accessorKey: "unique_id",
     header: "ID",
-    cell: ({ row }) => {
+    cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          row.original.status === "rejected" && "opacity-70 cursor-not-allowed"
         }`}
       >
-        {row.getValue<string>("id")}
-      </p>;
-    },
+        {row.original.id}
+      </p>
+    ),
   },
   {
     accessorKey: "fecha_reposicion",
     header: "Fecha",
-    cell: ({ row }) => {
+    cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
           row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
         }`}
       >
         {row.getValue<string>("fecha_reposicion").split("T")[0]}
-      </p>;
-    },
+      </p>
+    ),
   },
   {
     accessorKey: "total_reposicion",
@@ -241,13 +187,10 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
       return (
         <p
           className={`font-semibold rounded-full text-center ${
-            row.original.status === "rejected" &&
-            "opacity-50 cursor-not-allowed"
-          } ${
             status === "pending"
               ? "text-orange-700 bg-orange-50"
               : status === "rejected"
-              ? "text-red-700 bg-red-50"
+              ? "text-red-700 bg-red-50 opacity-50 cursor-not-allowed"
               : status === "review"
               ? "text-indigo-700 bg-indigo-50"
               : "text-emerald-700 bg-emerald-50"
@@ -269,105 +212,51 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     header: "Proyecto",
     cell: ({ row }) => (
       <p
-        className={`px-1 w-max ${
+        className={`text-slate-500 font-medium w-max px-1 ${
           row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
         }`}
       >
-        {row.getValue<string>("project")}
+        {row.getValue("project")}
       </p>
     ),
   },
   {
     accessorKey: "month",
     header: "Mes",
-    cell: (props) => {
-      const today = new Date();
-      const minDate = new Date(today.getFullYear(), today.getMonth(), 1)
-        .toISOString()
-        .split("T")[0];
-
-      return (
-        <div
-          className={`w-full min-w-[180px] ${
-            props.row.original.status === "rejected" &&
-            "opacity-50 cursor-not-allowed"
-          }`}
-        >
-          <input
-            type="month"
-            name="month"
-            id={`month-${props.row.id}`}
-            min={minDate}
-            value={
-              props.row.original.month
-                ? props.row.original.month
-                : "No ingresado"
-            }
-            onChange={(e) => {
-              const meta = props.table.options.meta as TableMeta;
-              meta?.updateData(props.row.index, "month", e.target.value);
-            }}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"
-            disabled={props.row.original.status === "rejected"}
-          />
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <p
+        className={`text-slate-500 font-medium w-max px-1 ${
+          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+        }`}
+      >
+        {row.getValue("month")}
+      </p>
+    ),
   },
   {
     accessorKey: "when",
     header: "Descontar en",
-    cell: (props) => (
-      <div className="w-full min-w-[150px]">
-        <select
-          name="when"
-          id={`when-${props.row.id}`}
-          value={
-            props.row.original.when ? props.row.original.when : "No ingresado"
-          }
-          onChange={(e) => {
-            const meta = props.table.options.meta as TableMeta;
-            meta?.updateData(
-              props.row.index,
-              "when",
-              e.target.value as WhenOption
-            );
-          }}
-          className={`w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm ${
-            props.row.original.status === "rejected" &&
-            "opacity-50 cursor-not-allowed"
-          }`}
-          disabled={props.row.original.status === "rejected"}
-        >
-          {Object.entries(whenOptions).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
+    cell: ({ row }) => (
+      <p
+        className={`${
+          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+        }`}
+      >
+        {row.getValue("when")}
+      </p>
     ),
   },
   {
     accessorKey: "note",
     header: "Observación",
-    cell: ({ row, table }) => (
-      <div className="w-full min-w-[200px]">
-        <input
-          type="text"
-          value={row.original.note ? row.original.note : "No ingresado"}
-          onChange={(e) => {
-            const meta = table.options.meta as TableMeta;
-            meta?.updateData(row.index, "note", e.target.value);
-          }}
-          placeholder="Agregar observación..."
-          className={`w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm ${
-            row.original.status === "rejected" &&
-            "opacity-50 cursor-not-allowed"
-          }`}
-          disabled={row.original.status === "rejected"}
-        />
-      </div>
+    cell: ({ row }) => (
+      <p
+        className={`text-pretty ${
+          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+        }`}
+      >
+        {row.getValue("note") || "Sin observaciones"}
+      </p>
     ),
   },
   {
@@ -377,7 +266,13 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
       return (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              className={`${
+                row.original.status === "rejected" && "opacity-70"
+              }`}
+            >
               <FileText className="h-4 w-4 mr-1" />
               Detalle
             </Button>
@@ -398,14 +293,16 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row, table }) => (
-      <ActionButtons row={row.original} />
-      // <ActionButtons row={row.original} table={table} />
-    ),
+    cell: ({ row, table }) => <ActionButtons row={row.original} />,
   },
 ];
 
-export default {
-  getRequestColumns,
-  getReposicionColumns,
-};
+export function getColumns<T extends RequestProps | ReposicionProps>(
+  mode: "requests" | "reposiciones",
+  helpers?: ColumnHelpers
+): ColumnDef<T, any>[] {
+  if (mode === "requests" && helpers) {
+    return getRequestColumns(helpers) as ColumnDef<T, any>[];
+  }
+  return getReposicionColumns() as ColumnDef<T, any>[];
+}

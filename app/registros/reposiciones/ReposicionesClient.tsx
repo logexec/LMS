@@ -1,6 +1,6 @@
 "use client";
 
-import { RequestsTable } from "../components/RequestsTable";
+import { RequestsTable } from "../components/table/RequestsTable";
 import { ReposicionProps } from "@/utils/types";
 
 export default function ReposicionesClient() {

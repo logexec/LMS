@@ -1,5 +1,5 @@
 import React from "react";
-import RequestsTable from "../components/RequestsTable";
+import RequestsTable from "../components/table/RequestsTable";
 import { toast } from "sonner";
 import { Status } from "@/utils/types";
 

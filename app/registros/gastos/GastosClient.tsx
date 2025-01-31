@@ -1,5 +1,5 @@
 "use client";
-import RequestsTable from "../components/RequestsTable";
+import RequestsTable from "../components/table/RequestsTable";
 import { Status } from "@/utils/types";
 import { toast } from "sonner";
 

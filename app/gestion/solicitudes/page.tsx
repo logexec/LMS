@@ -1,6 +1,6 @@
 "use client";
 
-import RequestsTable from "@/app/registros/components/RequestsTable";
+import RequestsTable from "@/app/registros/components/table/RequestsTable";
 import { motion } from "motion/react";
 import React from "react";
 

@@ -1,12 +1,18 @@
 "use client";
 
-import { RequestsTable } from "./RequestsTable";
-import { RequestProps, ReposicionProps, Status } from "@/utils/types";
+import { RequestsTable } from "./table/RequestsTable";
+import {
+  RequestProps,
+  ReposicionProps,
+  Status,
+  ReposicionUpdateData,
+} from "@/utils/types";
 import { toast } from "sonner";
 
 interface TableContainerProps {
   mode: "requests" | "reposiciones";
   type?: "discount" | "expense";
+  status?: Status | Status[];
   title: string;
 }
 
@@ -14,6 +20,7 @@ export default function TableContainer({
   mode,
   type,
   title,
+  status,
 }: TableContainerProps) {
   // Para solicitudes individuales en tabla de gastos/descuentos
   const handleStatusChange = async (
@@ -77,7 +84,8 @@ export default function TableContainer({
   // Para actualizar estado de reposición (y sus solicitudes asociadas)
   const handleUpdateReposicion = async (
     id: number,
-    status: Status
+    data: ReposicionUpdateData,
+    previousStatus: Status
   ): Promise<void> => {
     try {
       const response = await fetch(
@@ -88,18 +96,34 @@ export default function TableContainer({
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ status }),
+          body: JSON.stringify(data),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Error al actualizar la reposición");
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Error al actualizar la reposición"
+        );
       }
 
-      toast.success("Estado de reposición actualizado correctamente");
+      // No mostramos toast aquí porque se manejará en el componente de la tabla
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Error al actualizar el estado de la reposición");
+      // Si hay un error, intentamos revertir al estado anterior
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ status: previousStatus }),
+        });
+      } catch (revertError) {
+        console.error("Error al revertir cambios:", revertError);
+      }
+      throw error;
     }
   };
 
@@ -110,12 +134,19 @@ export default function TableContainer({
         <RequestsTable<RequestProps>
           mode={mode}
           type={type}
+          status={[Status.pending]}
           onStatusChange={handleStatusChange}
           onCreateReposicion={handleCreateReposicion}
         />
       ) : (
         <RequestsTable<ReposicionProps>
           mode={mode}
+          status={[
+            Status.pending,
+            Status.review,
+            Status.approved,
+            Status.rejected,
+          ]}
           onUpdateReposicion={handleUpdateReposicion}
         />
       )}

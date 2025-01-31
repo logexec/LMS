@@ -1,7 +1,12 @@
 "use client";
 
-import { RequestsTable } from "./RequestsTable";
-import { RequestProps, ReposicionProps, Status } from "@/utils/types";
+import { RequestsTable } from "./table/RequestsTable";
+import {
+  RequestProps,
+  ReposicionProps,
+  Status,
+  ReposicionUpdateData,
+} from "@/utils/types";
 import { toast } from "sonner";
 
 interface ClientTableProps {
@@ -20,7 +25,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests/${id}`,
         {
-          method: "PATCH",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
@@ -66,7 +71,6 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
 
       const data = await response.json();
       toast.success("Reposición creada correctamente");
-      // Refrescar la tabla
     } catch (error: any) {
       toast.error(error.message || "Error al crear la reposición");
       throw error;
@@ -76,29 +80,47 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
   // Para actualizar reposición
   const handleUpdateReposicion = async (
     id: number,
-    status: Status
+    updateData: ReposicionUpdateData,
+    previousStatus: Status
   ): Promise<void> => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`,
         {
-          method: "PATCH",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ status }),
+          body: JSON.stringify(updateData),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Error al actualizar la reposición");
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Error al actualizar la reposición"
+        );
       }
 
       toast.success("Reposición actualizada correctamente");
     } catch (error) {
       console.error("Error:", error);
+      // Si hay error, intentamos revertir al estado anterior
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ status: previousStatus }),
+        });
+      } catch (revertError) {
+        console.error("Error al revertir cambios:", revertError);
+      }
       toast.error("Error al actualizar la reposición");
+      throw error;
     }
   };
 

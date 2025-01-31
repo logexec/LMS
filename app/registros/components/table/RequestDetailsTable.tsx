@@ -25,7 +25,7 @@ interface RequestDetailsTableProps {
   requests: RequestProps[];
 }
 
-const fetchAccounts = async () => {
+export const fetchAccounts = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
     credentials: "include",
   });
@@ -37,7 +37,7 @@ const fetchAccounts = async () => {
   return response.json();
 };
 
-const fetchResponsibles = async () => {
+export const fetchResponsibles = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
     {
@@ -52,7 +52,7 @@ const fetchResponsibles = async () => {
   return response.json();
 };
 
-const fetchVehicles = async () => {
+export const fetchVehicles = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
     {
@@ -74,7 +74,7 @@ const StatusBadge = ({ status }: { status: string }) => {
       text: "Aprobado",
     },
     pending: {
-      color: "bg-yellow-100 text-yellow-800 border-yellow-600",
+      color: "bg-yellow-100 text-orange-800 border-orange-600",
       text: "Pendiente",
     },
     rejected: {

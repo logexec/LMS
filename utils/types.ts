@@ -19,16 +19,17 @@ export interface BaseEntity {
 
 export interface RequestProps extends BaseEntity {
   unique_id: string;
-  type: RequestType;
-  status: Status;
+  updated_at: string;
   invoice_number: string;
   account_id: number;
   amount: number;
   project: string;
   responsible_id: string | null;
   transport_id: string | null;
-  attachment_path: string | null;
   note: string | null;
+  status: Status;
+  type: RequestType;
+  attachment_path: string | null;
   personnel_type?: string;
   request_date?: string;
 }
@@ -49,12 +50,13 @@ export interface TransportProps {
   name: string;
 }
 
-export interface ReposicionProps extends BaseEntity {
+export interface ReposicionProps {
+  id: number;
   fecha_reposicion: string;
   total_reposicion: number;
   status: Status;
   project: string;
-  detail: string[];
+  detail: any[];
   month: string;
   when:
     | "rol"
@@ -62,8 +64,8 @@ export interface ReposicionProps extends BaseEntity {
     | "decimo_tercero"
     | "decimo_cuarto"
     | "utilidades";
-  note: string;
-  requests?: RequestProps[];
+  note?: string;
+  requests?: any[];
 }
 
 export interface ReposicionFormData {
@@ -72,12 +74,29 @@ export interface ReposicionFormData {
   note: string;
 }
 
+export interface ReposicionUpdateData {
+  status: Status;
+  month?: string;
+  when?:
+    | "rol"
+    | "liquidación"
+    | "decimo_tercero"
+    | "decimo_cuarto"
+    | "utilidades";
+  note?: string;
+}
+
 export interface DataTableProps<TData> {
   mode: "requests" | "reposiciones";
   type?: "discount" | "expense";
   onStatusChange?: (id: number, status: Status) => Promise<void>;
   onCreateReposicion?: (requestIds: string[]) => Promise<void>;
-  onUpdateReposicion?: (id: number, status: Status) => Promise<void>;
+  onUpdateReposicion?: (
+    id: number,
+    data: ReposicionUpdateData,
+    previousStatus: Status
+  ) => Promise<void>;
+  status?: Status | Status[];
 }
 
 // Auth
