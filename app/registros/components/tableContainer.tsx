@@ -139,11 +139,38 @@ export default function TableContainer({
           onCreateReposicion={handleCreateReposicion}
         />
       ) : (
-        <RequestsTable<ReposicionProps>
-          mode={mode}
-          status={[Status.pending, Status.review, Status.paid, Status.rejected]}
-          onUpdateReposicion={handleUpdateReposicion}
-        />
+        <div className="grid grid-cols-4 gap-4">
+          <div className="col-span-4">
+            <RequestsTable<ReposicionProps>
+              mode={mode}
+              status={[
+                Status.pending,
+                Status.review,
+                Status.paid,
+                Status.rejected,
+              ]}
+              onUpdateReposicion={handleUpdateReposicion}
+            />
+          </div>
+          <div className="col-span-2">
+            <h3 className="text-slate-400 font-semibold">
+              Reposiciones En revisión
+            </h3>
+            <RequestsTable<ReposicionProps>
+              mode={mode}
+              status={[Status.review]}
+            />
+          </div>
+          <div className="col-span-2">
+            <h3 className="text-slate-400 font-semibold">
+              Reposiciones Rechazadas
+            </h3>
+            <RequestsTable<ReposicionProps>
+              mode={mode}
+              status={[Status.rejected]}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -194,12 +194,12 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
         <p
           className={`font-semibold rounded-full text-center ${
             status === "pending"
-              ? "text-orange-700 bg-orange-50"
+              ? "text-orange-700 border border-orange-700 bg-orange-50"
               : status === "rejected"
-              ? "text-red-700 bg-red-50 opacity-50"
+              ? "text-red-700 border border-red-700 bg-red-50 opacity-50"
               : status === "review"
-              ? "text-indigo-700 bg-indigo-50"
-              : "text-emerald-700 bg-emerald-50"
+              ? "text-indigo-700 border border-indigo-700 bg-indigo-50"
+              : "text-emerald-700 border border-emerald-700 bg-emerald-50 opacity-50"
           }`}
         >
           {status === "pending"

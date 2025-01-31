@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import Input from "../Input";
 import Select from "../Select";
 import { MassDiscountTable } from "./MassDiscountTable";
@@ -20,8 +20,9 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Upload } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
 import Datalist from "../Datalist";
@@ -54,16 +55,17 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const localOptions: OptionsState = {
     accounts: [
       {
         label: "Recuperación Valores Comisión de Reparto",
-        value: "Recuperación Valores Comisión de Reparto",
+        value: "19",
       },
       {
         label: "Faltantes por Cobrar Empleados y Transportistas",
-        value: "Faltantes por Cobrar Empleados y Transportistas",
+        value: "8",
       },
     ],
     projects: [],
@@ -118,30 +120,26 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       case "valor":
         if (parseFloat(value) <= 0) {
           errors[name] = "El valor debe ser mayor a 0";
-          setFormErrors((prev) => ({
-            ...prev,
-            valor: "El valor debe ser mayor a 0",
-          }));
         } else {
-          setFormErrors((prev) => ({
-            ...prev,
-            valor: "",
-          }));
+          errors[name] = "";
         }
         break;
       case "factura":
         if (value.length < 3) {
           errors[name] =
             "El número de factura debe tener al menos 3 caracteres";
-          setFormErrors((prev) => ({
-            ...prev,
-            factura: "El número de factura debe tener al menos 3 caracteres",
-          }));
         } else {
-          setFormErrors((prev) => ({
-            ...prev,
-            factura: "",
-          }));
+          errors[name] = "";
+        }
+        break;
+      case "adjunto":
+        if (
+          !(massFormData.adjunto instanceof File) ||
+          !(massFormData.adjunto instanceof Blob)
+        ) {
+          errors[name] = "El adjunto es obligatorio";
+        } else {
+          errors[name] = "";
         }
         break;
     }
@@ -151,6 +149,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       ...errors,
     }));
 
+    console.log(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -170,6 +169,29 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       [name]: value,
     }));
     validateField(name, value);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (file.size > maxSize) {
+      toast.error(
+        "El archivo es demasiado grande. El tamaño máximo permitido es de 5MB."
+      );
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    setMassFormData((prev) => ({
+      ...prev,
+      adjunto: file,
+    }));
+    validateField("adjunto", "");
   };
 
   const handleSelectionChange = (employeeId: string) => {
@@ -204,6 +226,9 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     });
     setEmployees([]);
     setFormErrors({});
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -212,6 +237,11 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     const selectedEmployees = employees.filter((emp) => emp.selected);
     if (selectedEmployees.length === 0) {
       toast.error("Debes seleccionar al menos un empleado");
+      return;
+    }
+
+    if (!(massFormData.adjunto instanceof File)) {
+      toast.error("Debes adjuntar un documento");
       return;
     }
 
@@ -242,10 +272,13 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       });
 
       await Promise.all(requests);
-      toast.success("Descuentos registrados exitosamente");
+      toast.success(
+        `${selectedEmployees.length} descuentos registrados exitosamente`
+      );
       resetForm();
     } catch (error) {
       toast.error("Error al procesar los descuentos");
+      console.error("Error processing discounts:", error);
     } finally {
       setIsLoading(false);
     }
@@ -254,7 +287,8 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   const isFormValid =
     Object.keys(formErrors).length === 0 &&
     massFormData.valor &&
-    massFormData.factura;
+    massFormData.factura &&
+    massFormData.adjunto instanceof File;
 
   return (
     <motion.div
@@ -375,6 +409,40 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                   />
                 </div>
 
+                <div className="col-span-full">
+                  <Label htmlFor="adjunto">Adjuntar Documento</Label>
+                  <div className="mt-2">
+                    <label
+                      className={`
+                          flex justify-center w-full h-32 px-4 transition 
+                          bg-white border-2 border-gray-300 border-dashed rounded-md 
+                          appearance-none cursor-pointer hover:border-gray-400 
+                          focus:outline-none ${
+                            massFormData.adjunto instanceof File
+                              ? "border-green-500"
+                              : ""
+                          }
+                        `}
+                    >
+                      <span className="flex items-center space-x-2">
+                        <Upload className="w-6 h-6 text-gray-600" />
+                        <span className="font-medium text-gray-600">
+                          {massFormData.adjunto instanceof File
+                            ? massFormData.adjunto.name
+                            : "Arrastra un archivo o haz click aquí"}
+                        </span>
+                      </span>
+                      <input
+                        type="file"
+                        name="adjunto"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        ref={fileInputRef}
+                      />
+                    </label>
+                  </div>
+                </div>
+
                 {massFormData.proyecto && massFormData.area && (
                   <div className="mt-6">
                     <MassDiscountTable
@@ -409,7 +477,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     {loading.submit ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Procesando...
+                        Registrando descuentos...
                       </>
                     ) : (
                       "Registrar Descuento Masivo"

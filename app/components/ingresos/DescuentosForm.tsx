@@ -6,6 +6,7 @@ import { LoadingState, OptionsState, RequestData } from "@/utils/types";
 import NormalDiscountForm from "./NormalDiscountForm";
 import MassDiscountForm from "./MassDiscountForm";
 import ExcelUploadSection from "./ExcelUploadSection";
+import * as XLSX from "xlsx";
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -74,8 +75,48 @@ const DescuentosForm = () => {
   const handleExcelUpload = async (file: File) => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, {
+        cellDates: true,
+        dateNF: "yyyy-mm-dd",
+      });
+
+      // Obtener la primera hoja
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+
+      // Validar estructura del Excel
+      const requiredColumns = [
+        "Fecha",
+        "Tipo",
+        "No. Factura",
+        "Cuenta",
+        "Valor",
+        "Proyecto",
+        "Responsable",
+        "Placa", // Opcional, solo para transportistas
+        "Observación",
+      ];
+
+      const rawHeaderRow = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1,
+      })[0];
+      const headerRow = Array.isArray(rawHeaderRow)
+        ? rawHeaderRow.map(String)
+        : [];
+
+      const missingColumns = requiredColumns.filter(
+        (col) => col !== "Placa" && !headerRow.includes(col)
+      );
+
+      if (missingColumns.length > 0) {
+        throw new Error(`Columnas faltantes: ${missingColumns.join(", ")}`);
+      }
+
+      // Preparar FormData con los datos procesados
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("data", JSON.stringify(jsonData));
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/upload-discounts`,
@@ -86,11 +127,32 @@ const DescuentosForm = () => {
         }
       );
 
-      if (!response.ok) throw new Error("Error al procesar el archivo");
+      const result = await response.json();
 
-      toast.success("Archivo procesado correctamente");
+      if (!response.ok) {
+        if (result.errors) {
+          // Crear mensaje de error detallado para cada fila con error
+          const errorMessage = result.errors
+            .map((err: any) => `Fila ${err.row}: ${err.error}`)
+            .join("\n");
+          throw new Error(errorMessage);
+        }
+        throw new Error(result.message || "Error al procesar el archivo");
+      }
+
+      toast.success(`${result.processed} descuentos procesados correctamente`);
     } catch (error) {
-      toast.error("Error al procesar el archivo");
+      console.error("Error:", error);
+      // Si el error tiene múltiples líneas, usar toast.error para cada línea
+      if (error instanceof Error && error.message.includes("\n")) {
+        error.message.split("\n").forEach((line) => toast.error(line));
+      } else {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Error al procesar el archivo"
+        );
+      }
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
@@ -160,7 +222,7 @@ const DescuentosForm = () => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/massive-requests`,
+        `${process.env.NEXT_PUBLIC_API_URL}/requests`,
         {
           method: "POST",
           credentials: "include",
@@ -175,10 +237,9 @@ const DescuentosForm = () => {
       if (!response.ok) {
         throw new Error("Error al crear los descuentos masivos");
       }
-
-      toast.success("Descuentos masivos registrados con éxito");
+      toast.success("Descuento registrado con éxito");
     } catch (error) {
-      toast.error("Error al procesar los descuentos masivos");
+      toast.error("Error al procesar el descuento");
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }

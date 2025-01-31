@@ -244,8 +244,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
       return (
         <p
           className={`font-semibold rounded-full text-center ${
-            row.original.status === "rejected" ||
-            (row.original.status === "paid" && "opacity-50 cursor-not-allowed")
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-50"
           } ${
             status === "pending"
               ? "text-orange-700 bg-orange-50"

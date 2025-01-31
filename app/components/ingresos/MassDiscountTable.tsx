@@ -155,7 +155,7 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               {filteredEmployees.length > 0 ? (
                 filteredEmployees.map((employee) => (
                   <motion.tr

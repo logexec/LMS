@@ -12,7 +12,7 @@ import { toast } from "sonner";
 interface ClientTableProps {
   mode: "requests" | "reposiciones";
   type?: "discount" | "expense";
-  title: string;
+  title?: string;
 }
 
 export default function ClientTable({ mode, type, title }: ClientTableProps) {

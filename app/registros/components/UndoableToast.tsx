@@ -90,13 +90,13 @@ const UndoableToast = ({
         >
           Deshacer
         </Button>
-        <div className="flex-1 relative">
-          <Progress value={progress} className="h-1 bg-gray-200" />
-          <div
-            className="absolute top-0 left-0 h-1 bg-gray-500 transition-all"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+      </div>
+      <div className="block w-full relative">
+        <Progress value={progress} className="h-1 bg-gray-200" />
+        <div
+          className="absolute top-0 left-0 h-1 bg-gray-500 transition-all"
+          style={{ width: `${progress}%` }}
+        />
       </div>
     </div>
   );
