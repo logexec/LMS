@@ -16,7 +16,7 @@ interface ChartComponentProps {
 interface RequestData {
   pendingRequests: number[];
   rejectedRequests: number[];
-  approvedRequests: number[];
+  paidRequests: number[];
   inRepositionRequests: number[];
 }
 
@@ -54,19 +54,19 @@ const getData = async (currentMonth: boolean = false): Promise<RequestData> => {
     const [
       pendingRequests,
       rejectedRequests,
-      approvedRequests,
+      paidRequests,
       inRepositionRequests,
     ] = await Promise.all([
       fetchData("pending"),
       fetchData("rejected"),
-      fetchData("approved"),
+      fetchData("paid"),
       fetchData("in_reposition"),
     ]);
 
     return {
       pendingRequests,
       rejectedRequests,
-      approvedRequests,
+      paidRequests,
       inRepositionRequests,
     };
   } catch (error) {
@@ -80,7 +80,7 @@ const getData = async (currentMonth: boolean = false): Promise<RequestData> => {
     return {
       pendingRequests: [],
       rejectedRequests: [],
-      approvedRequests: [],
+      paidRequests: [],
       inRepositionRequests: [],
     };
   }
@@ -190,7 +190,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       const allValues = [
         ...chartData.pendingRequests,
         ...chartData.rejectedRequests,
-        ...chartData.approvedRequests,
+        ...chartData.paidRequests,
         ...chartData.inRepositionRequests,
       ];
       return Math.max(...allValues, 1) * 1.2;
@@ -220,8 +220,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           fill: true,
         },
         {
-          label: "Solicitudes aprobadas",
-          data: chartData.approvedRequests,
+          label: "Solicitudes pagadas",
+          data: chartData.paidRequests,
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           borderColor: "rgba(75, 192, 192, 1)",
           borderWidth: 2,

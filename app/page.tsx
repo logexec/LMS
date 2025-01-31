@@ -8,7 +8,7 @@ import Personnel from "./components/Personnel";
 import Transport from "./components/Transport";
 import {
   PendingRequests,
-  ApprovedRequests,
+  PaidRequests,
   RejectedRequests,
   InRepositionRequests,
 } from "./components/Requests";
@@ -135,7 +135,7 @@ const Home = () => {
                   className="text-2xl md:text-3xl font-semibold"
                   whileHover={{ scale: 1.05 }}
                 >
-                  <ApprovedRequests />
+                  <PaidRequests />
                 </motion.span>
                 <motion.span
                   className="text-2xl md:text-3xl font-semibold"

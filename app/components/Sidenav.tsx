@@ -9,7 +9,9 @@ import logo from "@/public/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+// import echo from "@/services/echo.service";
 import "./sidenav.component.css";
+import { toast } from "sonner";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -66,6 +68,17 @@ const Sidenav = () => {
         animate: { x: isMobileMenuOpen ? 0 : -320 },
         transition: { type: "spring", bounce: 0, duration: 0.4 },
       };
+
+  // useEffect(() => {
+  //   echo.channel("requests").listen(".request.updated", (event: any) => {
+  //     if (event.request.status === "paid") {
+  //       toast.info(`La solicitud ${event.request.unique_id} ha sido pagada.`);
+  //     }
+  //   });
+  //   return () => {
+  //     echo.leaveChannel("requests");
+  //   };
+  // }, []);
 
   return (
     <>
