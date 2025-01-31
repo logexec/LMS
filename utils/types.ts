@@ -2,7 +2,7 @@
 
 export enum Status {
   pending = "pending",
-  approved = "approved",
+  paid = "paid",
   rejected = "rejected",
   review = "review",
   in_reposition = "in_reposition",

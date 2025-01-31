@@ -49,11 +49,11 @@ type WhenOption = keyof typeof whenOptions;
 
 const getStatusMessages = (status: Status) => {
   const messages = {
-    [Status.approved]: {
-      title: "Aprobar Reposición",
-      description: "¿Estás seguro de que deseas aprobar esta reposición?",
-      action: "Aprobar",
-      toast: "Reposición aprobada correctamente",
+    [Status.paid]: {
+      title: "Pagar Reposición",
+      description: "¿Estás seguro de que deseas pagar esta reposición?",
+      action: "Pagar",
+      toast: "Reposición pagada correctamente",
     },
     [Status.rejected]: {
       title: "Rechazar Reposición",
@@ -197,7 +197,8 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => {
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          row.original.status === "rejected" ||
+          (row.original.status === "paid" && "opacity-50 cursor-not-allowed")
         }`}
       >
         {row.getValue<string>("id")}
@@ -210,7 +211,8 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => {
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          row.original.status === "rejected" ||
+          (row.original.status === "paid" && "opacity-50 cursor-not-allowed")
         }`}
       >
         {row.getValue<string>("fecha_reposicion").split("T")[0]}
@@ -223,7 +225,8 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`font-medium text-slate-900 w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          row.original.status === "rejected" ||
+          (row.original.status === "paid" && "opacity-50 cursor-not-allowed")
         }`}
       >
         $
@@ -241,8 +244,8 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
       return (
         <p
           className={`font-semibold rounded-full text-center ${
-            row.original.status === "rejected" &&
-            "opacity-50 cursor-not-allowed"
+            row.original.status === "rejected" ||
+            (row.original.status === "paid" && "opacity-50 cursor-not-allowed")
           } ${
             status === "pending"
               ? "text-orange-700 bg-orange-50"
@@ -259,7 +262,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
             ? "Rechazado"
             : status === "review"
             ? "Revisar"
-            : "Aprobado"}
+            : "Pagado"}
         </p>
       );
     },
@@ -270,7 +273,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`px-1 w-max ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50 cursor-not-allowed"
         }`}
       >
         {row.getValue<string>("project")}
@@ -289,7 +294,8 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
       return (
         <div
           className={`w-full min-w-[180px] ${
-            props.row.original.status === "rejected" &&
+            (props.row.original.status === "rejected" ||
+              props.row.original.status === "paid") &&
             "opacity-50 cursor-not-allowed"
           }`}
         >
@@ -308,7 +314,10 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
               meta?.updateData(props.row.index, "month", e.target.value);
             }}
             className="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"
-            disabled={props.row.original.status === "rejected"}
+            disabled={
+              props.row.original.status === "rejected" ||
+              props.row.original.status === "paid"
+            }
           />
         </div>
       );
@@ -334,10 +343,14 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
             );
           }}
           className={`w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm ${
-            props.row.original.status === "rejected" &&
+            (props.row.original.status === "rejected" ||
+              props.row.original.status === "paid") &&
             "opacity-50 cursor-not-allowed"
           }`}
-          disabled={props.row.original.status === "rejected"}
+          disabled={
+            props.row.original.status === "rejected" ||
+            props.row.original.status === "paid"
+          }
         >
           {Object.entries(whenOptions).map(([value, label]) => (
             <option key={value} value={value}>
@@ -362,10 +375,13 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
           }}
           placeholder="Agregar observación..."
           className={`w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm ${
-            row.original.status === "rejected" &&
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
             "opacity-50 cursor-not-allowed"
           }`}
-          disabled={row.original.status === "rejected"}
+          disabled={
+            row.original.status === "rejected" || row.original.status === "paid"
+          }
         />
       </div>
     ),

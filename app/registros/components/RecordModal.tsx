@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Check, ScanSearch, X } from "lucide-react";
+import { HandCoins, ScanSearch, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type Status = "pending" | "approved" | "rejected" | "review";
+type Status = "pending" | "paid" | "rejected" | "review";
 
 interface Data {
   id: number;
@@ -256,7 +256,7 @@ export function RecordModal({ children, data }: RecordModalProps) {
                     ? "Rechazado"
                     : data.status === "review"
                     ? "Revisar"
-                    : "Aprobado"}
+                    : "Pagado"}
                 </p>
               </div>
             </div>
@@ -308,14 +308,14 @@ export function RecordModal({ children, data }: RecordModalProps) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button className="text-white bg-emerald-600 hover:bg-emerald-700">
-                    <Check />
-                    <span className="sr-only">Aprobar</span>
-                    <span>Aprobar</span>
+                    <HandCoins />
+                    <span className="sr-only">Pagar</span>
+                    <span>Pagar</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="bg-emerald-600 font-medium px-1.5 pt-0.5 pb-1 rounded-xl">
-                    Aprobar
+                    Pagar
                   </p>
                 </TooltipContent>
               </Tooltip>

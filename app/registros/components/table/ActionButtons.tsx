@@ -1,7 +1,7 @@
 import { useState, useCallback, useContext } from "react";
 import { ReposicionContext } from "./ReposicionContext";
 import { Button } from "@/components/ui/button";
-import { Check, ScanSearch, X } from "lucide-react";
+import { HandCoins, ScanSearch, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,11 +29,11 @@ interface ActionButtonsProps {
 
 const getStatusMessages = (status: Status) => {
   const messages = {
-    [Status.approved]: {
-      title: "Aprobar Reposición",
-      description: "¿Estás seguro de que deseas aprobar esta reposición?",
-      action: "Aprobar",
-      toast: "Reposición aprobada correctamente",
+    [Status.paid]: {
+      title: "Pagar Reposición",
+      description: "¿Estás seguro de que deseas pagar esta reposición?",
+      action: "Pagar",
+      toast: "Reposición pagada correctamente",
     },
     [Status.rejected]: {
       title: "Rechazar Reposición",
@@ -73,7 +73,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
       let updateData: ReposicionUpdateData;
 
       switch (newStatus) {
-        case Status.approved:
+        case Status.paid:
           updateData = {
             status: newStatus,
             month: editData.month,
@@ -120,7 +120,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
 
   return (
     <div className="flex flex-row flex-wrap items-center gap-2">
-      {/* Aprobar */}
+      {/* Pagar */}
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -128,21 +128,23 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
               <AlertDialogTrigger asChild>
                 <Button
                   className={`text-white bg-emerald-600 hover:bg-emerald-700 h-9 px-4 flex items-center gap-2 ${
-                    row.status === "rejected" && "opacity-50 cursor-not-allowed"
+                    row.status === "rejected" || row.status === "paid"
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
-                  disabled={row.status === "rejected"}
+                  disabled={row.status === "rejected" || row.status === "paid"}
                 >
-                  <Check className="h-4 w-4" />
-                  <span className="hidden sm:inline">Aprobar</span>
+                  <HandCoins className="h-4 w-4" />
+                  <span className="hidden sm:inline">Pagar</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    {getStatusMessages(Status.approved).title}
+                    {getStatusMessages(Status.paid).title}
                   </AlertDialogTitle>
                   <AlertDialogDescription className="pt-4">
-                    {getStatusMessages(Status.approved).description}
+                    {getStatusMessages(Status.paid).description}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -163,7 +165,9 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                         onChange={(e) =>
                           handleInputChange("month", e.target.value)
                         }
-                        disabled={row.status === "rejected"}
+                        disabled={
+                          row.status === "rejected" || row.status === "paid"
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -180,7 +184,9 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                         onChange={(e) =>
                           handleInputChange("when", e.target.value)
                         }
-                        disabled={row.status === "rejected"}
+                        disabled={
+                          row.status === "rejected" || row.status === "paid"
+                        }
                       >
                         <option value="rol">Rol</option>
                         <option value="decimo_cuarto">Décimo Cuarto</option>
@@ -205,7 +211,9 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                       onChange={(e) =>
                         handleInputChange("note", e.target.value)
                       }
-                      disabled={row.status === "rejected"}
+                      disabled={
+                        row.status === "rejected" || row.status === "paid"
+                      }
                     />
                   </div>
                 </div>
@@ -224,19 +232,21 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                         );
                         return;
                       }
-                      handleStatusUpdate(Status.approved);
+                      handleStatusUpdate(Status.paid);
                     }}
                     className="bg-emerald-600 hover:bg-emerald-700"
-                    disabled={row.status === "rejected"}
+                    disabled={
+                      row.status === "rejected" || row.status === "paid"
+                    }
                   >
-                    Aprobar reposición
+                    Pagar reposición
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p>Aprobar reposición</p>
+            <p>Pagar reposición</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -250,9 +260,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                 <Button
                   variant="outline"
                   className={`h-9 px-4 flex items-center gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 ${
-                    row.status === "rejected" && "opacity-50 cursor-not-allowed"
+                    row.status === "rejected" || row.status === "paid"
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
-                  disabled={row.status === "rejected"}
+                  disabled={row.status === "rejected" || row.status === "paid"}
                 >
                   <ScanSearch className="h-4 w-4" />
                   <span className="hidden sm:inline">Revisar</span>
@@ -282,7 +294,9 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                     value={editData.note}
                     onChange={(e) => handleInputChange("note", e.target.value)}
                     placeholder="Indica los puntos a revisar..."
-                    disabled={row.status === "rejected"}
+                    disabled={
+                      row.status === "rejected" || row.status === "paid"
+                    }
                   />
                 </div>
 
@@ -319,9 +333,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                 <Button
                   variant="outline"
                   className={`h-9 px-4 flex items-center gap-2 border-red-200 text-red-700 hover:bg-red-50 ${
-                    row.status === "rejected" && "opacity-50 cursor-not-allowed"
+                    row.status === "rejected" || row.status === "paid"
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
-                  disabled={row.status === "rejected"}
+                  disabled={row.status === "rejected" || row.status === "paid"}
                 >
                   <X className="h-4 w-4" />
                   <span className="hidden sm:inline">Rechazar</span>
@@ -351,7 +367,9 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                     value={editData.note}
                     onChange={(e) => handleInputChange("note", e.target.value)}
                     placeholder="Indica el motivo del rechazo..."
-                    disabled={row.status === "rejected"}
+                    disabled={
+                      row.status === "rejected" || row.status === "paid"
+                    }
                   />
                 </div>
 

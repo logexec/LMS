@@ -141,12 +141,7 @@ export default function TableContainer({
       ) : (
         <RequestsTable<ReposicionProps>
           mode={mode}
-          status={[
-            Status.pending,
-            Status.review,
-            Status.approved,
-            Status.rejected,
-          ]}
+          status={[Status.pending, Status.review, Status.paid, Status.rejected]}
           onUpdateReposicion={handleUpdateReposicion}
         />
       )}

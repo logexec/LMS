@@ -14,7 +14,7 @@ interface UndoableToastProps {
 
 const getStatusConfig = (status: Status) => {
   const configs = {
-    [Status.approved]: {
+    [Status.paid]: {
       icon: Check,
       color: "text-emerald-600",
       bgColor: "bg-emerald-100",

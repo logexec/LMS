@@ -69,9 +69,9 @@ export const fetchVehicles = async () => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig = {
-    approved: {
+    paid: {
       color: "bg-green-100 text-green-800 border-green-600",
-      text: "Aprobado",
+      text: "Pagado",
     },
     pending: {
       color: "bg-yellow-100 text-orange-800 border-orange-600",
@@ -319,7 +319,8 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <a
-                              href={`${process.env.NEXT_PUBLIC_API_URL}/${request.attachment_path}`}
+                              href={`${process.env.NEXT_PUBLIC_API_URL}/requests/${request.id}?action=download`}
+                              //TODO: Cambiar a la ruta correcta desde el controller
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sky-600 hover:text-sky-800 flex items-center gap-2 transition-colors group-hover:underline"

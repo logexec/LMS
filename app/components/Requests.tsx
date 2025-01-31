@@ -68,15 +68,15 @@ export const PendingRequests = () => {
   );
 };
 
-export const ApprovedRequests = () => {
-  const [approvedRequests, setApprovedRequests] = useState([]);
+export const PaidRequests = () => {
+  const [paidRequests, setPaidRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRequests("approved");
-        setApprovedRequests(data);
+        const data = await fetchRequests("paid");
+        setPaidRequests(data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -93,8 +93,8 @@ export const ApprovedRequests = () => {
 
   return (
     <div className="flex flex-row text-green-500 flex-wrap items-center">
-      {approvedRequests}
-      <span className="text-xs font-normal ml-2">Aprobadas</span>
+      {paidRequests}
+      <span className="text-xs font-normal ml-2">Pagadas</span>
     </div>
   );
 };
@@ -165,5 +165,5 @@ export const InRepositionRequests = () => {
 
 // id_unico, valor, fecha, proyecto
 
-// Mostrar tabla dinamica quiza jstable para mostrar los datos de las solicitudes pendientes, aprobadas y rechazadas en una linea de tiempo.
+// Mostrar tabla dinamica quiza jstable para mostrar los datos de las solicitudes pendientes, pagadas y rechazadas en una linea de tiempo.
 // Se debe mostrar el id_unico, valor, fecha, proyecto, status, y un boton para ver el detalle de la solicitud.

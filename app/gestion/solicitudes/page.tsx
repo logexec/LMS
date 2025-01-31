@@ -1,6 +1,6 @@
 "use client";
 
-import RequestsTable from "@/app/registros/components/table/RequestsTable";
+import { RequestsTable } from "@/app/registros/components/table/RequestsTable";
 import { motion } from "motion/react";
 import React from "react";
 
@@ -19,7 +19,7 @@ const page = () => {
   //TODO: Llega la informacion de lo que se ingresa en descuentos: Unicamente se aprueba o se elimina. No se puede modificar.
   //TODO: NO PERMITE DESCONTAR MESES PASADOS.
   //TODO: EN DETALLE MOSTRAR EL DESCUENTO
-  //TODO: Revisar es aprobar  (cambiar)
+  //TODO: Revisar es pagar  (cambiar)
   //TODO: Rechazar: Cambia estado de descuento.
   //TODO: Mostrar unicamente si es que es que es pendiente
   //TODO: Aprueba: Cambia status.

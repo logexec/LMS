@@ -143,7 +143,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-70 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-70"
         }`}
       >
         {row.original.id}
@@ -156,7 +158,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50"
         }`}
       >
         {row.getValue<string>("fecha_reposicion").split("T")[0]}
@@ -169,7 +173,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`font-medium text-slate-900 w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50"
         }`}
       >
         $
@@ -190,7 +196,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
             status === "pending"
               ? "text-orange-700 bg-orange-50"
               : status === "rejected"
-              ? "text-red-700 bg-red-50 opacity-50 cursor-not-allowed"
+              ? "text-red-700 bg-red-50 opacity-50"
               : status === "review"
               ? "text-indigo-700 bg-indigo-50"
               : "text-emerald-700 bg-emerald-50"
@@ -202,7 +208,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
             ? "Rechazado"
             : status === "review"
             ? "Revisar"
-            : "Aprobado"}
+            : "Pagado"}
         </p>
       );
     },
@@ -213,7 +219,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50"
         }`}
       >
         {row.getValue("project")}
@@ -226,7 +234,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50"
         }`}
       >
         {row.original.status === "rejected" ||
@@ -244,7 +254,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50"
         }`}
       >
         {row.getValue("when") === "" ||
@@ -262,7 +274,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => (
       <p
         className={`text-pretty ${
-          row.original.status === "rejected" && "opacity-50 cursor-not-allowed"
+          (row.original.status === "rejected" ||
+            row.original.status === "paid") &&
+          "opacity-50"
         }`}
       >
         {row.getValue("note") !== null || row.getValue("note") !== ""
@@ -282,7 +296,9 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
               variant="outline"
               size="sm"
               className={`${
-                row.original.status === "rejected" && "opacity-70"
+                (row.original.status === "rejected" ||
+                  row.original.status === "paid") &&
+                "opacity-70"
               }`}
             >
               <FileText className="h-4 w-4 mr-1" />

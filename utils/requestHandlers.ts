@@ -44,7 +44,7 @@ export const useRequestHandlers = (type: "expense" | "discount") => {
     formData: ReposicionFormData
   ) => {
     try {
-      // Primero verificamos que todas las solicitudes estén aprobadas
+      // Primero verificamos que todas las solicitudes estén pagadas
       const requestsResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests?ids=${requestIds.join(
           ","
@@ -59,13 +59,13 @@ export const useRequestHandlers = (type: "expense" | "discount") => {
       }
 
       const requests = await requestsResponse.json();
-      const hasUnapprovedRequests = requests.some(
-        (req: any) => req.status !== "approved"
+      const hasUnpaidRequests = requests.some(
+        (req: any) => req.status !== "paid"
       );
 
-      if (hasUnapprovedRequests) {
+      if (hasUnpaidRequests) {
         toast.error(
-          "Todas las solicitudes deben estar aprobadas para crear una reposición"
+          "Todas las solicitudes deben estar pagadas para crear una reposición"
         );
         return false;
       }
