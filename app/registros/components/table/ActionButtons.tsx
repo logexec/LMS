@@ -205,7 +205,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                     </label>
                     <textarea
                       id="note"
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 outline-sky-300 p-2"
                       rows={2}
                       value={editData.note}
                       onChange={(e) =>
@@ -289,7 +289,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                   </label>
                   <textarea
                     id="review-note"
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 outline-sky-300 p-2"
                     rows={3}
                     value={editData.note}
                     onChange={(e) => handleInputChange("note", e.target.value)}
@@ -362,7 +362,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                   </label>
                   <textarea
                     id="reject-note"
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 outline-sky-300 p-2"
                     rows={3}
                     value={editData.note}
                     onChange={(e) => handleInputChange("note", e.target.value)}

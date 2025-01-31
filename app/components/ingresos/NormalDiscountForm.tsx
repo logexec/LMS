@@ -81,7 +81,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const data = await response.json();
       setLocalOptions((prev) => ({
         ...prev,
-        accounts: data.map((account: any) => ({
+        accounts: data.map((account: { name: string; id: string }) => ({
           label: account.name,
           value: account.id,
         })),
@@ -111,10 +111,12 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         const data = await response.json();
         setLocalOptions((prev) => ({
           ...prev,
-          responsibles: data.map((responsible: any) => ({
-            label: responsible.nombre_completo,
-            value: responsible.id,
-          })),
+          responsibles: data.map(
+            (responsible: { nombre_completo: string; id: string }) => ({
+              label: responsible.nombre_completo,
+              value: responsible.id,
+            })
+          ),
         }));
       } catch (error) {
         toast.error("Error al cargar responsables");
@@ -140,7 +142,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const data = await response.json();
       setLocalOptions((prev) => ({
         ...prev,
-        transports: data.map((transport: any) => ({
+        transports: data.map((transport: { name: string; id: string }) => ({
           label: transport.name,
           value: transport.id,
         })),
@@ -167,7 +169,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const data = await response.json();
       setLocalOptions((prev) => ({
         ...prev,
-        projects: data.map((project: any) => ({
+        projects: data.map((project: { name: string; id: string }) => ({
           label: project.name,
           value: project.id,
         })),

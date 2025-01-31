@@ -1,31 +1,22 @@
-import { useEffect, useState } from "react";
-import echo from "@/services/echo.service";
+import { useEffect } from "react";
+import Pusher from "pusher-js";
 
-const Notifications = () => {
-  const [notifications, setNotifications] = useState<string[]>([]);
+const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+  wsHost: "localhost",
+  wsPort: 6001,
+  forceTLS: false,
+  disableStats: true,
+  cluster: "", // Propiedad vacía para evitar el error de TypeScript
+});
 
-  useEffect(() => {
-    echo
-      .channel("requests")
-      .listen(".request.updated", (event: { request: any }) => {
-        setNotifications((prev) => [
-          `Solicitud ${event.request.unique_id} ha sido actualizada.`,
-          ...prev,
-        ]);
-      });
+const channel = pusher.subscribe("notifications");
+channel.bind("NewNotification", function (data: { message: string }) {
+  console.log("Notificación recibida:", data.message);
+});
 
-    return () => {
-      echo.leaveChannel("requests");
-    };
-  }, []);
-
-  return (
-    <div>
-      {notifications.map((notif, index) => (
-        <div key={index}>{notif}</div>
-      ))}
-    </div>
-  );
-};
-
-export default Notifications;
+useEffect(() => {
+  return () => {
+    channel.unbind_all();
+    channel.unsubscribe();
+  };
+}, []);

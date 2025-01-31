@@ -30,7 +30,6 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
-  ChevronDown,
   SendHorizontal,
   Search,
   RefreshCw,
@@ -43,11 +42,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  getRequestColumns,
-  getReposicionColumns,
-  getColumns,
-} from "./columnConfig";
+import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
 import debounce from "lodash/debounce";
 import {

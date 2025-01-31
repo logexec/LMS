@@ -63,7 +63,6 @@ const Select: React.FC<SelectProps> = ({
             key={`${option.value}-${idx}`}
             value={option.value}
             disabled={option.optionDisabled}
-            aria-readonly={readonly}
           >
             {option.label}
           </option>

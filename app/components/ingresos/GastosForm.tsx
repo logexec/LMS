@@ -290,7 +290,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       const data = await response.json();
       setLocalOptions((prev) => ({
         ...prev,
-        accounts: data.map((account: any) => ({
+        accounts: data.map((account: { name: string; id: string }) => ({
           label: account.name,
           value: account.id,
         })),
@@ -320,13 +320,16 @@ const GastosForm: React.FC<GastosFormProps> = ({
         const data = await response.json();
         setLocalOptions((prev) => ({
           ...prev,
-          responsibles: data.map((responsible: any) => ({
-            label: responsible.nombre_completo,
-            value: responsible.id,
-          })),
+          responsibles: data.map(
+            (responsible: { nombre_completo: string; id: string }) => ({
+              label: responsible.nombre_completo,
+              value: responsible.id,
+            })
+          ),
         }));
       } catch (error) {
         toast.error("Error al cargar responsables");
+        console.error("Error al cargar responsables:", error);
       } finally {
         setLocalLoading((prev) => ({ ...prev, responsibles: false }));
       }
@@ -349,20 +352,17 @@ const GastosForm: React.FC<GastosFormProps> = ({
       const data = await response.json();
       setLocalOptions((prev) => ({
         ...prev,
-        projects: data.map((project: any) => ({
+        projects: data.map((project: { name: string; id: string }) => ({
           label: project.name,
           value: project.id,
         })),
       }));
     } catch (error) {
       toast.error("Error al cargar proyectos");
+      console.error("Error al cargar proyectos:", error);
     } finally {
       setLocalLoading((prev) => ({ ...prev, projects: false }));
     }
-  }, []);
-
-  useEffect(() => {
-    fetchAccounts();
   }, []);
 
   useEffect(() => {
@@ -372,6 +372,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
   }, [formData.proyecto, fetchResponsibles]);
 
   useEffect(() => {
+    fetchAccounts();
     fetchProjects();
   }, []);
 

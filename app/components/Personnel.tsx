@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useEffect } from "react";
-import Loader from "../Loader";
 import { animate, motion, useMotionValue } from "motion/react";
 import { useTransform } from "motion/react";
 

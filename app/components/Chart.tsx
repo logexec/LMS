@@ -106,10 +106,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     if (containerRef.current) {
       const container = containerRef.current;
       const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
       const aspectRatio = initialWidth / initialHeight;
 
-      let newWidth = containerWidth;
+      const newWidth = containerWidth;
       let newHeight = containerWidth / aspectRatio;
 
       // Asegurarse de que el gráfico no sea demasiado alto en dispositivos móviles

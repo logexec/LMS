@@ -89,13 +89,20 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
 
         const data = await response.json();
         setEmployees(
-          data.map((emp: any) => ({
-            id: emp.id,
-            name: emp.nombre_completo,
-            area: emp.area,
-            project: emp.proyecto,
-            selected: false,
-          }))
+          data.map(
+            (emp: {
+              id: string;
+              nombre_completo: string;
+              area: string;
+              proyecto: string;
+            }) => ({
+              id: emp.id,
+              name: emp.nombre_completo,
+              area: emp.area,
+              project: emp.proyecto,
+              selected: false,
+            })
+          )
         );
       } catch (error) {
         toast.error("Error al cargar los empleados");

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { LoadingState, OptionsState, RequestData } from "@/utils/types";
 import NormalDiscountForm from "./NormalDiscountForm";
@@ -53,17 +53,21 @@ const DescuentosForm = () => {
 
         setOptions((prev) => ({
           ...prev,
-          projects: projectsData.map((project: any) => ({
-            label: project.name,
-            value: project.name,
-          })),
-          areas: areasData.map((area: any) => ({
+          projects: projectsData.map(
+            (project: { name: string; id: string }) => ({
+              label: project.name,
+              value: project.id,
+            })
+          ),
+
+          areas: areasData.map((area: { name: string; id: string }) => ({
             label: area.name,
             value: area.id,
           })),
         }));
       } catch (error) {
         toast.error("Error al cargar datos iniciales");
+        console.error("Error al cargar datos iniciales:", error);
       } finally {
         setLoading((prev) => ({ ...prev, projects: false, areas: false }));
       }
@@ -133,7 +137,10 @@ const DescuentosForm = () => {
         if (result.errors) {
           // Crear mensaje de error detallado para cada fila con error
           const errorMessage = result.errors
-            .map((err: any) => `Fila ${err.row}: ${err.error}`)
+            .map(
+              (err: { row: number; error: string }) =>
+                `Fila ${err.row}: ${err.error}`
+            )
             .join("\n");
           throw new Error(errorMessage);
         }
@@ -183,6 +190,7 @@ const DescuentosForm = () => {
       toast.success("Plantilla descargada correctamente");
     } catch (error) {
       toast.error("Error al descargar la plantilla");
+      console.error("Error al descargar la plantilla:", error);
     } finally {
       setIsDownloading(false);
     }
@@ -240,6 +248,7 @@ const DescuentosForm = () => {
       toast.success("Descuento registrado con éxito");
     } catch (error) {
       toast.error("Error al procesar el descuento");
+      console.error("Error al procesar el descuento:", error);
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
