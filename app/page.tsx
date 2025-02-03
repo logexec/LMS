@@ -14,7 +14,6 @@ import {
 } from "./components/Requests";
 import ChartComponent from "./components/Chart";
 import { useEffect, useState } from "react";
-import { getAuthToken } from "@/services/auth.service";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -71,21 +70,6 @@ const Home = () => {
   const [isShiftOver, setIsShiftOver] = useState(false);
 
   useEffect(() => {
-    const test = async () => {
-      const response = await fetch("http://localhost:8000/api/test", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      return response.json();
-    };
-
-    console.log("Test: ", test);
-
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };

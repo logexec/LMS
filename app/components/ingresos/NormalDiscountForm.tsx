@@ -268,22 +268,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
             : "";
         break;
       case "adjunto":
-        console.log(
-          "Adjunto recibido en validación:",
-          value,
-          "Tipo:",
-          typeof value
-        );
-        console.log("normalFormData.adjunto:", normalFormData.adjunto);
-        console.log(
-          "Es instancia de File?",
-          normalFormData.adjunto instanceof File
-        );
-        console.log(
-          "Es instancia de Blob?",
-          normalFormData.adjunto instanceof Blob
-        );
-
         if (value instanceof File || value instanceof Blob) {
           newErrors[name] = "";
         } else {

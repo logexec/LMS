@@ -163,8 +163,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
 
     setFormErrors(newErrors);
 
-    // console.log(newErrors);
-
     const isValid = !Object.values(newErrors).some((error) => error !== "");
     setFormValid(isValid);
 
