@@ -1,5 +1,6 @@
 "use client";
 
+import { getAuthToken } from "@/services/auth.service";
 import { RequestsTable } from "./table/RequestsTable";
 import {
   RequestProps,
@@ -8,6 +9,7 @@ import {
   ReposicionUpdateData,
 } from "@/utils/types";
 import { toast } from "sonner";
+import React from "react";
 
 interface ClientTableProps {
   mode: "requests" | "reposiciones";
@@ -27,6 +29,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
         {
           method: "PUT",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -55,6 +58,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -89,6 +93,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
         {
           method: "PUT",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -111,6 +116,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`, {
           method: "PUT",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",

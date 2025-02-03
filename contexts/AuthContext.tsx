@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get("jwt_token");
+      const token = Cookies.get("jwt-token");
       if (!token) {
         setIsLoading(false);
         router.push("/login");
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await loginService({ email, password });
+      const response = await loginService(email, password);
       const formattedUser = formatUserData(response.user);
       setUser(formattedUser);
       localStorage.setItem("user", JSON.stringify(formattedUser));
@@ -127,8 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutService();
       setUser(null);
-      Cookies.remove("jwt_token");
-      Cookies.remove("access_token");
+      Cookies.remove("token");
       localStorage.removeItem("user");
       router.push("/login");
     } finally {

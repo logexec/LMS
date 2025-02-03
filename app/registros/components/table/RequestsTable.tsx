@@ -64,6 +64,7 @@ import {
   fetchResponsibles,
   fetchVehicles,
 } from "./RequestDetailsTable";
+import { getAuthToken } from "@/services/auth.service";
 
 interface PaginationMeta {
   current_page: number;
@@ -207,6 +208,9 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       try {
         setIsRefreshing(true);
         const response = await fetch(buildQueryUrl(tableState), {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         });
 

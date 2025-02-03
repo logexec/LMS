@@ -7,6 +7,7 @@ import NormalDiscountForm from "./NormalDiscountForm";
 import MassDiscountForm from "./MassDiscountForm";
 import ExcelUploadSection from "./ExcelUploadSection";
 import * as XLSX from "xlsx";
+import { getAuthToken } from "@/services/auth.service";
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -36,9 +37,13 @@ const DescuentosForm = () => {
       try {
         const [projectsRes, areasRes] = await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
+            headers: { Authorization: `Bearer ${getAuthToken()}` },
             credentials: "include",
           }),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/areas`, {
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
             credentials: "include",
           }),
         ]);
@@ -125,6 +130,9 @@ const DescuentosForm = () => {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/upload-discounts`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           method: "POST",
           body: formData,
           credentials: "include",
@@ -171,6 +179,9 @@ const DescuentosForm = () => {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/download-excel-template`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           method: "GET",
           credentials: "include",
         }

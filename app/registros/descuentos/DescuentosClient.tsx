@@ -1,7 +1,8 @@
 import React from "react";
-import RequestsTable from "../components/table/RequestsTable";
 import { toast } from "sonner";
 import { Status } from "@/utils/types";
+import { getAuthToken } from "@/services/auth.service";
+import { RequestsTable } from "../components/table/RequestsTable";
 
 const DescuentosClient = () => {
   const handleStatusChange = async (id: number, status: Status) => {
@@ -11,6 +12,7 @@ const DescuentosClient = () => {
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ status }),

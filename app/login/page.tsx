@@ -6,6 +6,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/public/images/logo_transparent.png";
 import logo_small from "@/public/images/logex_logo.png";
 import Image from "next/image";
+import { toast } from "sonner";
+
+import Cookies from "js-cookie";
+import { getAuthToken } from "@/services/auth.service";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -21,12 +25,13 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
-      window.location.href = "/";
+      toast.success("¡Autenticación exitosa!");
     } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Error al iniciar sesión"
+      );
       setError(
-        error instanceof Error
-          ? error.message
-          : `Error al iniciar sesión: ${error}`
+        error instanceof Error ? error.message : "Error al iniciar sesión"
       );
     } finally {
       setIsLoading(false);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Loader from "../Loader";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { getAuthToken } from "@/services/auth.service";
 
 const currentMonth = new Date().getMonth() + 1;
 
@@ -14,6 +15,7 @@ const fetchRequests = async (status: string): Promise<any> => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
       },
       credentials: "include",
     }

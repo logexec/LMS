@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import debounce from "lodash/debounce";
+import { getAuthToken } from "@/services/auth.service";
 
 interface GastosFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
@@ -28,6 +29,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           method: "POST",
           credentials: "include",
           body: formData,
@@ -281,6 +285,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/accounts/?account_type=nomina`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         }
       );
@@ -311,6 +318,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
           {
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
             credentials: "include",
           }
         );
@@ -343,6 +353,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/projects`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         }
       );

@@ -6,6 +6,7 @@ import type { ChartData, ChartOptions } from "chart.js";
 import Loader from "../Loader";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAuthToken } from "@/services/auth.service";
 
 interface ChartComponentProps {
   width?: number;
@@ -29,10 +30,19 @@ const getData = async (currentMonth: boolean = false): Promise<RequestData> => {
             process.env.NEXT_PUBLIC_API_URL
           }/requests?status=${status}&action=count&year=${new Date().getFullYear()}`;
 
-      const response = await fetch(url);
+      const token = getAuthToken();
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const data = await response.json();
 
       if (Array.isArray(data)) return data.map(Number);

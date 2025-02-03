@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getAuthToken } from "@/services/auth.service";
 
 type Status = "pending" | "paid" | "rejected" | "review";
 
@@ -66,34 +67,13 @@ export function RecordModal({ children, data }: RecordModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setOpen(true);
-  };
-
-  const handleOpenChange = async (isOpen: boolean) => {
-    setOpen(isOpen);
-
-    if (isOpen && !record) {
-      setLoading(true);
-      try {
-        const newData = await fetchRecordData(data.id);
-        setRecord(newData);
-      } catch (error) {
-        console.error("Error fetching record:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   const fetchRecordData = async (id: number): Promise<Record> => {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/requests?id=${id}`,
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "Application/json",
         },
         credentials: "include",

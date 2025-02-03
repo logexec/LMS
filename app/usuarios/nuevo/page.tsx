@@ -3,6 +3,7 @@ import Checkbox from "@/app/components/Checkbox";
 import Hr from "@/app/components/Hr";
 import Input from "@/app/components/Input";
 import Select from "@/app/components/Select";
+import { getAuthToken } from "@/services/auth.service";
 import React, { useEffect, useState } from "react";
 
 interface Role {
@@ -166,6 +167,7 @@ const UserManagementPage: React.FC = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),

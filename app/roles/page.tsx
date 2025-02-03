@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { getAuthToken } from "@/services/auth.service";
 
 interface Permission {
   id: number;
@@ -181,7 +182,10 @@ const RoleManagementPage = () => {
 
       const response = await fetch(endpoint, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(values),
         credentials: "include",
       });

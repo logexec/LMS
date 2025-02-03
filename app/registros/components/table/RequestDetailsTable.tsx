@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Download, RefreshCw, Search } from "lucide-react";
 import {
   AccountProps,
@@ -20,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { getAuthToken } from "@/services/auth.service";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
@@ -27,6 +29,9 @@ interface RequestDetailsTableProps {
 
 export const fetchAccounts = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
     credentials: "include",
   });
 
@@ -41,6 +46,9 @@ export const fetchResponsibles = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
     {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
       credentials: "include",
     }
   );
@@ -56,6 +64,9 @@ export const fetchVehicles = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
     {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
       credentials: "include",
     }
   );

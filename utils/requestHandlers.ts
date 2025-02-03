@@ -1,3 +1,4 @@
+import { getAuthToken } from "@/services/auth.service";
 import { Status, ReposicionFormData } from "@/utils/types";
 import { toast } from "sonner";
 
@@ -9,6 +10,7 @@ export const useRequestHandlers = (type: "expense" | "discount") => {
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -50,6 +52,9 @@ export const useRequestHandlers = (type: "expense" | "discount") => {
           ","
         )}`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         }
       );
@@ -76,6 +81,7 @@ export const useRequestHandlers = (type: "expense" | "discount") => {
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -116,6 +122,7 @@ export const useReposicionHandlers = () => {
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",

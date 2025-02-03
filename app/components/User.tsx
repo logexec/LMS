@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { getAuthToken } from "@/services/auth.service";
 
 const fetchUsers = async (): Promise<number> => {
   const response = await fetch(
@@ -10,6 +11,7 @@ const fetchUsers = async (): Promise<number> => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
       },
       credentials: "include",
     }

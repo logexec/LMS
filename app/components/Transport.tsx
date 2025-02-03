@@ -1,5 +1,6 @@
 "use client";
 
+import { getAuthToken } from "@/services/auth.service";
 import { animate, motion, useTransform } from "motion/react";
 import { useMotionValue } from "motion/react";
 import { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ const fetchVehicles = async (): Promise<any> => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
       },
       credentials: "include",
     }

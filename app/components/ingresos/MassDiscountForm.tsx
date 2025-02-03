@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
 import Datalist from "../Datalist";
+import { getAuthToken } from "@/services/auth.service";
 
 export interface MassDiscountFormProps {
   options: OptionsState;
@@ -82,7 +83,12 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`,
-          { credentials: "include" }
+          {
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
+            credentials: "include",
+          }
         );
 
         if (!response.ok) throw new Error("Error al cargar empleados");

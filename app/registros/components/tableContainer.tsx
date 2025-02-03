@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import { getAuthToken } from "@/services/auth.service";
 import { RequestsTable } from "./table/RequestsTable";
 import {
   RequestProps,
@@ -33,6 +35,7 @@ export default function TableContainer({
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -61,6 +64,7 @@ export default function TableContainer({
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -93,6 +97,7 @@ export default function TableContainer({
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",

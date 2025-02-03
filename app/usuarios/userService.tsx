@@ -1,3 +1,4 @@
+import { getAuthToken } from "@/services/auth.service";
 import { Permission, Role, SortConfig } from "@/utils/types";
 import { User, UserFormData, ApiResponseRaw, ApiResponse } from "@/utils/types";
 
@@ -19,6 +20,7 @@ export const fetchUsers = async (
   const response = await fetch(`${API_BASE_URL}/users?${queryParams}`, {
     method: "GET",
     headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
       "Content-Type": "application/json",
     },
   });
@@ -35,6 +37,7 @@ export const createUser = async (userData: UserFormData): Promise<User> => {
   const response = await fetch(`${API_BASE_URL}/users`, {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(userData),
@@ -54,6 +57,7 @@ export const updateUser = async (
   const response = await fetch(`${API_BASE_URL}/users/${id}`, {
     method: "PUT",
     headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(userData),
@@ -70,6 +74,7 @@ export const deleteUser = async (id: string | number): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/users/${id}`, {
     method: "DELETE",
     headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
       "Content-Type": "application/json",
     },
   });
@@ -83,6 +88,7 @@ export const fetchRoles = async (): Promise<Role[]> => {
   const response = await fetch(`${API_BASE_URL}/roles`, {
     method: "GET",
     headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
       "Content-Type": "application/json",
     },
   });
@@ -98,6 +104,7 @@ export const fetchPermissions = async (): Promise<Permission[]> => {
   const response = await fetch(`${API_BASE_URL}/permissions`, {
     method: "GET",
     headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
       "Content-Type": "application/json",
     },
   });

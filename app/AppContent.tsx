@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 // import Notifications from "./components/Notifications";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  console.log("TOKEN:", localStorage.getItem("token"));
   return (
     <div className="relative min-h-screen bg-slate-100 antialiased">
       <Toaster position="top-right" richColors closeButton expand />

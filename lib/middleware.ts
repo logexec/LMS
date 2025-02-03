@@ -10,14 +10,12 @@ function checkPathPermissions(
   pathname: string,
   permissions: string[]
 ): boolean {
-  // Encontrar la ruta en sidenavLinks
   const route = sidenavLinks
     .flatMap((category) => category.links.find((link) => link.url === pathname))
     .find(Boolean);
 
   if (!route) return false;
 
-  // Verificar permisos de la ruta
   const requiredPermissions = route.requiredPermissions || [];
   return requiredPermissions.some((permission) =>
     permissions.includes(permission)
@@ -32,14 +30,14 @@ export async function middleware(request: NextRequest) {
   }
 
   if (publicRoutes.includes(pathname)) {
-    const token = request.cookies.get("jwt_token");
+    const token = request.cookies.get("jwt-token");
     if (token && pathname === "/login") {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("jwt_token")?.value;
+  const token = request.cookies.get("jwt-token")?.value;
 
   if (!token) {
     const loginUrl = new URL("/login", request.url);
@@ -55,7 +53,7 @@ export async function middleware(request: NextRequest) {
 
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
       const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("jwt_token");
+      response.cookies.delete("jwt-token");
       response.cookies.delete("access_token");
       return response;
     }
@@ -87,3 +85,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+
+// export const config = {
+//   matcher: ["/:path*", "/profile/:path*"],
+// };

@@ -1,7 +1,8 @@
 "use client";
-import RequestsTable from "../components/table/RequestsTable";
+import { getAuthToken } from "@/services/auth.service";
 import { Status } from "@/utils/types";
 import { toast } from "sonner";
+import { RequestsTable } from "../components/table/RequestsTable";
 
 const GastosClient = () => {
   const handleStatusChange = async (id: number, status: Status) => {
@@ -11,6 +12,7 @@ const GastosClient = () => {
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ status }),

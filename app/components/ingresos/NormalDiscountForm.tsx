@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload, RefreshCw, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getAuthToken } from "@/services/auth.service";
 
 interface NormalDiscountFormProps {
   options: OptionsState;
@@ -72,6 +73,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/accounts/?account_type=${tipo}`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         }
       );
@@ -102,6 +106,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
           {
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
             credentials: "include",
           }
         );
@@ -133,6 +140,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/transports`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         }
       );
@@ -160,6 +170,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/projects`,
         {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         }
       );

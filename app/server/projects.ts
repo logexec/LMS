@@ -1,5 +1,7 @@
 "use server";
 
+import { getAuthToken } from "@/services/auth.service";
+
 interface Project {
   id: string | number;
   proyecto: string;
@@ -24,6 +26,7 @@ export const getProjects = async () => {
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
       }
