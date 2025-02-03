@@ -43,7 +43,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <Footer />
       </div>
       {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-black bg-red-600/50 rounded-t-lg p-1">
+        <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60">
           LMS | Versión 1.1.1.20250302 | Beta
         </div>
       )}
