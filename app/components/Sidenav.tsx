@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { sidenavLinks } from "@/utils/constants";
@@ -10,7 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./sidenav.component.css";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);

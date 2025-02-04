@@ -1,27 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { motion } from "motion/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -42,11 +28,6 @@ interface Permission {
 
 interface Role {
   id: number;
-  name: string;
-  permissions: number[];
-}
-
-interface FormValues {
   name: string;
   permissions: number[];
 }
@@ -199,15 +180,14 @@ const RoleManagementPage = () => {
       await loadData();
     } catch (error) {
       console.error("Submit error:", error);
-      toast.error("Error al procesar la solicitud");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al procesar la solicitud"
+      );
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEditRole = (role: Role) => {
-    setEditingRole(role);
-    setActiveTab("new");
   };
 
   const handlePermissionChange = (permissionId: number) => {

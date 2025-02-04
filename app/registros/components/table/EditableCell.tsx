@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Status } from "@/utils/types";

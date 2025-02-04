@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export const EditUserDialog = ({
   user,
@@ -26,7 +27,11 @@ export const EditUserDialog = ({
   onSubmit,
   isLoading,
 }: EditUserDialogProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    role_id: string;
+  }>({
     name: "",
     email: "",
     role_id: "",
@@ -35,16 +40,20 @@ export const EditUserDialog = ({
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name,
-        email: user.email,
-        role_id: user.role_id,
+        name: user.name || "",
+        email: user.email || "",
+        role_id: user.role_id || "",
       });
     }
   }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (formData.name && formData.email && formData.role_id) {
+      onSubmit(formData);
+    } else {
+      toast.error("Por favor completa todos los campos.");
+    }
   };
 
   if (!user) return null;

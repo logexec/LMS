@@ -65,6 +65,14 @@ import React from "react";
 import { apiService } from "@/services/api.service";
 import { useRoles } from "@/hooks/useRoles";
 
+interface ErrorResponse {
+  response?: {
+    data: {
+      message: string;
+    };
+  };
+}
+
 // API functions
 const fetchUsers = async () => {
   try {
@@ -72,18 +80,9 @@ const fetchUsers = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching users:", error);
-    toast.error("Error al cargar los usuarios");
-    throw error;
-  }
-};
-
-const fetchRoles = async () => {
-  try {
-    const response = await apiService.getRoles();
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching roles:", error);
-    toast.error("Error al cargar los roles");
+    toast.error(
+      error instanceof Error ? error.message : "Error al cargar los usuarios"
+    );
     throw error;
   }
 };
@@ -128,7 +127,7 @@ export const UsersTable = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility] = useState<VisibilityState>({});
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -140,10 +139,15 @@ export const UsersTable = () => {
     staleTime: 15000, // 15 segundos
   });
 
-  const { data: roles = [], isLoading: rolesLoading } = useRoles();
+  const { data: roles = [] } = useRoles();
 
   const createUserMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: {
+      name: string;
+      email: string;
+      password: string;
+      role_id: string;
+    }) => {
       const response = await apiService.createUser(data);
       return response.data;
     },
@@ -152,14 +156,20 @@ export const UsersTable = () => {
       toast.success("Usuario creado exitosamente");
       setIsCreateOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: ErrorResponse) => {
       console.error("Error creating user:", error);
       toast.error(error.response?.data?.message || "Error al crear el usuario");
     },
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name: string; email: string; role_id: string };
+    }) => {
       const response = await apiService.updateUser(id, data);
       return response.data;
     },
@@ -168,7 +178,7 @@ export const UsersTable = () => {
       toast.success("Usuario actualizado exitosamente");
       setIsEditOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: ErrorResponse) => {
       toast.error(
         error.response?.data?.message || "Error al actualizar el usuario"
       );
@@ -191,7 +201,7 @@ export const UsersTable = () => {
       toast.success("Permisos actualizados exitosamente");
       setIsPermissionsOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: ErrorResponse) => {
       toast.error(
         error.response?.data?.message || "Error al actualizar los permisos"
       );
@@ -208,7 +218,7 @@ export const UsersTable = () => {
       toast.success("Usuario eliminado exitosamente");
       setIsDeleteOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: ErrorResponse) => {
       toast.error(
         error.response?.data?.message || "Error al eliminar el usuario"
       );
@@ -521,7 +531,11 @@ export const UsersTable = () => {
         onClose={() => setIsEditOpen(false)}
         onSubmit={(data) => {
           if (selectedUser) {
-            updateUserMutation.mutate({ id: selectedUser.id, data });
+            const { name = "", email = "", role_id = "" } = data;
+            updateUserMutation.mutate({
+              id: selectedUser.id,
+              data: { name, email, role_id },
+            });
           }
         }}
         isLoading={updateUserMutation.isPending}

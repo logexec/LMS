@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ColumnDef } from "@tanstack/react-table";
 import { ReposicionProps, RequestProps, Status } from "@/utils/types";
 import { Button } from "@/components/ui/button";
-import { Check, FileText, ScanSearch, X } from "lucide-react";
+import { FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,19 +12,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import RequestDetailsTable from "./RequestDetailsTable";
 import { ActionButtons } from "./ActionButtons";
 import Checkbox from "@/app/components/Checkbox";
-import { MonthCell } from "./EditableCell";
-import { TextCell } from "./EditableCell";
-import { SelectCell } from "./EditableCell";
 
 interface ColumnHelpers {
   accountMap: Record<string, string>;
@@ -35,7 +27,6 @@ export const getRequestColumns = ({
   accountMap,
   responsibleMap,
   vehicleMap,
-  onStatusChange,
 }: ColumnHelpers): ColumnDef<RequestProps, any>[] => [
   {
     id: "select",
@@ -321,7 +312,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row, table }) => <ActionButtons row={row.original} />,
+    cell: ({ row }) => <ActionButtons row={row.original} />,
   },
 ];
 

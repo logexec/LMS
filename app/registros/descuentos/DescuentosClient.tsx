@@ -23,7 +23,9 @@ const DescuentosClient = () => {
 
       toast.success("Estado actualizado correctamente");
     } catch (error) {
-      toast.error("Error al actualizar el estado");
+      toast.error(
+        error instanceof Error ? error.message : "Error al actualizar el estado"
+      );
     }
   };
 

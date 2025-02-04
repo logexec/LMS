@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Input from "../Input";
 import Select from "../Select";
 import { MassDiscountTable } from "./MassDiscountTable";
@@ -117,7 +117,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
         setIsLoading(false);
       }
     }, 300),
-    []
+    [isLoading]
   );
 
   useEffect(() => {

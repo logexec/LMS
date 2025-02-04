@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ChangeEvent, FormEvent, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Input from "../Input";
 import Select from "../Select";
 import Datalist from "../Datalist";
@@ -269,7 +269,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
       await onSubmit(formDataToSend);
       resetForm();
     } catch (error) {
-      toast.error("Error al procesar el gasto");
+      toast.error(
+        error instanceof Error ? error.message : "Error al procesar el gasto"
+      );
     } finally {
       setLocalLoading((prev) => ({ ...prev, submit: false }));
       resetForm();
@@ -301,11 +303,13 @@ const GastosForm: React.FC<GastosFormProps> = ({
         })),
       }));
     } catch (error) {
-      toast.error("Error al cargar las cuentas");
+      toast.error(
+        error instanceof Error ? error.message : "Error al cargar las cuentas"
+      );
     } finally {
       setLocalLoading((prev) => ({ ...prev, accounts: false }));
     }
-  }, []);
+  }, [setLocalLoading]);
 
   const fetchResponsibles = useCallback(
     debounce(async (proyecto: string) => {
@@ -374,7 +378,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     } finally {
       setLocalLoading((prev) => ({ ...prev, projects: false }));
     }
-  }, []);
+  }, [setLocalLoading]);
 
   useEffect(() => {
     if (formData.proyecto) {

@@ -61,7 +61,7 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
       );
       setFilteredEmployees(filtered);
     }, 300),
-    [employees]
+    [isLoading, employees]
   );
 
   React.useEffect(() => {

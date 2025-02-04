@@ -27,7 +27,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests/${id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
@@ -73,10 +73,11 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
         throw new Error(errorData.message || "Error al crear la reposición");
       }
 
-      const data = await response.json();
       toast.success("Reposición creada correctamente");
-    } catch (error: any) {
-      toast.error(error.message || "Error al crear la reposición");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Error al crear la reposición"
+      );
       throw error;
     }
   };
@@ -91,7 +92,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",

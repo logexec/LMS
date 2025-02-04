@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/contexts/AuthContext";
 import Footer from "./components/Footer";
 import Navigation from "./components/Navigation";
@@ -11,14 +11,12 @@ import Loader from "./Loader";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
-// import Notifications from "./components/Notifications";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="relative min-h-screen bg-slate-100 antialiased">
         <Toaster position="top-right" richColors closeButton expand />
-        {/* <Notifications /> */}
         <Sidenav />
         <div className="lg:ml-[17rem]">
           <Navigation />

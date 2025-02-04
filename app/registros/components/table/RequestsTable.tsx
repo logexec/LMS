@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -381,9 +383,11 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       await onCreateReposicion(requestIds);
       setRowSelection({});
       await fetchData(tableState);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error:", error);
-      toast.error(error.message || "Error al crear la reposición");
+      toast.error(
+        error instanceof Error ? error.message : "Error al crear la reposición"
+      );
     }
   };
 

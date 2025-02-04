@@ -12,7 +12,6 @@ import {
   RejectedRequests,
   InRepositionRequests,
 } from "./components/Requests";
-import ChartComponent from "./components/Chart";
 import { useEffect, useState } from "react";
 
 const fadeInUp = {
@@ -90,19 +89,6 @@ const Home = () => {
       clearInterval(interval);
     };
   }, []);
-
-  const getChartDimensions = () => {
-    if (windowWidth < 640) {
-      // sm
-      return { width: windowWidth - 40, height: 300 };
-    } else if (windowWidth < 1024) {
-      // md
-      return { width: windowWidth - 80, height: 350 };
-    }
-    return { width: 500, height: 400 }; // lg y superiores
-  };
-
-  const chartDimensions = getChartDimensions();
 
   return (
     <motion.div

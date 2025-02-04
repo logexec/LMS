@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -46,45 +47,6 @@ const whenOptions = {
 } as const;
 
 type WhenOption = keyof typeof whenOptions;
-
-const getStatusMessages = (status: Status) => {
-  const messages = {
-    [Status.paid]: {
-      title: "Pagar Reposición",
-      description: "¿Estás seguro de que deseas pagar esta reposición?",
-      action: "Pagar",
-      toast: "Reposición pagada correctamente",
-    },
-    [Status.rejected]: {
-      title: "Rechazar Reposición",
-      description: "¿Estás seguro de que deseas rechazar esta reposición?",
-      action: "Rechazar",
-      toast: "Reposición rechazada",
-    },
-    [Status.review]: {
-      title: "Enviar a Revisión",
-      description:
-        "¿Estás seguro de que deseas enviar esta reposición a revisión?",
-      action: "Enviar a revisión",
-      toast: "Reposición enviada a revisión",
-    },
-    [Status.pending]: {
-      title: "Marcar como Pendiente",
-      description:
-        "¿Estás seguro de que deseas marcar esta reposición como pendiente?",
-      action: "Marcar como pendiente",
-      toast: "Reposición marcada como pendiente",
-    },
-    [Status.in_reposition]: {
-      title: "Marcar en Reposición",
-      description:
-        "¿Estás seguro de que deseas marcar esta reposición en proceso de reposición?",
-      action: "Marcar en proceso",
-      toast: "Reposición marcada en proceso",
-    },
-  };
-  return messages[status];
-};
 
 export const getRequestColumns = ({
   accountMap,
@@ -415,10 +377,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row, table }) => (
-      <ActionButtons row={row.original} />
-      // <ActionButtons row={row.original} table={table} />
-    ),
+    cell: ({ row }) => <ActionButtons row={row.original} />,
   },
 ];
 

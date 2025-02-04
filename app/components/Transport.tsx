@@ -5,7 +5,7 @@ import { animate, motion, useTransform } from "motion/react";
 import { useMotionValue } from "motion/react";
 import { useEffect, useState } from "react";
 
-const fetchVehicles = async (): Promise<any> => {
+const fetchVehicles = async (): Promise<number> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/transports?action=count`,
     {

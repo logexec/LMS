@@ -7,8 +7,25 @@ import { getAuthToken } from "@/services/auth.service";
 
 const currentMonth = new Date().getMonth() + 1;
 
+interface Data {
+  id: string;
+  unique_id?: string;
+  type?: string;
+  personnel_type?: string;
+  status: "pending" | "paid" | "rejected" | "review" | "in_reposition";
+  request_date?: string;
+  invoice_number?: string;
+  account_id?: number;
+  amount?: number;
+  project?: string;
+  responsible_id?: string;
+  transport_id?: string;
+  attachment_path?: string;
+  note?: string;
+}
+
 // Función para obtener solo el conjunto de datos específico
-const fetchRequests = async (status: string): Promise<any> => {
+const fetchRequests = async (status: string): Promise<number> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/requests?status=${status}&month=${currentMonth}&action=count`,
     {
@@ -26,7 +43,7 @@ const fetchRequests = async (status: string): Promise<any> => {
   }
 
   const data = await response.json();
-  return data;
+  return data.count;
 };
 
 export const PendingRequests = () => {
@@ -71,7 +88,7 @@ export const PendingRequests = () => {
 };
 
 export const PaidRequests = () => {
-  const [paidRequests, setPaidRequests] = useState([]);
+  const [paidRequests, setPaidRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -102,7 +119,7 @@ export const PaidRequests = () => {
 };
 
 export const RejectedRequests = () => {
-  const [rejectedRequests, setRejectedRequests] = useState([]);
+  const [rejectedRequests, setRejectedRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -133,7 +150,7 @@ export const RejectedRequests = () => {
 };
 
 export const InRepositionRequests = () => {
-  const [inRepositionRequests, setInRepositionRequests] = useState([]);
+  const [inRepositionRequests, setInRepositionRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

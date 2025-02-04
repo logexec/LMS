@@ -1,35 +1,17 @@
 "use client";
-import React, { useState } from "react";
-import { createPortal } from "react-dom";
-import Modal from "../components/ModalForm";
+import React from "react";
 import { AiOutlineFileAdd } from "react-icons/ai";
 
 const DescuentosPage: React.FC = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const closeModal = () => setModalOpen(false);
-
   //TODO: Confirmar el registro. Lo mismo en gastos
-
-  //TODO: Unicamente a activos, no cesantes.
-  //TODO: Responsable: Persona a quien se descuenta
 
   return (
     <div className="grid grid-rows-[auto_1fr] w-full h-full">
-      {modalOpen &&
-        createPortal(
-          <Modal
-            title="Registrar nuevo descuento"
-            type="descuento"
-            isOpen={modalOpen}
-            onClose={closeModal}
-          />,
-          document.body
-        )}
       <div className="flex flex-row justify-between px-5 items-center">
         <h1 className="title">Registro de descuentos</h1>
         <button
           className="btn flex justify-center items-center gap-3"
-          onClick={() => setModalOpen(true)}
+          onClick={() => console.log("clicked!")}
         >
           <AiOutlineFileAdd />
           Registrar Descuento

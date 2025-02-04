@@ -8,9 +8,6 @@ import logo_small from "@/public/images/logex_logo.png";
 import Image from "next/image";
 import { toast } from "sonner";
 
-import Cookies from "js-cookie";
-import { getAuthToken } from "@/services/auth.service";
-
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

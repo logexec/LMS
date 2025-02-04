@@ -22,7 +22,6 @@ export default function TableContainer({
   mode,
   type,
   title,
-  status,
 }: TableContainerProps) {
   // Para solicitudes individuales en tabla de gastos/descuentos
   const handleStatusChange = async (

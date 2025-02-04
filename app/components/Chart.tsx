@@ -5,7 +5,7 @@ import Chart from "chart.js/auto";
 import type { ChartData, ChartOptions } from "chart.js";
 import Loader from "../Loader";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer/react";
 import { getAuthToken } from "@/services/auth.service";
 
 interface ChartComponentProps {

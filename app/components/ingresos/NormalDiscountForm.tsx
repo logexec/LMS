@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ChangeEvent, FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useCallback, useEffect } from "react";
 import Input from "../Input";
 import Select from "../Select";
@@ -91,7 +91,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         })),
       }));
     } catch (error) {
-      toast.error("Error al cargar las cuentas");
+      toast.error(
+        error instanceof Error ? error.message : "Error al cargar las cuentas"
+      );
     } finally {
       setLocalLoading((prev) => ({ ...prev, accounts: false }));
     }
@@ -126,7 +128,11 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
           ),
         }));
       } catch (error) {
-        toast.error("Error al cargar responsables");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Error al cargar responsables"
+        );
       } finally {
         setLocalLoading((prev) => ({ ...prev, responsibles: false }));
       }
@@ -158,7 +164,11 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         })),
       }));
     } catch (error) {
-      toast.error("Error al cargar transportes");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al cargar los transportes"
+      );
     } finally {
       setLocalLoading((prev) => ({ ...prev, transports: false }));
     }
@@ -188,7 +198,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         })),
       }));
     } catch (error) {
-      toast.error("Error al cargar proyectos");
+      toast.error(
+        error instanceof Error ? error.message : "Error al cargar los proyectos"
+      );
     } finally {
       setLocalLoading((prev) => ({ ...prev, projects: false }));
     }
@@ -333,9 +345,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       toast.error(
         "El archivo es demasiado grande. El tamaño máximo permitido es de 5MB."
       );
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
@@ -402,7 +412,11 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       toast.success("Descuento registrado exitosamente");
       resetForm();
     } catch (error) {
-      toast.error("Error al registrar el descuento");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Hubo un error al registrar el descuento"
+      );
     } finally {
       setLocalLoading((prev) => ({ ...prev, submit: false }));
     }
