@@ -1,48 +1,27 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { sidenavLinks } from "@/utils/constants";
 
-const publicRoutes = ["/login"];
-const ignoreRoutes = ["/_next", "/api", "/favicon.ico", "/static"];
-
-function checkPathPermissions(
-  pathname: string,
-  permissions: string[]
-): boolean {
-  const route = sidenavLinks
-    .flatMap((category) => category.links.find((link) => link.url === pathname))
-    .find(Boolean);
-
-  if (!route) return false;
-
-  const requiredPermissions = route.requiredPermissions || [];
-  return requiredPermissions.some((permission) =>
-    permissions.includes(permission)
-  );
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (ignoreRoutes.some((route) => pathname.startsWith(route))) {
-    return NextResponse.next();
-  }
-
-  if (publicRoutes.includes(pathname)) {
-    const token = request.cookies.get("jwt-token");
-    if (token && pathname === "/login") {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+  // Rutas públicas/ignoradas
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/static") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/login"
+  ) {
     return NextResponse.next();
   }
 
   const token = request.cookies.get("jwt-token")?.value;
 
   if (!token) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   try {
@@ -51,41 +30,29 @@ export async function middleware(request: NextRequest) {
       new TextEncoder().encode(process.env.APP_KEY || "default-secret-key")
     );
 
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("jwt-token");
-      response.cookies.delete("access_token");
-      return response;
-    }
-
-    // Verificar permisos para la ruta actual
     const userPermissions = payload.permissions as string[];
-    if (!checkPathPermissions(pathname, userPermissions)) {
-      return new NextResponse(
-        JSON.stringify({
-          error: "Forbidden",
-          message: "No tienes permiso para acceder a esta ruta",
-        }),
-        {
-          status: 403,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    const hasPermission = checkPathPermissions(pathname, userPermissions);
+
+    if (!hasPermission) {
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
     return NextResponse.next();
   } catch (error) {
-    console.error("Middleware Error:", error);
     return NextResponse.redirect(new URL("/login", request.url));
   }
 }
 
-export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};
+function checkPathPermissions(
+  pathname: string,
+  permissions: string[]
+): boolean {
+  const route = sidenavLinks
+    .flatMap((category) => category.links)
+    .find((link) => link.url === pathname);
 
-// export const config = {
-//   matcher: ["/:path*", "/profile/:path*"],
-// };
+  return route
+    ? !route.requiredPermissions?.length ||
+        route.requiredPermissions.some((p) => permissions.includes(p))
+    : false;
+}

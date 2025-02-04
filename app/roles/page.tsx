@@ -127,7 +127,7 @@ const RoleManagementPage = () => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/roles`, {
           credentials: "include",
         }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/permissions-list`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/permissions`, {
           credentials: "include",
         }),
       ]);

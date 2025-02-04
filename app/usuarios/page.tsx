@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import { RiUserAddLine } from "react-icons/ri";
 import { TbHierarchy2 } from "react-icons/tb";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
-import UsersTable from "./UsersTable";
+import { UsersTable } from "../components/users/UsersTable";
 
 const UsersPage = () => {
   return (
@@ -31,12 +30,6 @@ const UsersPage = () => {
             <Link href="/roles" className="flex items-center gap-2">
               <TbHierarchy2 className="h-4 w-4" />
               Gestionar Roles
-            </Link>
-          </Button>
-          <Button asChild className="bg-red-600 hover:bg-red-700">
-            <Link href="/usuarios/nuevo" className="flex items-center gap-2">
-              <RiUserAddLine className="h-4 w-4" />
-              Nuevo Usuario
             </Link>
           </Button>
         </div>

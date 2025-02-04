@@ -10,36 +10,43 @@ export interface LoginResponse {
     id: string;
     name: string;
     email: string;
-    proyecto: string;
-    role: string | number;
-    permissions: string[];
+    proyecto?: string;
+    role: {
+      id: number;
+      name: string;
+    };
+    permissions: Array<{
+      id: number;
+      name: string;
+    }>;
   };
 }
 
-export interface UserCredentials {
-  email: string;
-  password: string;
-}
-
-export const login = async (email: string, password: string) => {
+export const login = async (
+  email: string,
+  password: string
+): Promise<LoginResponse> => {
   try {
-    const response = await fetch("http://localhost:8000/api/login", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
-      credentials: "include", // Importante para enviar cookies
+      credentials: "include",
     });
 
-    const text = await response.text();
-
-    if (response.ok) {
-      const data = JSON.parse(text);
-      return data;
-    } else {
+    if (!response.ok) {
       throw new Error("Error en la autenticación");
     }
+
+    const data = await response.json();
+
+    // Guardar tokens
+    if (data.token) Cookies.set("token", data.token);
+    if (data.jwt_token) Cookies.set("jwt-token", data.jwt_token);
+
+    return data;
   } catch (error) {
     console.error("Error en el login:", error);
     throw error;
@@ -55,10 +62,12 @@ export const fetchWithAuth = async (
   options: RequestInit = {}
 ) => {
   const token = getAuthToken();
+  if (!token) throw new Error("No token found");
 
   const headers = {
-    ...options.headers,
+    "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
+    ...options.headers,
   };
 
   const response = await fetch(
@@ -66,62 +75,33 @@ export const fetchWithAuth = async (
     {
       ...options,
       headers,
+      credentials: "include",
     }
   );
 
   if (response.status === 401) {
+    Cookies.remove("jwt-token");
+    Cookies.remove("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
     throw new Error("No autorizado");
   }
 
   return response.json();
 };
 
-export async function logout(): Promise<void> {
+export const logout = async (): Promise<void> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${Cookies.get("token")}`,
-        "X-JWT-Token": Cookies.get("jwt_token") || "",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al cerrar sesión");
-    }
+    await fetchWithAuth("/logout", { method: "POST" });
   } finally {
-    // Limpiar cookies y localStorage
-    Cookies.remove("lms_session");
+    Cookies.remove("jwt-token");
     Cookies.remove("token");
+    Cookies.remove("lms_session");
     localStorage.removeItem("user");
   }
-}
+};
 
-export function getStoredUser() {
-  if (typeof window === "undefined") return null;
-
-  const userStr = localStorage.getItem("user");
-  return userStr ? JSON.parse(userStr) : null;
-}
-
-// Función para verificar si el token está por expirar
-export function isTokenExpiring(): boolean {
-  const jwt = Cookies.get("jwt_token");
-  if (!jwt) return true;
-
-  try {
-    const [, payload] = jwt.split(".");
-    const { exp } = JSON.parse(atob(payload));
-    const now = Math.floor(Date.now() / 1000);
-
-    return exp - now < 120; // menos de 2 minutos
-  } catch {
-    return true;
-  }
-}
-
-// Función para manejar la renovación del token
-export async function refreshToken(): Promise<void> {
+export const refreshToken = async (): Promise<void> => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/refresh-token`,
@@ -129,22 +109,19 @@ export async function refreshToken(): Promise<void> {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
         },
-        body: JSON.stringify({
-          token: Cookies.get("jwt_token"),
-        }),
+        credentials: "include",
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Error al renovar el token");
-    }
+    if (!response.ok) throw new Error("Error al renovar el token");
 
     const data = await response.json();
-    Cookies.set("token", data.token, { expires: 1 });
-    Cookies.set("jwt_token", data.jwt_token, { expires: 1 });
+    if (data.token) Cookies.set("token", data.token);
+    if (data.jwt_token) Cookies.set("jwt-token", data.jwt_token);
   } catch (error) {
     console.error("Error refreshing token:", error);
     throw error;
   }
-}
+};

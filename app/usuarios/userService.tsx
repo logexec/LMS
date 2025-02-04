@@ -2,7 +2,7 @@ import { getAuthToken } from "@/services/auth.service";
 import { Permission, Role, SortConfig } from "@/utils/types";
 import { User, UserFormData, ApiResponseRaw, ApiResponse } from "@/utils/types";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetchUsers = async (
   page: number = 1,
