@@ -7,23 +7,6 @@ import { getAuthToken } from "@/services/auth.service";
 
 const currentMonth = new Date().getMonth() + 1;
 
-interface Data {
-  id: string;
-  unique_id?: string;
-  type?: string;
-  personnel_type?: string;
-  status: "pending" | "paid" | "rejected" | "review" | "in_reposition";
-  request_date?: string;
-  invoice_number?: string;
-  account_id?: number;
-  amount?: number;
-  project?: string;
-  responsible_id?: string;
-  transport_id?: string;
-  attachment_path?: string;
-  note?: string;
-}
-
 // Función para obtener solo el conjunto de datos específico
 const fetchRequests = async (status: string): Promise<number> => {
   const response = await fetch(

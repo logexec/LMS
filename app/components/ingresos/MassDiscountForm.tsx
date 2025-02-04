@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import Input from "../Input";
 import Select from "../Select";
@@ -75,49 +75,54 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     areas: [],
   };
 
-  const fetchEmployees = useCallback(
-    debounce(async (proyecto: string, area: string) => {
-      if (!proyecto || !area) return;
+  const fetchEmployees = useMemo(
+    () =>
+      debounce(async (proyecto: string, area: string) => {
+        if (!proyecto || !area) return;
 
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }
-        );
+        setIsLoading(true);
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`,
+            {
+              headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+              },
+              credentials: "include",
+            }
+          );
 
-        if (!response.ok) throw new Error("Error al cargar empleados");
+          if (!response.ok) throw new Error("Error al cargar empleados");
 
-        const data = await response.json();
-        setEmployees(
-          data.map(
-            (emp: {
-              id: string;
-              nombre_completo: string;
-              area: string;
-              proyecto: string;
-            }) => ({
-              id: emp.id,
-              name: emp.nombre_completo,
-              area: emp.area,
-              project: emp.proyecto,
-              selected: false,
-            })
-          )
-        );
-      } catch (error) {
-        toast.error("Error al cargar los empleados");
-        console.error("Error fetching employees:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 300),
-    [isLoading]
+          const data = await response.json();
+          setEmployees(
+            data.map(
+              (emp: {
+                id: string;
+                nombre_completo: string;
+                area: string;
+                proyecto: string;
+              }) => ({
+                id: emp.id,
+                name: emp.nombre_completo,
+                area: emp.area,
+                project: emp.proyecto,
+                selected: false,
+              })
+            )
+          );
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Error al cargar los empleados"
+          );
+          console.error("Error fetching employees:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }, 300),
+    []
   );
 
   useEffect(() => {

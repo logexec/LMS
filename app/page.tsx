@@ -63,29 +63,19 @@ const subtractMinutes = (date: Date) => {
 };
 
 const Home = () => {
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 0
-  );
   const [isShiftOver, setIsShiftOver] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
     const checkShiftStatus = () => {
       setIsShiftOver(
         subtractHours(new Date()) === 0 && subtractMinutes(new Date()) === 0
       );
     };
-
-    window.addEventListener("resize", handleResize);
     const interval = setInterval(checkShiftStatus, 60000);
 
     checkShiftStatus();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
       clearInterval(interval);
     };
   }, []);

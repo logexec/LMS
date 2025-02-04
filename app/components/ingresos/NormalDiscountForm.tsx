@@ -222,7 +222,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     if (normalFormData.tipo) {
       fetchProjects();
     }
-  }, [normalFormData.tipo]);
+  }, [normalFormData.tipo, fetchProjects]);
 
   useEffect(() => {
     if (normalFormData.tipo === "transportista") {
@@ -398,12 +398,12 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       formData.append("account_id", normalFormData.cuenta);
       formData.append("amount", normalFormData.valor);
       formData.append("project", normalFormData.proyecto);
-      normalFormData.responsable
-        ? formData.append("responsible_id", normalFormData.responsable)
-        : null;
-      normalFormData.transporte
-        ? formData.append("transport_id", normalFormData.transporte)
-        : null;
+      if (normalFormData.responsable) {
+        formData.append("responsible_id", normalFormData.responsable);
+      }
+      if (normalFormData.transporte) {
+        formData.append("transport_id", normalFormData.transporte);
+      }
       formData.append("attachment", normalFormData.adjunto);
       formData.append("note", normalFormData.observacion);
       formData.append("personnel_type", normalFormData.tipo);

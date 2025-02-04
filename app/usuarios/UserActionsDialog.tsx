@@ -102,7 +102,11 @@ export const UserActionsDialogs = ({
         const data = await response.json();
         setAvailablePermissions(data);
       } catch (error) {
-        toast.error("Error al cargar los permisos disponibles");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Error al cargar los permisos disponibles"
+        );
       }
     };
 
@@ -133,7 +137,11 @@ export const UserActionsDialogs = ({
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error("Error al actualizar el usuario");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al actualizar el usuario"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +169,11 @@ export const UserActionsDialogs = ({
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error("Error al actualizar los permisos");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al actualizar los permisos"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -185,7 +197,9 @@ export const UserActionsDialogs = ({
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error("Error al eliminar el usuario");
+      toast.error(
+        error instanceof Error ? error.message : "Error al eliminar el usuario"
+      );
     } finally {
       setIsLoading(false);
     }

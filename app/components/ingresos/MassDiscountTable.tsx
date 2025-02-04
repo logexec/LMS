@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Table,
@@ -16,7 +16,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import Checkbox from "../Checkbox";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import debounce from "lodash/debounce";
 
 interface Employee {
@@ -51,22 +51,23 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
   const amountPerPerson = selectedCount > 0 ? totalAmount / selectedCount : 0;
 
   // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce((term: string) => {
-      const filtered = employees.filter(
-        (emp) =>
-          emp.name.toLowerCase().includes(term.toLowerCase()) ||
-          emp.area.toLowerCase().includes(term.toLowerCase()) ||
-          emp.project.toLowerCase().includes(term.toLowerCase())
-      );
-      setFilteredEmployees(filtered);
-    }, 300),
-    [isLoading, employees]
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((term: string) => {
+        const filtered = employees.filter(
+          (emp) =>
+            emp.name.toLowerCase().includes(term.toLowerCase()) ||
+            emp.area.toLowerCase().includes(term.toLowerCase()) ||
+            emp.project.toLowerCase().includes(term.toLowerCase())
+        );
+        setFilteredEmployees(filtered);
+      }, 300),
+    [employees]
   );
 
   React.useEffect(() => {
     setFilteredEmployees(employees);
-  }, [employees]);
+  }, [searchTerm, employees]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;

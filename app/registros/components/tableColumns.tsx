@@ -52,7 +52,6 @@ export const getRequestColumns = ({
   accountMap,
   responsibleMap,
   vehicleMap,
-  onStatusChange,
 }: ColumnHelpers): ColumnDef<RequestProps, any>[] => [
   {
     id: "select",
@@ -380,8 +379,3 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     cell: ({ row }) => <ActionButtons row={row.original} />,
   },
 ];
-
-export default {
-  getRequestColumns,
-  getReposicionColumns,
-};

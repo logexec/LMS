@@ -1,6 +1,12 @@
 "use client";
 
-import React, { ChangeEvent, FormEvent, useCallback, useEffect } from "react";
+import React, {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import { motion } from "motion/react";
 import Input from "../Input";
 import Select from "../Select";
@@ -311,43 +317,44 @@ const GastosForm: React.FC<GastosFormProps> = ({
     }
   }, [setLocalLoading]);
 
-  const fetchResponsibles = useCallback(
-    debounce(async (proyecto: string) => {
-      if (!proyecto) return;
+  const fetchResponsibles = useMemo(
+    () =>
+      debounce(async (proyecto: string) => {
+        if (!proyecto) return;
 
-      setLocalLoading((prev) => ({ ...prev, responsibles: true }));
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }
-        );
+        setLocalLoading((prev) => ({ ...prev, responsibles: true }));
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
+            {
+              headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+              },
+              credentials: "include",
+            }
+          );
 
-        if (!response.ok) throw new Error("Error al cargar responsables");
+          if (!response.ok) throw new Error("Error al cargar responsables");
 
-        const data = await response.json();
-        setLocalOptions((prev) => ({
-          ...prev,
-          responsibles: data.map(
-            (responsible: { nombre_completo: string; id: string }) => ({
-              label: responsible.nombre_completo,
-              value: responsible.id,
-            })
-          ),
-        }));
-      } catch (error) {
-        toast.error("Error al cargar responsables");
-        console.error("Error al cargar responsables:", error);
-      } finally {
-        setLocalLoading((prev) => ({ ...prev, responsibles: false }));
-      }
-    }, 300),
+          const data = await response.json();
+          setLocalOptions((prev) => ({
+            ...prev,
+            responsibles: data.map(
+              (responsible: { nombre_completo: string; id: string }) => ({
+                label: responsible.nombre_completo,
+                value: responsible.id,
+              })
+            ),
+          }));
+        } catch (error) {
+          toast.error("Error al cargar responsables");
+          console.error("Error al cargar responsables:", error);
+        } finally {
+          setLocalLoading((prev) => ({ ...prev, responsibles: false }));
+        }
+      }, 300),
     []
-  );
+  ); // `useMemo` evita que la función `debounce` se cree en cada render
 
   const fetchProjects = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, projects: true }));
@@ -389,7 +396,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
   useEffect(() => {
     fetchAccounts();
     fetchProjects();
-  }, []);
+  }, [fetchAccounts, fetchProjects]);
 
   // Options for dropdowns
 
