@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Loader from "../Loader";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { getAuthToken } from "@/services/auth.service";
+import { toast } from "sonner";
 
 const currentMonth = new Date().getMonth() + 1;
 
@@ -42,7 +43,9 @@ export const PendingRequests = () => {
         const data = await fetchRequests("pending");
         setRequests(data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -74,13 +77,18 @@ export const PaidRequests = () => {
   const [paidRequests, setPaidRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  const count = useMotionValue(paidRequests); // Iniciar con el valor actual
+  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchRequests("paid");
         setPaidRequests(data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -89,13 +97,20 @@ export const PaidRequests = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (paidRequests > 0) {
+      const controls = animate(count, paidRequests, { duration: 0.25 });
+      return () => controls.stop(); // Detener la animación si el componente se desmonta
+    }
+  }, [paidRequests, count]);
+
   if (isLoading) {
     return <Loader fullScreen={false} text="Cargando solicitudes..." />;
   }
 
   return (
-    <div className="flex flex-row text-green-500 flex-wrap items-center">
-      {paidRequests}
+    <div className="flex flex-row flex-wrap text-green-500 items-center">
+      <motion.pre>{rounded}</motion.pre>
       <span className="text-xs font-normal ml-2">Pagadas</span>
     </div>
   );
@@ -105,13 +120,18 @@ export const RejectedRequests = () => {
   const [rejectedRequests, setRejectedRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  const count = useMotionValue(rejectedRequests); // Iniciar con el valor actual
+  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchRequests("rejected");
         setRejectedRequests(data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -120,13 +140,20 @@ export const RejectedRequests = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (rejectedRequests > 0) {
+      const controls = animate(count, rejectedRequests, { duration: 0.25 });
+      return () => controls.stop(); // Detener la animación si el componente se desmonta
+    }
+  }, [rejectedRequests, count]);
+
   if (isLoading) {
     return <Loader fullScreen={false} text="Cargando solicitudes..." />;
   }
 
   return (
     <div className="flex flex-row flex-wrap text-red-500 items-center">
-      {rejectedRequests}
+      <motion.pre>{rounded}</motion.pre>
       <span className="text-xs font-normal ml-2">Rechazadas</span>
     </div>
   );
@@ -136,13 +163,18 @@ export const InRepositionRequests = () => {
   const [inRepositionRequests, setInRepositionRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  const count = useMotionValue(inRepositionRequests); // Iniciar con el valor actual
+  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchRequests("in_reposition");
         setInRepositionRequests(data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -151,21 +183,21 @@ export const InRepositionRequests = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (inRepositionRequests > 0) {
+      const controls = animate(count, inRepositionRequests, { duration: 0.25 });
+      return () => controls.stop(); // Detener la animación si el componente se desmonta
+    }
+  }, [inRepositionRequests, count]);
+
   if (isLoading) {
     return <Loader fullScreen={false} text="Cargando solicitudes..." />;
   }
 
   return (
     <div className="flex flex-row flex-wrap text-indigo-500 items-center">
-      {inRepositionRequests}
-      <span className="text-xs font-normal ml-2">En proceso de reposición</span>
+      <motion.pre>{rounded}</motion.pre>
+      <span className="text-xs font-normal ml-2">En reposición</span>
     </div>
   );
 };
-
-// Por cada status:
-
-// id_unico, valor, fecha, proyecto
-
-// Mostrar tabla dinamica quiza jstable para mostrar los datos de las solicitudes pendientes, pagadas y rechazadas en una linea de tiempo.
-// Se debe mostrar el id_unico, valor, fecha, proyecto, status, y un boton para ver el detalle de la solicitud.

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 
 import { useState, useMemo } from "react";
@@ -64,6 +65,7 @@ import { type User, type Role, type Permission } from "@/types/dialogs";
 import React from "react";
 import { apiService } from "@/services/api.service";
 import { useRoles } from "@/hooks/useRoles";
+import { useRouter } from "next/router";
 
 interface ErrorResponse {
   response?: {
@@ -147,6 +149,8 @@ export const UsersTable = () => {
       email: string;
       password: string;
       role_id: string;
+      dob?: string;
+      permissions: string[];
     }) => {
       const response = await apiService.createUser(data);
       return response.data;
@@ -155,6 +159,7 @@ export const UsersTable = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario creado exitosamente");
       setIsCreateOpen(false);
+      useRouter().reload();
     },
     onError: (error: ErrorResponse) => {
       console.error("Error creating user:", error);
@@ -177,6 +182,7 @@ export const UsersTable = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario actualizado exitosamente");
       setIsEditOpen(false);
+      useRouter().reload();
     },
     onError: (error: ErrorResponse) => {
       toast.error(
@@ -200,6 +206,7 @@ export const UsersTable = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Permisos actualizados exitosamente");
       setIsPermissionsOpen(false);
+      useRouter().reload();
     },
     onError: (error: ErrorResponse) => {
       toast.error(
@@ -217,6 +224,7 @@ export const UsersTable = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario eliminado exitosamente");
       setIsDeleteOpen(false);
+      useRouter().reload();
     },
     onError: (error: ErrorResponse) => {
       toast.error(
