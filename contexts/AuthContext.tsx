@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import {
   login as loginService,
   logout as logoutService,
+  refreshToken,
 } from "@/services/auth.service";
 
 interface Permission {
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = Cookies.get("jwt-token");
       if (!token) {
         setIsLoading(false);
-        router.push("/login");
+        handleUnauthorized();
         return;
       }
 
@@ -95,12 +96,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const parsedUser = JSON.parse(storedUser);
           const formattedUser = formatUserData(parsedUser);
           setUser(formattedUser);
+
+          // Verificar si el token está cerca de expirar (30 minutos antes)
+          const tokenData = parseJwt(token);
+          if (tokenData.exp) {
+            const expirationTime = tokenData.exp * 1000; // Convertir a milisegundos
+            const thirtyMinutes = 30 * 60 * 1000;
+
+            if (Date.now() + thirtyMinutes >= expirationTime) {
+              // Token expirará pronto, intentar renovarlo
+              try {
+                await refreshToken();
+              } catch (error) {
+                handleUnauthorized();
+                return;
+              }
+            }
+          }
         } else {
-          router.push("/login");
+          handleUnauthorized();
         }
       } catch (error) {
         console.error("Error checking auth:", error);
-        router.push("/login");
+        handleUnauthorized();
       } finally {
         setIsLoading(false);
       }
@@ -108,6 +126,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkAuth();
   }, [router]);
+
+  const handleUnauthorized = () => {
+    setUser(null);
+    Cookies.remove("jwt-token");
+    Cookies.remove("lms_session");
+    localStorage.removeItem("user");
+    router.replace("/login");
+  };
+
+  // Función auxiliar para decodificar JWT
+  const parseJwt = (token: string) => {
+    try {
+      return JSON.parse(atob(token.split(".")[1]));
+    } catch (e) {
+      return {};
+    }
+  };
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
@@ -127,7 +162,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutService();
       setUser(null);
-      Cookies.remove("token");
+      Cookies.remove("jwt-token");
+      Cookies.remove("lms_session");
       localStorage.removeItem("user");
       router.push("/login");
     } finally {

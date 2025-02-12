@@ -36,12 +36,12 @@ export const sidenavLinks: NavLink[] = [
         icon: LuUsers,
         requiredPermissions: ["manage_users", "view_users"],
       },
-      {
-        label: "Roles",
-        url: "/roles",
-        icon: Shield,
-        requiredPermissions: ["manage_users", "view_users"],
-      },
+      // {
+      //   label: "Roles",
+      //   url: "/roles",
+      //   icon: Shield,
+      //   requiredPermissions: ["manage_users", "view_users"],
+      // },
     ],
   },
   {

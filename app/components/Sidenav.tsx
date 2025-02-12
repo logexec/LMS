@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./sidenav.component.css";
+import { PendingRequests } from "./Requests";
 // import { toast } from "sonner";
 
 const useMediaQuery = (query: string) => {
@@ -30,8 +31,8 @@ const Sidenav = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const path = usePathname();
-  const notification = 271;
   const { hasPermission } = useAuth();
+  const notification = PendingRequests();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 

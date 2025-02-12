@@ -174,32 +174,6 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  name="remember"
-                  type="checkbox"
-                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember"
-                  className="ml-2 block text-sm text-gray-700"
-                >
-                  Recordarme
-                </label>
-              </div>
-
-              {/* <div className="text-sm">
-                <a
-                  href="/forgot-password"
-                  className="font-medium text-red-600 hover:text-red-500 transition-colors duration-150"
-                >
-                  ¿Olvidaste tu contraseña?
-                </a>
-              </div> */}
-            </div>
-
             <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}

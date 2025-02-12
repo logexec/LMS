@@ -1,11 +1,8 @@
 "use client";
 
 import React from "react";
-import { TbHierarchy2 } from "react-icons/tb";
 import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 import { UsersTable } from "../components/users/UsersTable";
 
 const UsersPage = () => {
@@ -24,14 +21,6 @@ const UsersPage = () => {
           <p className="text-sm text-slate-500">
             Administra los usuarios del sistema
           </p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild className="bg-red-600 hover:bg-red-700">
-            <Link href="/roles" className="flex items-center gap-2">
-              <TbHierarchy2 className="h-4 w-4" />
-              Gestionar Roles
-            </Link>
-          </Button>
         </div>
       </div>
 

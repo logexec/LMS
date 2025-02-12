@@ -48,7 +48,7 @@ const Navigation = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="flex items-center space-x-2 rounded-lg bg-red-600 px-4 py-2 text-xs lg:text-sm font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            onClick={() => (logout(), (window.location.href = "/"))}
+            onClick={() => logout()}
           >
             <LogOut size={18} />
             <span className="sm:text-[.5rem] lg:text-sm">Cerrar Sesión</span>

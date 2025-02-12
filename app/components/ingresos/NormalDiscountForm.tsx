@@ -71,8 +71,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   const fetchAccounts = useCallback(async (tipo: string) => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
+      // const response = await fetchWithAuth(`/accounts?account_type=${tipo}`);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/accounts/?account_type=${tipo}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_type=${tipo}`,
         {
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
@@ -84,6 +85,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       if (!response.ok) throw new Error("Error al cargar las cuentas");
 
       const data = await response.json();
+
       setLocalOptions((prev) => ({
         ...prev,
         accounts: data.map((account: { name: string; id: string }) => ({
@@ -95,6 +97,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       toast.error(
         error instanceof Error ? error.message : "Error al cargar las cuentas"
       );
+      console.error(error);
     } finally {
       setLocalLoading((prev) => ({ ...prev, accounts: false }));
     }
@@ -110,6 +113,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
           `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
           {
             headers: {
+              "Content-Type": "application/json",
               Authorization: `Bearer ${getAuthToken()}`,
             },
             credentials: "include",
@@ -148,6 +152,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         `${process.env.NEXT_PUBLIC_API_URL}/transports`,
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${getAuthToken()}`,
           },
           credentials: "include",
@@ -182,6 +187,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         `${process.env.NEXT_PUBLIC_API_URL}/projects`,
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${getAuthToken()}`,
           },
           credentials: "include",

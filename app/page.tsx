@@ -13,6 +13,7 @@ import {
   InRepositionRequests,
 } from "./components/Requests";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -64,6 +65,17 @@ const subtractMinutes = (date: Date) => {
 
 const Home = () => {
   const [isShiftOver, setIsShiftOver] = useState(false);
+  const [canSeeRequests, setCanSeeRequests] = useState(false);
+  const user = useAuth();
+
+  useEffect(() => {
+    setCanSeeRequests(
+      user.hasRole("admin") ||
+        user.hasRole("developer") ||
+        user.hasRole("custodio") ||
+        user.hasRole("auditor")
+    );
+  }, [user]);
 
   useEffect(() => {
     const checkShiftStatus = () => {
@@ -88,7 +100,7 @@ const Home = () => {
     >
       <motion.section
         variants={staggerContainer}
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6"
+        className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6`}
       >
         <motion.div variants={fadeInUp}>
           <Card className="h-52 p-4 md:p-5">
@@ -130,35 +142,39 @@ const Home = () => {
           </Card>
         </motion.div>
 
-        <motion.div variants={fadeInUp}>
-          <Card className="h-52 p-4 md:p-5">
-            <h3 className="text-slate-500 font-semibold text-base md:text-lg">
-              Personal activo de Logex
-            </h3>
-            <p className="opacity-0 text-xs md:text-sm font-normal">
-              (Los números se actualizan diariamente)
-            </p>
-            <Hr variant="red" />
-            <div className="flex gap-3 mt-4">
-              <Personnel />
-            </div>
-          </Card>
-        </motion.div>
+        {canSeeRequests && (
+          <>
+            <motion.div variants={fadeInUp}>
+              <Card className="h-52 p-4 md:p-5">
+                <h3 className="text-slate-500 font-semibold text-base md:text-lg">
+                  Personal activo de Logex
+                </h3>
+                <p className="opacity-0 text-xs md:text-sm font-normal">
+                  (Los números se actualizan diariamente)
+                </p>
+                <Hr variant="red" />
+                <div className="flex gap-3 mt-4">
+                  <Personnel />
+                </div>
+              </Card>
+            </motion.div>
 
-        <motion.div variants={fadeInUp}>
-          <Card className="h-52 p-4 md:p-5">
-            <h3 className="text-slate-500 font-semibold text-base md:text-lg">
-              Camiones activos de Logex
-            </h3>
-            <p className="opacity-0 text-xs md:text-sm font-normal">
-              (Los números se actualizan diariamente)
-            </p>
-            <Hr variant="red" />
-            <div className="flex gap-3 mt-4">
-              <Transport />
-            </div>
-          </Card>
-        </motion.div>
+            <motion.div variants={fadeInUp}>
+              <Card className="h-52 p-4 md:p-5">
+                <h3 className="text-slate-500 font-semibold text-base md:text-lg">
+                  Camiones activos de Logex
+                </h3>
+                <p className="opacity-0 text-xs md:text-sm font-normal">
+                  (Los números se actualizan diariamente)
+                </p>
+                <Hr variant="red" />
+                <div className="flex gap-3 mt-4">
+                  <Transport />
+                </div>
+              </Card>
+            </motion.div>
+          </>
+        )}
       </motion.section>
 
       <motion.section variants={fadeInUp} className="mt-8 md:mt-12 text-center">

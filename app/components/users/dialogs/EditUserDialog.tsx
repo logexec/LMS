@@ -1,4 +1,4 @@
-import { type EditUserDialogProps } from "@/types/dialogs";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { type EditUserDialogProps } from "@/types/dialogs";
 
 export const EditUserDialog = ({
   user,
@@ -42,7 +42,7 @@ export const EditUserDialog = ({
       setFormData({
         name: user.name || "",
         email: user.email || "",
-        role_id: user.role_id || "",
+        role_id: user.role_id?.toString() || "",
       });
     }
   }, [user]);
@@ -56,11 +56,29 @@ export const EditUserDialog = ({
     }
   };
 
+  const handleClose = () => {
+    setFormData({ name: "", email: "", role_id: "" });
+    onClose();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleClose();
+    }
+  };
+
   if (!user) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          handleClose();
+        }}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Editar Usuario</DialogTitle>
           <DialogDescription>
@@ -98,12 +116,12 @@ export const EditUserDialog = ({
                   setFormData({ ...formData, role_id: value })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
                   {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
+                    <SelectItem key={role.id} value={role.id.toString()}>
                       {role.name}
                     </SelectItem>
                   ))}
@@ -112,7 +130,7 @@ export const EditUserDialog = ({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
             <Button

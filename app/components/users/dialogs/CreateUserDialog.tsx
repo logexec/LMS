@@ -49,7 +49,8 @@ const permissionMap: { [key: string]: { id: string; label: string } } = {
   view_budget: { id: "18", label: "Ver Presupuesto" },
   manage_budget: { id: "19", label: "Administrar Presupuesto" },
   manage_provisions: { id: "20", label: "Administrar Provisiones" },
-  manage_support: { id: "21", label: "Administrar Soporte" },
+  view_provisions: { id: "21", label: "Ver Provisiones" },
+  manage_support: { id: "22", label: "Administrar Soporte" },
 };
 
 const formatPermissionName = (permission: string): string => {
@@ -108,8 +109,8 @@ const roleDefaultPermissions: { [roleName: string]: string[] } = {
     "manage_budget",
     "manage_provisions",
   ],
-  pagar: ["view_users", "edit_users"],
-  // Agrega más roles y sus permisos por defecto según necesites.
+  custodio: ["view_users", "edit_users"],
+  auditor: ["view_users", "view_provisions"],
 };
 
 interface Role {

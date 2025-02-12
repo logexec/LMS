@@ -9,69 +9,43 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
-interface Permission {
-  id: string;
-  name: string;
-}
-
-const permissionCategories = {
-  users: [
-    "manage_users",
-    "view_users",
-    "create_users",
-    "edit_users",
-    "delete_users",
-  ],
-  financial: [
-    "register_income",
-    "view_income",
-    "edit_income",
-    "view_expenses",
-    "manage_expenses",
-    "manage_special_income",
-  ],
-  discounts: ["view_discounts", "manage_discounts"],
-  requests: ["view_requests", "manage_requests"],
-  reports: ["view_reports", "manage_reports"],
-  budget: ["view_budget", "manage_budget"],
-  other: ["manage_provisions", "manage_support"],
+const permissionMap: { [key: string]: { id: string; label: string } } = {
+  manage_users: { id: "1", label: "Administrar Usuarios" },
+  view_users: { id: "2", label: "Ver Usuarios" },
+  create_users: { id: "3", label: "Crear Usuarios" },
+  edit_users: { id: "4", label: "Editar Usuarios" },
+  delete_users: { id: "5", label: "Eliminar Usuarios" },
+  register_income: { id: "6", label: "Registrar Ingresos" },
+  view_income: { id: "7", label: "Ver Ingresos" },
+  edit_income: { id: "8", label: "Editar Ingresos" },
+  view_discounts: { id: "9", label: "Ver Descuentos" },
+  manage_discounts: { id: "10", label: "Administrar Descuentos" },
+  view_expenses: { id: "11", label: "Ver Gastos" },
+  manage_expenses: { id: "12", label: "Administrar Gastos" },
+  view_requests: { id: "13", label: "Ver Solicitudes" },
+  manage_requests: { id: "14", label: "Administrar Solicitudes" },
+  view_reports: { id: "15", label: "Ver Reportes" },
+  manage_reports: { id: "16", label: "Administrar Reportes" },
+  manage_special_income: { id: "17", label: "Administrar Ingresos Especiales" },
+  view_budget: { id: "18", label: "Ver Presupuesto" },
+  manage_budget: { id: "19", label: "Administrar Presupuesto" },
+  manage_provisions: { id: "20", label: "Administrar Provisiones" },
+  manage_support: { id: "21", label: "Administrar Soporte" },
+  view_provisions: { id: "22", label: "Ver Provisiones" },
 };
 
 const formatPermissionName = (permission: string): string => {
-  const permissionMap: { [key: string]: string } = {
-    manage_users: "Administrar Usuarios",
-    view_users: "Ver Usuarios",
-    create_users: "Crear Usuarios",
-    edit_users: "Editar Usuarios",
-    delete_users: "Eliminar Usuarios",
-    register_income: "Registrar Ingresos",
-    view_income: "Ver Ingresos",
-    edit_income: "Editar Ingresos",
-    view_discounts: "Ver Descuentos",
-    manage_discounts: "Administrar Descuentos",
-    view_expenses: "Ver Gastos",
-    manage_expenses: "Administrar Gastos",
-    view_requests: "Ver Solicitudes",
-    manage_requests: "Administrar Solicitudes",
-    view_reports: "Ver Reportes",
-    manage_reports: "Administrar Reportes",
-    manage_special_income: "Administrar Ingresos Especiales",
-    view_budget: "Ver Presupuesto",
-    manage_budget: "Administrar Presupuesto",
-    manage_provisions: "Administrar Provisiones",
-    manage_support: "Administrar Soporte",
-  };
-  return permissionMap[permission] || permission;
+  return permissionMap[permission]?.label || permission;
 };
+
+const getPermissionId = (permission: string): string => {
+  return permissionMap[permission]?.id || permission;
+};
+
+const permissionOptions = Object.keys(permissionMap);
 
 export const PermissionsDialog = ({
   user,
@@ -80,10 +54,8 @@ export const PermissionsDialog = ({
   onSubmit,
   isLoading,
 }: PermissionsDialogProps) => {
-  const [availablePermissions, setAvailablePermissions] = useState<
-    Permission[]
-  >([]);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [permissionInput, setPermissionInput] = useState<string>("");
 
   useEffect(() => {
     if (user) {
@@ -91,79 +63,79 @@ export const PermissionsDialog = ({
     }
   }, [user]);
 
-  useEffect(() => {
-    const fetchPermissions = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/permissions`,
-          {
-            credentials: "include",
-          }
-        );
-        if (!response.ok) throw new Error("Error al cargar los permisos");
-        const data = await response.json();
-        setAvailablePermissions(data);
-      } catch (error) {
-        console.error("Error fetching permissions:", error);
-      }
-    };
-
-    if (isOpen) {
-      fetchPermissions();
-    }
-  }, [isOpen]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(selectedPermissions);
   };
 
-  const renderPermissionsByCategory = () => {
-    return Object.entries(permissionCategories).map(
-      ([category, permissions]) => (
-        <Card key={category} className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-lg capitalize">{category}</CardTitle>
-            <CardDescription>
-              Permisos relacionados con {category}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {availablePermissions
-              .filter((p) => permissions.includes(p.name))
-              .map((permission) => (
-                <div
-                  key={permission.id}
-                  className="flex items-center space-x-2"
-                >
-                  <Checkbox
-                    id={`permission-${permission.id}`}
-                    checked={selectedPermissions.includes(permission.id)}
-                    onCheckedChange={() => {
-                      setSelectedPermissions((prev) =>
-                        prev.includes(permission.id)
-                          ? prev.filter((id) => id !== permission.id)
-                          : [...prev, permission.id]
-                      );
-                    }}
-                  />
-                  <label
-                    htmlFor={`permission-${permission.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {formatPermissionName(permission.name)}
-                  </label>
-                </div>
-              ))}
-          </CardContent>
-        </Card>
-      )
+  const handleClose = () => {
+    setSelectedPermissions([]);
+    setPermissionInput("");
+    onClose();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleClose();
+    }
+  };
+
+  const handlePermissionInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newValue = e.target.value;
+    setPermissionInput(newValue);
+    const permKey = Object.keys(permissionMap).find(
+      (key) => permissionMap[key].label === newValue
     );
+    if (permKey) {
+      const permId = getPermissionId(permKey);
+      if (!selectedPermissions.includes(permId)) {
+        setSelectedPermissions((prev) => [...prev, permId]);
+      }
+      setPermissionInput("");
+    }
+  };
+
+  const handlePermissionKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const trimmed = permissionInput.trim();
+      if (trimmed === "*") {
+        const allPermissionIds =
+          Object.keys(permissionMap).map(getPermissionId);
+        setSelectedPermissions(allPermissionIds);
+      } else {
+        const permKey = Object.keys(permissionMap).find(
+          (key) => permissionMap[key].label === trimmed
+        );
+        if (permKey) {
+          const permId = getPermissionId(permKey);
+          if (!selectedPermissions.includes(permId)) {
+            setSelectedPermissions((prev) => [...prev, permId]);
+          }
+        }
+      }
+      setPermissionInput("");
+    }
+  };
+
+  const handleRemovePermission = (permId: string) => {
+    setSelectedPermissions((prev) => prev.filter((id) => id !== permId));
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="sm:max-w-[700px]"
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          handleClose();
+        }}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Gestionar Permisos</DialogTitle>
           <DialogDescription>
@@ -171,12 +143,61 @@ export const PermissionsDialog = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="py-4">{renderPermissionsByCategory()}</div>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Input
+                id="permissions"
+                name="permissions"
+                placeholder="Agregar permiso     (Escribe * y presiona Enter para seleccionar todos)"
+                list="permissions-options"
+                value={permissionInput}
+                onChange={handlePermissionInputChange}
+                onKeyDown={handlePermissionKeyDown}
+                autoComplete="off"
+              />
+              <datalist id="permissions-options">
+                {permissionOptions
+                  .filter(
+                    (perm) =>
+                      !selectedPermissions.includes(getPermissionId(perm))
+                  )
+                  .map((perm) => (
+                    <option
+                      key={perm}
+                      value={formatPermissionName(perm)}
+                      data-id={getPermissionId(perm)}
+                    />
+                  ))}
+              </datalist>
+              <div className="flex flex-wrap gap-2">
+                {selectedPermissions.map((permId) => {
+                  const permKey = Object.keys(permissionMap).find(
+                    (key) => permissionMap[key].id === permId
+                  );
+                  return (
+                    <Badge
+                      key={permId}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-slate-100"
+                      onClick={() => handleRemovePermission(permId)}
+                    >
+                      {permKey ? formatPermissionName(permKey) : permId}{" "}
+                      <span className="ml-1">x</span>
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
               {isLoading ? "Guardando..." : "Guardar permisos"}
             </Button>
           </DialogFooter>

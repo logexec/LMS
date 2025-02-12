@@ -1,6 +1,7 @@
 "use client";
 
 import Cookies from "js-cookie";
+import { toast } from "sonner";
 
 export interface LoginResponse {
   token: string;
@@ -22,6 +23,95 @@ export interface LoginResponse {
   };
 }
 
+export const getAuthToken = () => {
+  return Cookies.get("jwt-token");
+};
+
+export const fetchWithAuth = async (
+  endpoint: string,
+  options: RequestInit = {}
+) => {
+  const token = getAuthToken();
+  if (!token) {
+    handleSessionExpired();
+    throw new Error("No token found");
+  }
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+    ...options.headers,
+  };
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
+      {
+        method: options.method || "GET",
+        body: options.body ? JSON.stringify(options.body) : undefined,
+        headers,
+        credentials: "include",
+      }
+    );
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      throw new Error("No autorizado");
+    }
+
+    const data = await response.json();
+
+    // Verificar si hay error de token expirado en la respuesta
+    if (
+      data.message?.toLowerCase().includes("token") &&
+      data.message?.toLowerCase().includes("expired")
+    ) {
+      handleSessionExpired();
+      throw new Error("Sesión expirada");
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("expired")) {
+      handleSessionExpired();
+    }
+    throw error;
+  }
+};
+
+const handleSessionExpired = () => {
+  Cookies.remove("jwt-token");
+  Cookies.remove("lms_session");
+  localStorage.removeItem("user");
+  toast.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+
+  // Usar replace en lugar de push para evitar que quede en el historial
+  window.location.replace("/login");
+};
+
+export const logout = async (): Promise<void> => {
+  try {
+    const token = getAuthToken();
+    if (!token) return;
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Error en logout:", error);
+  } finally {
+    Cookies.remove("jwt-token");
+    Cookies.remove("lms_session");
+    localStorage.removeItem("user");
+    window.location.replace("/login");
+  }
+};
+
 export const login = async (
   email: string,
   password: string
@@ -37,67 +127,19 @@ export const login = async (
     });
 
     if (!response.ok) {
+      toast.error(`Error: ${response.statusText}`);
       throw new Error("Error en la autenticación");
     }
 
     const data = await response.json();
 
     // Guardar tokens
-    if (data.token) Cookies.set("token", data.token);
     if (data.jwt_token) Cookies.set("jwt-token", data.jwt_token);
 
     return data;
   } catch (error) {
     console.error("Error en el login:", error);
     throw error;
-  }
-};
-
-export const getAuthToken = () => {
-  return Cookies.get("jwt-token");
-};
-
-export const fetchWithAuth = async (
-  endpoint: string,
-  options: RequestInit = {}
-) => {
-  const token = getAuthToken();
-  if (!token) throw new Error("No token found");
-
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-    ...options.headers,
-  };
-
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
-    {
-      ...options,
-      headers,
-      credentials: "include",
-    }
-  );
-
-  if (response.status === 401) {
-    Cookies.remove("jwt-token");
-    Cookies.remove("token");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-    throw new Error("No autorizado");
-  }
-
-  return response.json();
-};
-
-export const logout = async (): Promise<void> => {
-  try {
-    await fetchWithAuth("/logout", { method: "POST" });
-  } finally {
-    Cookies.remove("jwt-token");
-    Cookies.remove("token");
-    Cookies.remove("lms_session");
-    localStorage.removeItem("user");
   }
 };
 

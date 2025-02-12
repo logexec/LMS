@@ -76,6 +76,7 @@ const RoleManagementPage = () => {
       view_budget: "Ver Presupuesto",
       manage_budget: "Administrar Presupuesto",
       manage_provisions: "Administrar Provisiones",
+      view_provisions: "Ver Provisiones",
       manage_support: "Administrar Soporte",
     };
 

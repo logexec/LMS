@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import { motion } from "motion/react";
 import Input from "../Input";
-import Select from "../Select";
 import Datalist from "../Datalist";
 import { toast } from "sonner";
 import {
@@ -65,7 +64,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     cuenta: "",
     valor: "",
     proyecto: "",
-    empresa: "",
+    // empresa: "",
     responsable: "",
     transporte: "",
     adjunto: new Blob([]),
@@ -131,12 +130,12 @@ const GastosForm: React.FC<GastosFormProps> = ({
             ? "La cuenta es obligatoria"
             : "";
         break;
-      case "empresa":
-        newErrors[name] =
-          typeof value === "string" && value.length < 2
-            ? "La empresa es obligatoria"
-            : "";
-        break;
+      // case "empresa":
+      //   newErrors[name] =
+      //     typeof value === "string" && value.length < 2
+      //       ? "La empresa es obligatoria"
+      //       : "";
+      //   break;
       case "observacion":
         newErrors[name] =
           typeof value === "string" && value.trim().length < 1
@@ -221,7 +220,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       cuenta: "",
       valor: "",
       proyecto: "",
-      empresa: "",
+      // empresa: "",
       responsable: "",
       transporte: "",
       adjunto: new Blob([]),
@@ -259,7 +258,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       formDataToSend.append("account_id", formData.cuenta);
       formDataToSend.append("amount", formData.valor);
       formDataToSend.append("project", formData.proyecto);
-      formDataToSend.append("company", formData.empresa);
+      // formDataToSend.append("company", formData.empresa);
       formDataToSend.append("note", formData.observacion);
       formDataToSend.append("personnel_type", "nomina");
 
@@ -288,8 +287,10 @@ const GastosForm: React.FC<GastosFormProps> = ({
   const fetchAccounts = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
+      // const response = await fetchWithAuth("/accounts/?account_type=nomina");
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/accounts/?account_type=nomina`,
+        `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_type=nomina`,
         {
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
@@ -400,10 +401,10 @@ const GastosForm: React.FC<GastosFormProps> = ({
 
   // Options for dropdowns
 
-  const empresaOptions = [
-    { value: "SERSUPPORT", label: "SERSUPPORT" },
-    { value: "PREBAM", label: "PREBAM" },
-  ];
+  // const empresaOptions = [
+  //   { value: "SERSUPPORT", label: "SERSUPPORT" },
+  //   { value: "PREBAM", label: "PREBAM" },
+  // ];
 
   return (
     <motion.div
@@ -466,7 +467,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   error={formErrors.proyecto}
                 />
 
-                <Select
+                {/* <Select
                   label="Empresa"
                   name="empresa"
                   id="empresa"
@@ -474,7 +475,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   onChange={handleSelectChange}
                   value={formData.empresa}
                   error={formErrors.empresa}
-                />
+                /> */}
 
                 <Datalist
                   label="Cuenta"

@@ -14,10 +14,10 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Crear .env.production con las variables que necesitamos
-# RUN echo "NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec/api" > .env.production
+RUN echo "NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec/api" > .env.production
 
 # URL directa de cloud run temporalmente hasta que se propague el DNS
-RUN echo "NEXT_PUBLIC_API_URL=https://lms-backend-898493889976.us-east1.run.app/api" > .env.production
+# RUN echo "NEXT_PUBLIC_API_URL=https://api.lms-backend-898493889976.us-east1.run.app/api" > .env.production
 
 
 # Construir el proyecto
