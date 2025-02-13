@@ -40,7 +40,7 @@ export const ProjectsDialog = ({
       setIsLoadingProjects(true);
       try {
         const response = await apiService.getProjects();
-        console.log("Response:", response);
+        console.log("Response:", response.json());
 
         const response2 = await apiService.getProjects();
         const projects = await response2.json();
