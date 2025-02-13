@@ -39,11 +39,8 @@ export const ProjectsDialog = ({
 
       setIsLoadingProjects(true);
       try {
-        const response = await apiService.getProjects();
-        console.log("Response:", response.json());
-
-        const response2 = await apiService.getProjects();
-        const projects = await response2.json();
+        const projects = await apiService.getProjects();
+        console.log("Projects:", projects);
         setAvailableProjects(projects);
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -153,7 +150,7 @@ export const ProjectsDialog = ({
                   <Input
                     id="projects"
                     name="projects"
-                    placeholder="Agregar proyecto     (Escribe * y presiona Enter para seleccionar todos)"
+                    placeholder="Agregar proyecto  (Escribe '*' y presiona Enter para seleccionar todos)"
                     list="projects-options"
                     value={projectInput}
                     onChange={handleProjectInputChange}

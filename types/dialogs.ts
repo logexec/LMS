@@ -60,8 +60,8 @@ export interface DeleteUserDialogProps {
 
 export interface Project {
   id: string;
-  code: string;
   name: string;
+  description: string;
 }
 
 export interface ProjectsDialogProps {

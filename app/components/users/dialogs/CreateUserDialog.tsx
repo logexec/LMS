@@ -159,7 +159,6 @@ export const CreateUserDialog = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.info("Form data:", formData);
     onSubmit(formData);
   };
 

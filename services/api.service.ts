@@ -37,13 +37,17 @@ export const apiService = {
   getPermissions: () => fetchWithAuth(`/permissions`),
 
   // Projects
-  getProjects: () => fetchWithAuth(`/projects`),
+  getProjects: async () => {
+    const response = await fetchWithAuth(`/projects`);
+    return response.json();
+  },
 
-  updateUserProjects(userId: string, projectIds: string[]) {
-    return fetchWithAuth(`/users/${userId}/projects`, {
+  updateUserProjects: async (userId: string, projectIds: string[]) => {
+    const response = await fetchWithAuth(`/users/${userId}/projects`, {
       method: "POST",
       body: JSON.stringify({ project_ids: projectIds }),
     });
+    return response.json();
   },
 };
 
