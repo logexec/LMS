@@ -201,7 +201,7 @@ export const ProjectsDialog = ({
               disabled={isLoading || isLoadingProjects}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isLoading ? "Guardando..." : "Guardar proyectos"}
+              {isLoading ? "Guardando..." : "Asignar proyectos"}
             </Button>
           </DialogFooter>
         </form>
