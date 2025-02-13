@@ -56,9 +56,9 @@ export const ProjectsDialog = ({
     }
   }, [user]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(selectedProjects);
+    onSubmit(selectedProjects);
   };
 
   const handleClose = () => {
