@@ -38,8 +38,7 @@ export const apiService = {
 
   // Projects
   getProjects: async () => {
-    const response = await fetchWithAuth(`/projects`);
-    return response.json();
+    return fetchWithAuth(`/projects`).then((res) => res.json());
   },
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
