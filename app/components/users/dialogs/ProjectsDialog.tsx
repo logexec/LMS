@@ -25,12 +25,6 @@ export const ProjectsDialog = ({
   const [projectInput, setProjectInput] = useState<string>("");
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
-  const [internalOpen, setInternalOpen] = useState(false);
-
-  // Sincronizar estado interno con prop isOpen
-  useEffect(() => {
-    setInternalOpen(isOpen);
-  }, [isOpen]);
 
   // Cargar proyectos cuando se abre el diálogo
   useEffect(() => {
@@ -68,7 +62,6 @@ export const ProjectsDialog = ({
   };
 
   const handleClose = () => {
-    setInternalOpen(false);
     setSelectedProjects([]);
     setProjectInput("");
     onClose();
@@ -117,7 +110,6 @@ export const ProjectsDialog = ({
 
   return (
     <Dialog
-      open={internalOpen}
       onOpenChange={(open) => {
         if (!open && !isLoading) handleClose();
       }}
