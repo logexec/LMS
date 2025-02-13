@@ -37,8 +37,14 @@ export const apiService = {
   getPermissions: () => fetchWithAuth(`/permissions`),
 
   // Projects
-  getProjects: async () => {
-    return fetchWithAuth(`/projects`).then((res) => res.json());
+  async getProjects() {
+    const res = await fetch("/api/projects");
+
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+
+    return res.json();
   },
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
