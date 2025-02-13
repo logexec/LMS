@@ -68,7 +68,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
                   Carga de Excel
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Importa tus descuentos desde un archivo Excel
+                  Importa tus registros desde un archivo Excel
                 </p>
               </div>
 

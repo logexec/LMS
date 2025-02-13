@@ -35,6 +35,16 @@ export const apiService = {
 
   // Permissions
   getPermissions: () => fetchWithAuth(`/permissions`),
+
+  // Projects
+  getProjects: () => fetchWithAuth(`/projects`),
+
+  updateUserProjects(userId: string, projectIds: string[]) {
+    return fetchWithAuth(`/users/${userId}/projects`, {
+      method: "POST",
+      body: JSON.stringify({ project_ids: projectIds }),
+    });
+  },
 };
 
 export default apiService;

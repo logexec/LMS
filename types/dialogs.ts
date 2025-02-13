@@ -9,6 +9,7 @@ export interface User {
   email: string;
   role_id: string;
   permissions: Permission[];
+  projects: Project[];
 }
 
 export interface Permission {
@@ -54,5 +55,19 @@ export interface DeleteUserDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isLoading: boolean;
+}
+
+export interface Project {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface ProjectsDialogProps {
+  user: User | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (projectIds: string[]) => void;
   isLoading: boolean;
 }
