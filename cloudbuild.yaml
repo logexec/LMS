@@ -23,3 +23,5 @@ steps:
           --set-env-vars NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec,APP_KEY=base64:p7tR5ZsljVHi003Ob+gFZsFVJVVws7JxsD5FEwCLioQ=
 images:
   - "gcr.io/$PROJECT_ID/frontend:$SHORT_SHA"
+options:
+  logging: CLOUD_LOGGING_ONLY
