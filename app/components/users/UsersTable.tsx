@@ -59,6 +59,7 @@ import {
   EditUserDialog,
   PermissionsDialog,
   DeleteUserDialog,
+  ProjectsDialog,
 } from "./dialogs";
 import { TableSkeleton } from "./TableSkeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -67,7 +68,6 @@ import { type User, type Role, type Permission } from "@/types/dialogs";
 import React from "react";
 import { apiService } from "@/services/api.service";
 import { useRoles } from "@/hooks/useRoles";
-import { ProjectsDialog } from "./dialogs/ProjectsDialog";
 
 interface ErrorResponse {
   response?: {
