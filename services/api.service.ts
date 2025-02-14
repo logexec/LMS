@@ -46,7 +46,7 @@ export const apiService = {
       method: "POST",
       body: JSON.stringify({ project_ids: projectIds }),
     });
-    return response.json();
+    return response;
   },
 };
 
