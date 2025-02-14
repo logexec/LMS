@@ -29,9 +29,11 @@ export const ProjectsDialog = ({
   // Cargar proyectos cuando se abre el diálogo
   useEffect(() => {
     const fetchProjects = async () => {
+      setIsLoadingProjects(true);
       try {
         const response = await apiService.getProjects();
-        return response.data;
+        const projects = response.data;
+        setAvailableProjects(projects);
       } catch (error) {
         console.error("Error fetching projects:", error);
         toast.error(
@@ -40,8 +42,25 @@ export const ProjectsDialog = ({
             : "Error al cargar los proyectos"
         );
         throw error;
+      } finally {
+        setIsLoadingProjects(false);
       }
     };
+    // const fetchProjects = async () => {
+    //   if (!isOpen) return;
+
+    //   setIsLoadingProjects(true);
+    //   try {
+    //     const projects = await apiService.getProjects();
+    //     console.log("Projects result:", projects);
+    //     setAvailableProjects(projects);
+    //   } catch (error) {
+    //     console.error("Error fetching projects:", error);
+    //     toast.error("Error al cargar los proyectos");
+    //   } finally {
+    //     setIsLoadingProjects(false);
+    //   }
+    // };
 
     if (isOpen) {
       fetchProjects();
