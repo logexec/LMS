@@ -42,11 +42,10 @@ export const apiService = {
   },
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
-    const response = await fetchWithAuth(`/users/${userId}/projects`, {
+    return await fetchWithAuth(`/users/${userId}/projects`, {
       method: "POST",
       body: JSON.stringify({ project_ids: projectIds }),
     });
-    return response;
   },
 };
 
