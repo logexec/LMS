@@ -1,6 +1,7 @@
 # Etapa de construcción
 FROM node:20-alpine AS builder
 
+ARG CACHE_BUST=1
 WORKDIR /app
 
 # Copiamos primero los archivos de configuración para aprovechar cache

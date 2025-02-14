@@ -1,10 +1,12 @@
 steps:
-  # Construir la imagen del frontend
+  # Construir la imagen del frontend (forzando sin caché y con cache bust)
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
         "--no-cache",
+        "--build-arg",
+        "CACHE_BUST=$BUILD_ID",
         "-t",
         "gcr.io/$PROJECT_ID/frontend:$SHORT_SHA",
         ".",
