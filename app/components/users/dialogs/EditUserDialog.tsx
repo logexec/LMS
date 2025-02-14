@@ -67,11 +67,11 @@ export const EditUserDialog = ({
     onClose();
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      handleClose();
-    }
-  };
+  // const handleOpenChange = (open: boolean) => {
+  //   if (!open) {
+  //     handleClose();
+  //   }
+  // };
 
   if (!user) return null;
 
