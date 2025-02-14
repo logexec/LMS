@@ -1,5 +1,5 @@
 steps:
-  # Construir la imagen del frontend (forzando sin caché y con cache bust)
+  # Construir la imagen del frontend forzando sin caché
   - name: "gcr.io/cloud-builders/docker"
     args:
       [

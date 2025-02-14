@@ -1,8 +1,12 @@
 # Etapa de construcción
 FROM node:20-alpine AS builder
 
+# Argumento para forzar reconstrucción (cache bust)
 ARG CACHE_BUST=1
 WORKDIR /app
+
+# Imprime el valor para forzar que esta capa se reconstruya
+RUN echo "Cache bust: $CACHE_BUST"
 
 # Copiamos primero los archivos de configuración para aprovechar cache
 COPY package*.json ./
