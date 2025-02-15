@@ -8,13 +8,13 @@ steps:
         "--build-arg",
         "CACHE_BUST=$BUILD_ID",
         "-t",
-        "gcr.io/$PROJECT_ID/frontend:latest",
+        "gcr.io/logex-alfresco-180118/lms-frontend:latest",
         ".",
       ]
 
   # Subir la imagen al Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/frontend:latest"]
+    args: ["push", "gcr.io/logex-alfresco-180118/lms-frontend:latest"]
 
   # Desplegar en Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
@@ -23,13 +23,13 @@ steps:
       - "-c"
       - |
         gcloud run deploy frontend-service \
-          --image gcr.io/$PROJECT_ID/frontend:latest \
+          --image gcr.io/logex-alfresco-180118/lms-frontend:latest \
           --region us-east1 \
           --platform managed \
           --allow-unauthenticated \
           --port 8080 \
           --set-env-vars NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec,APP_KEY=base64:p7tR5ZsljVHi003Ob+gFZsFVJVVws7JxsD5FEwCLioQ=
 images:
-  - "gcr.io/$PROJECT_ID/frontend:latest"
+  - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
 options:
   logging: CLOUD_LOGGING_ONLY
