@@ -32,8 +32,7 @@ export const ProjectsDialog = ({
       setIsLoadingProjects(true);
       try {
         const response = await apiService.getProjects();
-        const projects = response.data;
-        console.log("PROYECTOS!!!!", projects);
+        const projects = response;
         setAvailableProjects(projects);
       } catch (error) {
         console.error("Error fetching projects:", error);
