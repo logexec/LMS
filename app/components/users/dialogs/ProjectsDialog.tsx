@@ -113,6 +113,7 @@ export const ProjectsDialog = ({
 
   return (
     <Dialog
+      open={isOpen}
       onOpenChange={(open) => {
         if (!open && !isLoading) handleClose();
       }}
@@ -121,7 +122,6 @@ export const ProjectsDialog = ({
         className="sm:max-w-[700px]"
         onEscapeKeyDown={(e) => {
           e.preventDefault();
-          if (!isLoading) handleClose();
         }}
         onInteractOutside={(e) => {
           e.preventDefault();
