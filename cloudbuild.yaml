@@ -22,7 +22,7 @@ steps:
     args:
       - "-c"
       - |
-        gcloud run deploy frontend-service \
+        gcloud run deploy lms-frontend \
           --image gcr.io/logex-alfresco-180118/lms-frontend:latest \
           --region us-east1 \
           --platform managed \
