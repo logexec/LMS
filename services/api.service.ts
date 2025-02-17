@@ -46,7 +46,7 @@ export const apiService = {
       return await fetchWithAuth(`/users/${userId}/projects`, {
         method: "POST",
         body: JSON.stringify({
-          project_ids: projectIds,
+          projectIds,
         }),
       });
     } catch (error) {
