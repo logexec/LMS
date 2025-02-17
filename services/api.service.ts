@@ -42,7 +42,8 @@ export const apiService = {
   },
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
-    console.log("Sending project data:", { project_ids: projectIds }); // Debug log
+    const payload = { project_ids: projectIds };
+    console.log("Sending payload:", payload);
 
     const response = await fetchWithAuth(`/users/${userId}/projects`, {
       method: "POST",
@@ -50,14 +51,11 @@ export const apiService = {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({
-        project_ids: projectIds,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Project update failed:", errorData); // Debug log
       throw new Error(errorData.error || "Failed to update projects");
     }
 
