@@ -45,7 +45,7 @@ export const apiService = {
     try {
       return await fetchWithAuth(`/users/${userId}/projects`, {
         method: "POST",
-        body: JSON.stringify({ projectIds }),
+        body: { projectIds } as unknown as BodyInit,
       });
     } catch (error) {
       console.error("Error updating projects:", error);

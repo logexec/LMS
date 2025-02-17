@@ -39,17 +39,21 @@ export const fetchWithAuth = async (
 
   const headers = {
     "Content-Type": "application/json",
-    Accept: "application/json", // Agregado para forzar respuesta JSON
+    Accept: "application/json", // Forzar respuesta JSON
     Authorization: `Bearer ${token}`,
     ...options.headers,
   };
+
+  if (options.body && typeof options.body !== "string") {
+    options.body = JSON.stringify(options.body);
+  }
 
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
       {
         method: options.method || "GET",
-        body: options.body ? JSON.stringify(options.body) : undefined,
+        body: options.body,
         headers,
         credentials: "include",
       }
@@ -62,7 +66,6 @@ export const fetchWithAuth = async (
 
     const data = await response.json();
 
-    // Verificar si hay error de token expirado en la respuesta
     if (
       data.message?.toLowerCase().includes("token") &&
       data.message?.toLowerCase().includes("expired")
