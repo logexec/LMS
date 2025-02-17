@@ -7,11 +7,13 @@ import logo from "@/public/images/logo_transparent.png";
 import logo_small from "@/public/images/logex_logo.png";
 import Image from "next/image";
 import { toast } from "sonner";
+import Checkbox from "../components/Checkbox";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
@@ -21,7 +23,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       toast.success("¡Autenticación exitosa!");
     } catch (error) {
       toast.error(
@@ -170,6 +172,17 @@ const LoginPage = () => {
                   placeholder="Contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <Checkbox
+                  label="Mantener sesión iniciada"
+                  name="remember-me"
+                  id="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="text-red-600 focus:ring-red-500"
+                  labelClassName="text-sm text-gray-600"
                 />
               </div>
             </div>

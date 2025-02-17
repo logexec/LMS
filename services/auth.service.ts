@@ -118,7 +118,8 @@ export const logout = async (): Promise<void> => {
 
 export const login = async (
   email: string,
-  password: string
+  password: string,
+  remember: boolean = false
 ): Promise<LoginResponse> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
@@ -126,7 +127,7 @@ export const login = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, remember }),
       credentials: "include",
     });
 
@@ -137,8 +138,23 @@ export const login = async (
 
     const data = await response.json();
 
-    // Guardar tokens
-    if (data.jwt_token) Cookies.set("jwt-token", data.jwt_token);
+    // Guardar tokens con expiración según remember
+    if (data.jwt_token) {
+      const options: Cookies.CookieAttributes = {
+        secure: true,
+        sameSite: "strict",
+      };
+
+      if (remember) {
+        // Si remember está activo, el token durará 10 horas
+        options.expires = 10 / 24; // 10 horas en días
+      } else {
+        // Si no, durará hasta que se cierre el navegador
+        // No establecemos expires para que sea una cookie de sesión
+      }
+
+      Cookies.set("jwt-token", data.jwt_token, options);
+    }
 
     return data;
   } catch (error) {

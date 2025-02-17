@@ -257,11 +257,11 @@ export const UsersTable = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Proyectos actualizados exitosamente");
+      toast.success("Proyectos actualizados exitosamente. \nCargando...");
       setIsProjectsOpen(false);
-      // setTimeout(() => {
-      //   window.location.reload();
-      // }, 100);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     },
     onError: (error: ErrorResponse) => {
       toast.error(
@@ -356,7 +356,7 @@ export const UsersTable = () => {
         header: "Proyectos",
         cell: ({ row }: { row: Row<User> }) => (
           <div className="flex flex-wrap gap-1">
-            {row.original.projects?.map((project: any) => (
+            {row.original.projects.map((project: any) => (
               <Badge
                 key={project.id}
                 variant="outline"

@@ -31,7 +31,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   hasPermission: (permission: string | string[]) => boolean;
@@ -144,10 +144,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (
+    email: string,
+    password: string,
+    remember = false
+  ) => {
     setIsLoading(true);
     try {
-      const response = await loginService(email, password);
+      const response = await loginService(email, password, remember);
       const formattedUser = formatUserData(response.user);
       setUser(formattedUser);
       localStorage.setItem("user", JSON.stringify(formattedUser));
