@@ -43,11 +43,16 @@ export const apiService = {
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
     try {
-      const payload: { project_ids: string[] } = { project_ids: projectIds };
-      return await fetchWithAuth(`/users/${userId}/projects`, {
+      const response = await fetchWithAuth(`/users/${userId}/projects`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(projectIds),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to update projects");
+      }
+
+      return response;
     } catch (error) {
       console.error("Error updating projects:", error);
       throw error;
