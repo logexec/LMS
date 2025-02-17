@@ -64,8 +64,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>(
     {}
   );
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
   const fetchAccounts = useCallback(async (tipo: string) => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
@@ -235,10 +233,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     }
   }, [normalFormData.tipo, fetchTransports]);
 
-  const validateField = (
-    name: string,
-    value: string | File | Blob
-  ): boolean => {
+  const validateField = (name: string, value: string): boolean => {
     const newErrors = { ...formErrors };
 
     switch (name) {
