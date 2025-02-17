@@ -1,40 +1,40 @@
-# syntax=docker/dockerfile:1.4
-##############################
-# Etapa de Construcción
-##############################
+# Usamos Node.js 20 en Alpine Linux
 FROM node:20-alpine AS builder
 
+# Definir el directorio de trabajo
 WORKDIR /app
 
-# Copiamos primero los archivos de dependencias para aprovechar la cache
+# Copiar solo los archivos necesarios para instalar dependencias
 COPY package.json package-lock.json ./
 
-# Instalamos las dependencias sin dependencias de desarrollo y usando turbo
-RUN npm ci --legacy-peer-deps && npm install -g turbo
+# Instalar dependencias sin dependencias de desarrollo
+RUN npm ci --legacy-peer-deps
 
-# Copiamos el resto de la aplicación
+# Copiar el código de la aplicación después de instalar dependencias
 COPY . .
 
-# Construimos la aplicación con turbo
-RUN turbo build
+# Construir la aplicación
+RUN npm run build
 
 ##############################
-# Etapa de Producción
+# Imagen final para producción
 ##############################
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiamos los archivos necesarios desde la etapa de construcción
+# Copiar archivos desde la etapa de compilación
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 
-# Variables de ambiente
+# Configurar variables de entorno
 ENV NODE_ENV=production
 ENV PORT=8080
 
+# Exponer puerto 8080 para Cloud Run
 EXPOSE 8080
 
+# Iniciar la aplicación
 CMD ["npm", "run", "start"]
