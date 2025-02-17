@@ -45,21 +45,29 @@ export const apiService = {
     const payload = { project_ids: projectIds };
     console.log("Sending payload:", payload);
 
-    const response = await fetchWithAuth(`/users/${userId}/projects`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetchWithAuth(`/users/${userId}/projects`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to update projects");
+      // Log la respuesta para debugging
+      const responseData = await response.json();
+      console.log("Response:", responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.error || "Failed to update projects");
+      }
+
+      return responseData;
+    } catch (error) {
+      console.error("Error in updateUserProjects:", error);
+      throw error;
     }
-
-    return response;
   },
 };
 
