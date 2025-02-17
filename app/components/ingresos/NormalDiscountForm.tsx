@@ -17,9 +17,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, RefreshCw, AlertCircle } from "lucide-react";
+import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getAuthToken } from "@/services/auth.service";
 
@@ -41,7 +40,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     proyecto: "",
     responsable: "",
     transporte: "",
-    adjunto: new Blob([]),
     observacion: "",
   });
 
@@ -286,13 +284,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
             ? "Debes escribir una observación"
             : "";
         break;
-      case "adjunto":
-        if (value instanceof File || value instanceof Blob) {
-          newErrors[name] = "";
-        } else {
-          newErrors[name] = "El adjunto es obligatorio";
-        }
-        break;
       case "transporte":
         if (
           normalFormData.tipo === "transportista" &&
@@ -342,26 +333,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     validateField(name, value);
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-
-    const file = e.target.files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (file.size > maxSize) {
-      toast.error(
-        "El archivo es demasiado grande. El tamaño máximo permitido es de 5MB."
-      );
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setNormalFormData((prev) => ({
-      ...prev,
-      adjunto: file,
-    }));
-  };
-
   const resetForm = () => {
     setNormalFormData({
       fechaGasto: new Date().toISOString().split("T")[0],
@@ -372,13 +343,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       proyecto: "",
       responsable: "",
       transporte: "",
-      adjunto: new Blob([]),
       observacion: "",
     });
     setFormErrors({});
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -411,7 +378,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       if (normalFormData.transporte) {
         formData.append("transport_id", normalFormData.transporte);
       }
-      formData.append("attachment", normalFormData.adjunto);
       formData.append("note", normalFormData.observacion);
       formData.append("personnel_type", normalFormData.tipo);
 
@@ -651,40 +617,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                <div className="col-span-full">
-                  <Label htmlFor="adjunto">Adjuntar Documento</Label>
-                  <div className="mt-2">
-                    <label
-                      className={`
-                        flex justify-center w-full h-32 px-4 transition 
-                        bg-white border-2 border-gray-300 border-dashed rounded-md 
-                        appearance-none cursor-pointer hover:border-gray-400 
-                        focus:outline-none ${
-                          normalFormData.adjunto instanceof File
-                            ? "border-green-500"
-                            : ""
-                        }
-                      `}
-                    >
-                      <span className="flex items-center space-x-2">
-                        <Upload className="w-6 h-6 text-gray-600" />
-                        <span className="font-medium text-gray-600">
-                          {normalFormData.adjunto instanceof File
-                            ? normalFormData.adjunto.name
-                            : "Arrastra un archivo o haz click aquí"}
-                        </span>
-                      </span>
-                      <input
-                        type="file"
-                        name="adjunto"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        ref={fileInputRef}
-                      />
-                    </label>
-                  </div>
-                </div>
               </motion.div>
 
               <div className="flex justify-end space-x-4 mt-6">

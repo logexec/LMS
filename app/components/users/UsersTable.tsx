@@ -259,9 +259,9 @@ export const UsersTable = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Proyectos actualizados exitosamente");
       setIsProjectsOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 100);
     },
     onError: (error: ErrorResponse) => {
       toast.error(

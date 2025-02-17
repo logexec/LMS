@@ -20,13 +20,14 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import debounce from "lodash/debounce";
 import { getAuthToken } from "@/services/auth.service";
 import * as XLSX from "xlsx";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { LoadingState } from "@/utils/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface GastosFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
@@ -71,7 +72,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
     // empresa: "",
     responsable: "",
     transporte: "",
-    adjunto: new Blob([]),
     observacion: "",
   });
 
@@ -146,12 +146,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
             ? "Debes escribir una observación"
             : "";
         break;
-      case "adjunto":
-        newErrors[name] =
-          value instanceof Blob && value.size === 0
-            ? "El adjunto es obligatorio"
-            : "";
-        break;
       case "transporte":
         if (formData.tipo === "transportista") {
           newErrors[name] =
@@ -191,29 +185,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
   //   validateField(name, value);
   // };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-
-    const file = e.target.files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (file.size > maxSize) {
-      toast.error(
-        "El archivo es demasiado grande. El tamaño máximo permitido es de 5MB."
-      );
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      return;
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      adjunto: file,
-    }));
-    validateField("adjunto", file);
-  };
-
   // Reset form method
   const resetForm = () => {
     setFormData({
@@ -227,7 +198,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
       // empresa: "",
       responsable: "",
       transporte: "",
-      adjunto: new Blob([]),
       observacion: "",
     });
     setFormErrors({});
@@ -270,10 +240,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
       if (formData.responsable) {
         formDataToSend.append("responsible_id", formData.responsable);
       }
-      // Append attachment if exists
-      if (formData.adjunto instanceof Blob && formData.adjunto.size > 0) {
-        formDataToSend.append("attachment", formData.adjunto);
-      }
 
       await onSubmit(formDataToSend);
       resetForm();
@@ -291,8 +257,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
   const fetchAccounts = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
-      // const response = await fetchWithAuth("/accounts/?account_type=nomina");
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_type=nomina`,
         {
@@ -359,13 +323,15 @@ const GastosForm: React.FC<GastosFormProps> = ({
         }
       }, 300),
     []
-  ); // `useMemo` evita que la función `debounce` se cree en cada render
+  );
+
+  const currentUser = useAuth().user;
 
   const fetchProjects = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, projects: true }));
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
+        `${process.env.NEXT_PUBLIC_API_URL}/user/${currentUser!.id}/projects`,
         {
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
@@ -700,48 +666,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   onChange={handleInputChange}
                   error={formErrors.observacion}
                 />
-
-                <div className="col-span-full">
-                  <div className="mt-2">
-                    <label
-                      className={`
-                        flex justify-center w-full h-32 px-4 transition 
-                        bg-white border-2 border-gray-300 border-dashed rounded-md 
-                        appearance-none cursor-pointer hover:border-gray-400 
-                        focus:outline-none ${
-                          formData.adjunto instanceof Blob &&
-                          formData.adjunto.size > 0
-                            ? "border-green-500"
-                            : ""
-                        }
-                      `}
-                    >
-                      <span className="flex items-center space-x-2">
-                        <Upload className="w-6 h-6 text-gray-600" />
-                        <span className="font-medium text-gray-600">
-                          {formData.adjunto instanceof Blob &&
-                          formData.adjunto.size > 0
-                            ? (formData.adjunto as File).name ||
-                              "Archivo adjunto"
-                            : "Arrastra un archivo o haz click aquí"}
-                        </span>
-                      </span>
-                      <input
-                        type="file"
-                        name="adjunto"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        ref={fileInputRef}
-                        accept=".pdf,.jpg,.jpeg,.png"
-                      />
-                    </label>
-                    {formErrors.adjunto && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors.adjunto}
-                      </p>
-                    )}
-                  </div>
-                </div>
               </div>
 
               <div className="flex justify-end space-x-4 mt-6">

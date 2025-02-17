@@ -159,7 +159,6 @@ export interface NormalFormData {
   proyecto: string;
   responsable: string;
   transporte: string;
-  adjunto: Blob;
   observacion: string;
 }
 
@@ -295,7 +294,6 @@ export interface BaseFormData {
 export interface NormalFormData extends BaseFormData {
   responsable: string;
   transporte: string;
-  adjunto: Blob;
 }
 
 export interface MassiveFormData extends NormalFormData {
