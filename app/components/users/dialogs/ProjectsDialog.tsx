@@ -32,8 +32,7 @@ export const ProjectsDialog = ({
       setIsLoadingProjects(true);
       try {
         const response = await apiService.getProjects();
-        const projects = response;
-        setAvailableProjects(projects);
+        setAvailableProjects(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error("Error fetching projects:", error);
         toast.error(
@@ -41,7 +40,6 @@ export const ProjectsDialog = ({
             ? error.message
             : "Error al cargar los proyectos"
         );
-        throw error;
       } finally {
         setIsLoadingProjects(false);
       }
@@ -54,14 +52,22 @@ export const ProjectsDialog = ({
 
   // Cargar proyectos seleccionados del usuario
   useEffect(() => {
-    if (user && user.projects) {
-      setSelectedProjects(user.projects.map((p: Project) => p.id));
+    if (user?.projects) {
+      const projectIds = user.projects.map((p: Project) => p.id);
+      setSelectedProjects(projectIds);
+    } else {
+      setSelectedProjects([]);
     }
   }, [user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(selectedProjects);
+    try {
+      await onSubmit(selectedProjects);
+    } catch (error) {
+      console.error("Error updating projects:", error);
+      toast.error("Error al actualizar los proyectos");
+    }
   };
 
   const handleClose = () => {
@@ -75,7 +81,8 @@ export const ProjectsDialog = ({
     setProjectInput(newValue);
 
     const project = availableProjects.find(
-      (p) => p.id === newValue || p.name === newValue
+      (p) =>
+        p.name.toLowerCase() === newValue.toLowerCase() || p.id === newValue
     );
 
     if (project && !selectedProjects.includes(project.id)) {
@@ -92,14 +99,17 @@ export const ProjectsDialog = ({
       if (trimmed === "*") {
         const allProjectIds = availableProjects.map((p) => p.id);
         setSelectedProjects(allProjectIds);
-      } else {
-        const project = availableProjects.find(
-          (p) => p.id === trimmed || p.name === trimmed
-        );
+        setProjectInput("");
+        return;
+      }
 
-        if (project && !selectedProjects.includes(project.id)) {
-          setSelectedProjects((prev) => [...prev, project.id]);
-        }
+      const project = availableProjects.find(
+        (p) =>
+          p.name.toLowerCase() === trimmed.toLowerCase() || p.id === trimmed
+      );
+
+      if (project && !selectedProjects.includes(project.id)) {
+        setSelectedProjects((prev) => [...prev, project.id]);
       }
       setProjectInput("");
     }
@@ -122,6 +132,7 @@ export const ProjectsDialog = ({
         className="sm:max-w-[700px]"
         onEscapeKeyDown={(e) => {
           e.preventDefault();
+          if (!isLoading) handleClose();
         }}
         onInteractOutside={(e) => {
           e.preventDefault();
@@ -159,7 +170,7 @@ export const ProjectsDialog = ({
                         (project) => !selectedProjects.includes(project.id)
                       )
                       .map((project) => (
-                        <option key={project.id} value={project.id}>
+                        <option key={project.id} value={project.name}>
                           {project.name}
                         </option>
                       ))}
@@ -178,9 +189,7 @@ export const ProjectsDialog = ({
                             !isLoading && handleRemoveProject(projectId)
                           }
                         >
-                          {project
-                            ? `${project.id} - ${project.name}`
-                            : projectId}
+                          {project ? `${project.name}` : projectId}
                           <span className="ml-1">×</span>
                         </Badge>
                       );
@@ -201,10 +210,16 @@ export const ProjectsDialog = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || isLoadingProjects}
+              disabled={
+                isLoading || isLoadingProjects || selectedProjects.length === 0
+              }
               className="bg-red-600 hover:bg-red-700"
             >
-              {isLoading ? "Guardando..." : "Asignar proyectos"}
+              {isLoading
+                ? "Guardando..."
+                : selectedProjects.length > 1
+                ? "Asignar proyectos"
+                : "Asignar Proyecto"}
             </Button>
           </DialogFooter>
         </form>
