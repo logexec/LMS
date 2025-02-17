@@ -1,40 +1,45 @@
-# Usamos Node.js 20 en Alpine Linux
+# Etapa de construcción
 FROM node:20-alpine AS builder
 
-# Definir el directorio de trabajo
+# Argumento para forzar reconstrucción (cache bust)
+ARG CACHE_BUST=1
 WORKDIR /app
 
-# Copiar solo los archivos necesarios para instalar dependencias
-COPY package.json package-lock.json ./
+# Imprime el valor para forzar que esta capa se reconstruya
+RUN echo "Cache bust: $CACHE_BUST"
 
-# Instalar dependencias sin dependencias de desarrollo
+# Copiamos primero los archivos de configuración para aprovechar cache
+COPY package*.json ./
+
+# Instalamos las dependencias usando npm ci
 RUN npm ci --legacy-peer-deps
 
-# Copiar el código de la aplicación después de instalar dependencias
+# Copiamos el resto de la aplicación
 COPY . .
 
-# Construir la aplicación
+# Usamos un argumento para configurar la API
+ARG NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec/api
+RUN echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" > .env.production
+
+# Construimos la aplicación
 RUN npm run build
 
-##############################
-# Imagen final para producción
-##############################
+# Etapa de producción
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar archivos desde la etapa de compilación
+# Copiamos únicamente lo necesario desde la etapa de construcción
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/.env.production ./.env.production
 
-# Configurar variables de entorno
+# Variables de ambiente
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Exponer puerto 8080 para Cloud Run
 EXPOSE 8080
 
-# Iniciar la aplicación
 CMD ["npm", "run", "start"]
