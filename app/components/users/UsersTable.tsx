@@ -252,18 +252,22 @@ export const UsersTable = () => {
       projectIds: string[];
     }) => {
       const response = await apiService.updateUserProjects(id, projectIds);
+      console.table(response.data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Proyectos actualizados exitosamente");
       setIsProjectsOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 100);
     },
     onError: (error: ErrorResponse) => {
       toast.error(
+        error.response?.data?.message || "Error al actualizar los proyectos"
+      );
+      console.error(
         error.response?.data?.message || "Error al actualizar los proyectos"
       );
     },
