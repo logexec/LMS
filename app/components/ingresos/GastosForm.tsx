@@ -332,7 +332,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     setLocalLoading((prev) => ({ ...prev, projects: true }));
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/${currentUser!.id}/projects`,
+        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
         {
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
