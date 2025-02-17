@@ -39,6 +39,7 @@ export const fetchWithAuth = async (
 
   const headers = {
     "Content-Type": "application/json",
+    Accept: "application/json", // Agregado para forzar respuesta JSON
     Authorization: `Bearer ${token}`,
     ...options.headers,
   };
