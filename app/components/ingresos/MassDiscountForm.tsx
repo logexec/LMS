@@ -20,9 +20,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, Upload } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
 import Datalist from "../Datalist";
@@ -49,14 +48,12 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     area: "",
     responsable: "",
     transporte: "",
-    adjunto: new Blob([]),
     observacion: "",
   });
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const localOptions: OptionsState = {
     accounts: [
@@ -150,16 +147,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
           errors[name] = "";
         }
         break;
-      case "adjunto":
-        if (
-          !(massFormData.adjunto instanceof File) ||
-          !(massFormData.adjunto instanceof Blob)
-        ) {
-          errors[name] = "El adjunto es obligatorio";
-        } else {
-          errors[name] = "";
-        }
-        break;
     }
 
     setFormErrors((prev) => ({
@@ -186,29 +173,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       [name]: value,
     }));
     validateField(name, value);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-
-    const file = e.target.files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (file.size > maxSize) {
-      toast.error(
-        "El archivo es demasiado grande. El tamaño máximo permitido es de 5MB."
-      );
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      return;
-    }
-
-    setMassFormData((prev) => ({
-      ...prev,
-      adjunto: file,
-    }));
-    validateField("adjunto", "");
   };
 
   const handleSelectionChange = (employeeId: string) => {
@@ -238,14 +202,10 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       area: "",
       responsable: "",
       transporte: "",
-      adjunto: new Blob([]),
       observacion: "",
     });
     setEmployees([]);
     setFormErrors({});
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -254,11 +214,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     const selectedEmployees = employees.filter((emp) => emp.selected);
     if (selectedEmployees.length === 0) {
       toast.error("Debes seleccionar al menos un empleado");
-      return;
-    }
-
-    if (!(massFormData.adjunto instanceof File)) {
-      toast.error("Debes adjuntar un documento");
       return;
     }
 
@@ -281,7 +236,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
         formData.append("project", massFormData.proyecto);
         formData.append("responsible_id", employee.id);
         formData.append("transport_id", "");
-        formData.append("attachment", massFormData.adjunto);
         formData.append("note", massFormData.observacion);
         formData.append("personnel_type", "nomina");
 
@@ -304,8 +258,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   const isFormValid =
     Object.keys(formErrors).length === 0 &&
     massFormData.valor &&
-    massFormData.factura &&
-    massFormData.adjunto instanceof File;
+    massFormData.factura;
 
   return (
     <motion.div
@@ -424,40 +377,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     error={formErrors.observacion}
                     className="col-span-full"
                   />
-                </div>
-
-                <div className="col-span-full">
-                  <Label htmlFor="adjunto">Adjuntar Documento</Label>
-                  <div className="mt-2">
-                    <label
-                      className={`
-                          flex justify-center w-full h-32 px-4 transition 
-                          bg-white border-2 border-gray-300 border-dashed rounded-md 
-                          appearance-none cursor-pointer hover:border-gray-400 
-                          focus:outline-none ${
-                            massFormData.adjunto instanceof File
-                              ? "border-green-500"
-                              : ""
-                          }
-                        `}
-                    >
-                      <span className="flex items-center space-x-2">
-                        <Upload className="w-6 h-6 text-gray-600" />
-                        <span className="font-medium text-gray-600">
-                          {massFormData.adjunto instanceof File
-                            ? massFormData.adjunto.name
-                            : "Arrastra un archivo o haz click aquí"}
-                        </span>
-                      </span>
-                      <input
-                        type="file"
-                        name="adjunto"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        ref={fileInputRef}
-                      />
-                    </label>
-                  </div>
                 </div>
 
                 {massFormData.proyecto && massFormData.area && (
