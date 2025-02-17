@@ -326,7 +326,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     []
   );
 
-  const currentUser = useAuth().user;
+  // const currentUser = useAuth().user;
 
   const fetchProjects = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, projects: true }));
