@@ -242,7 +242,9 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         // toast.success("Datos actualizados correctamente");
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Error al cargar los datos");
+        toast.error(
+          error instanceof Error ? error.message : "Error al cargar los datos"
+        );
 
         setData([]);
         setMeta({
