@@ -235,7 +235,8 @@ export const InRepositionNumber = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRequests("in_reposition");
+        const data = await fetchRequests("pending");
+        console.log("Sidenav badge data", data);
         setInRepositionNumber(data);
       } catch (error) {
         toast.error(
@@ -245,7 +246,6 @@ export const InRepositionNumber = () => {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
