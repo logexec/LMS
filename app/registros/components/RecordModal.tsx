@@ -271,7 +271,14 @@ export function RecordModal({ children, data }: RecordModalProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button className="text-white bg-indigo-600 hover:bg-indigo-700">
+                  <Button
+                    className="text-white bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => {
+                      console.log(
+                        "¡Solicitud enviada a revisión! (Agregar funcionalidad)"
+                      );
+                    }}
+                  >
                     <ScanSearch />
                     <span className="sr-only">Revisón</span>
                     <span>Revisón</span>
@@ -287,7 +294,12 @@ export function RecordModal({ children, data }: RecordModalProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button className="text-white bg-emerald-600 hover:bg-emerald-700">
+                  <Button
+                    className="text-white bg-emerald-600 hover:bg-emerald-700"
+                    onClick={() => {
+                      console.log("¡Solicitud pagada! (Agregar funcionalidad)");
+                    }}
+                  >
                     <HandCoins />
                     <span className="sr-only">Pagar</span>
                     <span>Pagar</span>
