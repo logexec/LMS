@@ -96,7 +96,7 @@ const Home = () => {
     <motion.div
       initial="initial"
       animate="animate"
-      className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8"
+      className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6 lg:p-8"
     >
       <motion.section
         variants={staggerContainer}
@@ -105,10 +105,10 @@ const Home = () => {
         <motion.div variants={fadeInUp}>
           <Card className="h-52 p-4 md:p-5">
             <Link href="/gestion/solicitudes" className="block ">
-              <h3 className="text-slate-500 font-semibold text-base md:text-lg">
+              <h3 className="text-slate-500 dark:text-slate-400 font-semibold text-base md:text-lg">
                 Solicitudes
               </h3>
-              <p className="text-slate-400 text-xs md:text-sm font-normal">
+              <p className="text-slate-400 dark:text-slate-600 text-xs md:text-sm font-normal">
                 (Los números se inicializan mensualmente)
               </p>
               <Hr variant="red" />
@@ -146,7 +146,7 @@ const Home = () => {
           <>
             <motion.div variants={fadeInUp}>
               <Card className="h-52 p-4 md:p-5">
-                <h3 className="text-slate-500 font-semibold text-base md:text-lg">
+                <h3 className="text-slate-500 dark:text-slate-400 font-semibold text-base md:text-lg">
                   Personal activo de Logex
                 </h3>
                 <p className="opacity-0 text-xs md:text-sm font-normal">
@@ -161,7 +161,7 @@ const Home = () => {
 
             <motion.div variants={fadeInUp}>
               <Card className="h-52 p-4 md:p-5">
-                <h3 className="text-slate-500 font-semibold text-base md:text-lg">
+                <h3 className="text-slate-500 dark:text-slate-400 font-semibold text-base md:text-lg">
                   Camiones activos de Logex
                 </h3>
                 <p className="opacity-0 text-xs md:text-sm font-normal">

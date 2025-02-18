@@ -8,6 +8,7 @@ import logo_small from "@/public/images/logex_logo.png";
 import Image from "next/image";
 import { toast } from "sonner";
 import Checkbox from "../components/Checkbox";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -44,6 +45,9 @@ const LoginPage = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen flex flex-col lg:flex-row overflow-hidden"
     >
+      <span className="block w-fit h-fit m-0 p-0 fixed top-2 right-2">
+        <ModeToggle />
+      </span>
       <motion.div
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -57,13 +61,13 @@ const LoginPage = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
             src={logo.src}
             alt="LogeX Logo"
-            className="mb-8"
+            className="mb-8 dark:invert"
           />
           <motion.h2
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}
-            className="text-4xl font-bold text-white mb-6"
+            className="text-4xl font-bold text-white dark:text-black mb-6"
           >
             Supply chain management
           </motion.h2>
@@ -71,7 +75,7 @@ const LoginPage = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
-            className="text-white/90 text-lg"
+            className="text-white/90 dark:text-black/90 text-lg"
           >
             Optimiza tus operaciones con el sistema LMS
           </motion.p>
@@ -83,7 +87,7 @@ const LoginPage = () => {
         initial={{ x: 50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className="flex-1 flex items-center justify-center p-8 bg-gray-50"
+        className="flex-1 flex items-center justify-center p-8 bg-gray-50 dark:bg-slate-950"
       >
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
@@ -106,7 +110,7 @@ const LoginPage = () => {
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="text-3xl font-bold text-gray-900 mb-2"
+              className="text-3xl font-bold mb-2"
             >
               Bienvenido de nuevo
             </motion.h2>
@@ -114,7 +118,7 @@ const LoginPage = () => {
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-gray-600"
+              className="text-gray-600 dark:text-gray-400"
             >
               Ingresa tus credenciales para acceder al sistema
             </motion.p>
@@ -145,7 +149,7 @@ const LoginPage = () => {
             <div className="space-y-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <User className="h-5 w-5 text-gray-400 dark:text-gray-600" />
                 </div>
                 <input
                   id="email"
@@ -161,7 +165,7 @@ const LoginPage = () => {
 
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Lock className="h-5 w-5 text-gray-400 dark:text-gray-600" />
                 </div>
                 <input
                   id="password"
@@ -182,7 +186,7 @@ const LoginPage = () => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="text-red-600 focus:ring-red-500"
-                  labelClassName="text-sm text-gray-600"
+                  labelClassName="text-sm text-gray-600  dark:text-gray-400"
                 />
               </div>
             </div>

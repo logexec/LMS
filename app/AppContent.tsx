@@ -10,12 +10,17 @@ import LoginPage from "./login/page";
 import Loader from "./Loader";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 const queryClient = new QueryClient();
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="relative min-h-screen bg-slate-100 antialiased">
+      <span className="block p-0 m-0 fixed left-56 bottom-5 z-50">
+        <ModeToggle />
+      </span>
+      <div className="relative min-h-screen bg-slate-100 dark:bg-slate-900 antialiased">
         <Toaster position="top-right" richColors closeButton expand />
         <Sidenav />
         <div className="lg:ml-[17rem]">
@@ -35,7 +40,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: 0.3 }}
-                className="rounded-xl bg-white p-6 shadow-lg lg:min-h-[calc(100vh-9rem)]"
+                className="rounded-xl bg-white dark:bg-black p-6 shadow-lg lg:min-h-[calc(100vh-9rem)]"
               >
                 {children}
               </motion.div>
@@ -45,7 +50,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
         {process.env.NODE_ENV === "development" && (
           <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60">
-            LMS | Versión 1.1.1.20250302 | Beta
+            LMS | Versión 1.2.1.20251802 | Beta
           </div>
         )}
       </div>
@@ -66,15 +71,29 @@ export default function AppContent({
 
   if (!user) {
     return (
-      <AnimatePresence mode="wait">
-        <LoginPage />
-      </AnimatePresence>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <AnimatePresence mode="wait">
+          <LoginPage />
+        </AnimatePresence>
+      </ThemeProvider>
     );
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <DashboardLayout>{children}</DashboardLayout>
-    </AnimatePresence>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <AnimatePresence mode="wait">
+        <DashboardLayout>{children}</DashboardLayout>
+      </AnimatePresence>
+    </ThemeProvider>
   );
 }

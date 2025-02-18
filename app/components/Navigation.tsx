@@ -45,9 +45,9 @@ const Navigation = () => {
           transition={{ delay: 0.2 }}
         >
           <motion.button
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 0.99 }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center space-x-2 rounded-lg bg-red-600 px-4 py-2 text-xs lg:text-sm font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="flex items-center space-x-2 rounded-lg bg-primary px-4 py-2 text-xs lg:text-sm font-medium text-white dark:text-black transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             onClick={() => logout()}
           >
             <LogOut size={18} />

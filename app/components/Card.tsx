@@ -13,7 +13,7 @@ const Card: React.FC<CardProps> = ({ children, className }) => {
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       whileTap={{ scale: 0.95 }}
-      className={`bg-white rounded p-5 shadow-md border border-slate-100 ${className}`}
+      className={`bg-white dark:bg-slate-950 rounded p-5 shadow-md border border-slate-100 dark:border-slate-900 ${className}`}
     >
       {children}
     </motion.div>
