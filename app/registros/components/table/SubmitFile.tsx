@@ -12,6 +12,7 @@ import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SendHorizontal } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface SubmitFileProps {
   onCreateReposicion: (requestIds: string[], file: File) => Promise<void>;
@@ -61,7 +62,10 @@ export function SubmitFile({
         <AlertDialogTrigger asChild>
           <Button onClick={() => setIsDialogOpen(true)}>
             <SendHorizontal className="mr-2 h-4 w-4" />
-            Enviar Solicitud
+            Enviar solicitud
+            <Badge variant="secondary" className="ml-2">
+              {Object.keys(selectedRequests).length}
+            </Badge>
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
