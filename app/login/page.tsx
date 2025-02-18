@@ -45,9 +45,14 @@ const LoginPage = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen flex flex-col lg:flex-row overflow-hidden"
     >
-      <span className="block w-fit h-fit m-0 p-0 fixed top-2 right-2">
+      <motion.span
+        initial={{ opacity: 0, top: 50 }}
+        animate={{ opacity: 1, top: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="block w-fit h-fit m-0 p-0 fixed top-4 right-4"
+      >
         <ModeToggle />
-      </span>
+      </motion.span>
       <motion.div
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
