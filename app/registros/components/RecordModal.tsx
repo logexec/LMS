@@ -248,14 +248,7 @@ export function RecordModal({ children, data }: RecordModalProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    className="text-white bg-red-600 hover:bg-red-700"
-                    onClick={() => {
-                      console.log(
-                        "¡Solicitud rechazada! (Agregar funcionalidad)"
-                      );
-                    }}
-                  >
+                  <Button className="text-white bg-red-600 hover:bg-red-700">
                     <X />
                     <span className="sr-only">Rechazar</span>
                     <span>Rechazar</span>
@@ -271,14 +264,7 @@ export function RecordModal({ children, data }: RecordModalProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    className="text-white bg-indigo-600 hover:bg-indigo-700"
-                    onClick={() => {
-                      console.log(
-                        "¡Solicitud enviada a revisión! (Agregar funcionalidad)"
-                      );
-                    }}
-                  >
+                  <Button className="text-white bg-indigo-600 hover:bg-indigo-700">
                     <ScanSearch />
                     <span className="sr-only">Revisón</span>
                     <span>Revisón</span>
@@ -294,12 +280,7 @@ export function RecordModal({ children, data }: RecordModalProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    className="text-white bg-emerald-600 hover:bg-emerald-700"
-                    onClick={() => {
-                      console.log("¡Solicitud pagada! (Agregar funcionalidad)");
-                    }}
-                  >
+                  <Button className="text-white bg-emerald-600 hover:bg-emerald-700">
                     <HandCoins />
                     <span className="sr-only">Pagar</span>
                     <span>Pagar</span>
