@@ -1,5 +1,5 @@
 import { LuMonitor, LuUsers } from "react-icons/lu";
-import { SquarePlus, LayoutDashboard, Shield } from "lucide-react";
+import { SquarePlus, LayoutDashboard, Landmark, Wallet } from "lucide-react";
 import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
 import { VscRequestChanges } from "react-icons/vsc";
@@ -110,13 +110,13 @@ export const sidenavLinks: NavLink[] = [
       {
         label: "Presupuesto",
         url: "/finanzas/presupuesto",
-        icon: LayoutDashboard,
+        icon: Landmark,
         requiredPermissions: ["view_budget", "manage_budget"],
       },
       {
         label: "Provisiones",
         url: "/finanzas/provisiones",
-        icon: LayoutDashboard,
+        icon: Wallet,
         requiredPermissions: ["manage_provisions"],
       },
     ],
