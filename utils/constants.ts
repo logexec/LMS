@@ -45,20 +45,14 @@ export const sidenavLinks: NavLink[] = [
     ],
   },
   {
-    category: "Ingresos",
-    requiredPermissions: ["register_income"],
+    category: "Registros",
     links: [
       {
-        label: "Nuevo Registro",
-        url: "/registrar-ingreso",
+        label: "Nuevo Ingreso",
+        url: "/registros/nuevo",
         icon: SquarePlus,
         requiredPermissions: ["register_income"],
       },
-    ],
-  },
-  {
-    category: "Registros",
-    links: [
       {
         label: "Descuentos",
         url: "/registros/descuentos",

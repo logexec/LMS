@@ -169,7 +169,7 @@ const Sidenav = () => {
                         <span>{link.label}</span>
                       </div>
 
-                      {link.url === "/gestion/solicitudes" && (
+                      {link.url === "/registros/reposiciones" && (
                         <motion.span
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
