@@ -1,35 +1,43 @@
 steps:
-  # Construir la imagen del frontend forzando sin caché
+  # Build con cache
   - name: "gcr.io/cloud-builders/docker"
     args:
-      [
-        "build",
-        "--no-cache",
-        "--build-arg",
-        "CACHE_BUST=$BUILD_ID",
-        "-t",
-        "gcr.io/logex-alfresco-180118/lms-frontend:latest",
-        ".",
-      ]
+      - "build"
+      - "-t"
+      - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
+      - "--cache-from"
+      - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
+      - "--build-arg"
+      - "NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec/api"
+      - "."
+    id: "build"
 
-  # Subir la imagen al Container Registry
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/logex-alfresco-180118/lms-frontend:latest"]
-
-  # Desplegar en Cloud Run
+  # Deploy to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: "bash"
+    entrypoint: gcloud
     args:
-      - "-c"
-      - |
-        gcloud run deploy lms-frontend \
-          --image gcr.io/logex-alfresco-180118/lms-frontend:latest \
-          --region us-east1 \
-          --platform managed \
-          --allow-unauthenticated \
-          --port 8080 \
-          --set-env-vars NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec,APP_KEY=base64:p7tR5ZsljVHi003Ob+gFZsFVJVVws7JxsD5FEwCLioQ=
+      - "run"
+      - "deploy"
+      - "lms-frontend"
+      - "--image"
+      - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
+      - "--region"
+      - "us-east1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--port"
+      - "8080"
+      - "--set-env-vars"
+      - "NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec,APP_KEY=base64:p7tR5ZsljVHi003Ob+gFZsFVJVVws7JxsD5FEwCLioQ="
+    id: "deploy"
+    waitFor: ["build"]
+
 images:
   - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
+
 options:
+  machineType: "E2_HIGHCPU_8"
   logging: CLOUD_LOGGING_ONLY
+
+timeout: "1200s"

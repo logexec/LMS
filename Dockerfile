@@ -1,44 +1,46 @@
-# Etapa de construcción
-FROM node:20-alpine AS builder
-
-# Argumento para forzar reconstrucción (cache bust)
-ARG CACHE_BUST=1
+# Etapa de dependencias
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Imprime el valor para forzar que esta capa se reconstruya
-RUN echo "Cache bust: $CACHE_BUST"
-
-# Copiamos primero los archivos de configuración para aprovechar cache
+# Solo copiamos los archivos necesarios para la instalación
 COPY package*.json ./
+# Instalamos dependencias con cache limpio
+RUN npm ci --legacy-peer-deps --only=production
 
-# Instalamos las dependencias usando npm ci
-RUN npm ci --legacy-peer-deps
+# Etapa de construcción
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-# Copiamos el resto de la aplicación
+# Copiamos las dependencias de la etapa anterior
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Usamos un argumento para configurar la API
+# Configuramos la API y construimos
 ARG NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec/api
-RUN echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" > .env.production
-
-# Construimos la aplicación
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 
 # Etapa de producción
 FROM node:20-alpine
-
 WORKDIR /app
 
-# Copiamos únicamente lo necesario desde la etapa de construcción
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/.env.production ./.env.production
-
-# Variables de ambiente
 ENV NODE_ENV=production
 ENV PORT=8080
+
+# Solo copiamos los archivos necesarios para producción
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+# Optimizamos la imagen
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    chown -R nextjs:nodejs /app && \
+    npm prune --production
+
+USER nextjs
 
 EXPOSE 8080
 
