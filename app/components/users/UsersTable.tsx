@@ -324,7 +324,10 @@ export const UsersTable = () => {
         cell: ({ row }: { row: Row<User> }) => {
           const role = roles.find((r: Role) => r.id === row.original.role_id);
           return role ? (
-            <Badge variant="outline" className="capitalize">
+            <Badge
+              variant="outline"
+              className="capitalize bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+            >
               {role.name}
             </Badge>
           ) : (
