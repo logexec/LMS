@@ -48,8 +48,6 @@ const fetchRepositions = async (status: string): Promise<number> => {
   }
 
   const data = await response.json();
-  console.log("data", data);
-  console.log("data count", data.count);
   return data.count;
 };
 
@@ -236,7 +234,6 @@ export const InRepositionNumber = () => {
     const fetchData = async () => {
       try {
         const data = await fetchRequests("pending");
-        console.log("Sidenav badge data", data);
         setInRepositionNumber(data);
       } catch (error) {
         toast.error(

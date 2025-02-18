@@ -63,7 +63,6 @@ export const ProjectsDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      console.log("Submitting projects:", selectedProjects); // Debug log
       await onSubmit(selectedProjects);
     } catch (error) {
       console.error("Error updating projects:", error);
