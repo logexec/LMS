@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import ModalStatus from "../components/ModalStatus";
+import ModalStatus from "../../components/ModalStatus";
 import "./registro.component.css";
-import DescuentosForm from "../components/ingresos/DescuentosForm";
-import GastosForm from "../components/ingresos/GastosForm";
+import DescuentosForm from "../../components/ingresos/DescuentosForm";
+import GastosForm from "../../components/ingresos/GastosForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const RegistroPage: React.FC = () => {
