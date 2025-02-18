@@ -30,6 +30,27 @@ const fetchRequests = async (status: string): Promise<number> => {
   return data.count;
 };
 
+const fetchRepositions = async (status: string): Promise<number> => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/reposiciones?status=${status}&month=${currentMonth}&action=count`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${status} repositions`);
+  }
+
+  const data = await response.json();
+  return data.count;
+};
+
 export const PendingRequests = () => {
   const [requests, setRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -169,7 +190,7 @@ export const InRepositionRequests = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRequests("in_reposition");
+        const data = await fetchRepositions("pending");
         setInRepositionRequests(data);
       } catch (error) {
         toast.error(
@@ -203,17 +224,17 @@ export const InRepositionRequests = () => {
 };
 
 export const InRepositionNumber = () => {
-  const [inRepositionRequests, setInRepositionRequests] = useState<number>(0);
+  const [inRepositionNumber, setInRepositionNumber] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const count = useMotionValue(inRepositionRequests); // Iniciar con el valor actual
+  const count = useMotionValue(inRepositionNumber); // Iniciar con el valor actual
   const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchRequests("in_reposition");
-        setInRepositionRequests(data);
+        setInRepositionNumber(data);
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Error desconocido"
@@ -227,11 +248,11 @@ export const InRepositionNumber = () => {
   }, []);
 
   useEffect(() => {
-    if (inRepositionRequests > 0) {
-      const controls = animate(count, inRepositionRequests, { duration: 0.25 });
+    if (inRepositionNumber > 0) {
+      const controls = animate(count, inRepositionNumber, { duration: 0.25 });
       return () => controls.stop();
     }
-  }, [inRepositionRequests, count]);
+  }, [inRepositionNumber, count]);
 
   if (isLoading) {
     return <Loader fullScreen={false} text="Cargando..." />;
