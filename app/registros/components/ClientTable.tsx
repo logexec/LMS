@@ -50,21 +50,23 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
 
   // Para crear reposición
   const handleCreateReposicion = async (
-    requestIds: string[]
+    requestIds: string[],
+    file: File
   ): Promise<void> => {
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("request_ids", JSON.stringify(requestIds));
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({
-            request_ids: requestIds,
-          }),
+          body: formData,
         }
       );
 

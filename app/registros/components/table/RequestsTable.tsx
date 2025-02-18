@@ -67,6 +67,7 @@ import {
   fetchVehicles,
 } from "./RequestDetailsTable";
 import { getAuthToken } from "@/services/auth.service";
+import { SubmitFile } from "./SubmitFile";
 
 interface PaginationMeta {
   current_page: number;
@@ -346,7 +347,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     manualFiltering: true,
   } as TableOptionsWithMeta<TData>);
 
-  const handleSendRequests = async () => {
+  const handleSendRequests = async (
+    requestIds: string[],
+    selectedFile: File
+  ) => {
     try {
       if (!Object.keys(rowSelection).length) {
         toast.error("Selecciona al menos una solicitud");
@@ -354,40 +358,20 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       }
 
       const selectedRows = table.getSelectedRowModel().rows;
-      const requestIds = selectedRows.map((row) => {
-        const uniqueId = (row.original as RequestProps).unique_id;
-        if (!uniqueId || uniqueId.trim() === "") {
-          throw new Error(
-            `ID inválido encontrado: ${JSON.stringify(row.original)}`
-          );
-        }
-        return uniqueId;
-      });
-
-      const proyectos = new Set(
-        selectedRows.map((row) => (row.original as RequestProps).project)
+      const requestIds = selectedRows.map(
+        (row) => (row.original as RequestProps).unique_id
       );
 
-      if (proyectos.size > 1) {
-        toast.error("Todas las solicitudes deben ser del mismo proyecto");
-        return;
-      }
-
       if (!onCreateReposicion) {
-        toast.error(
-          "Hay un error en la configuración. Por favor, contacta a soporte para solucionar este problema."
-        );
+        toast.error("Error en la configuración. Contacta a soporte.");
         return;
       }
 
-      await onCreateReposicion(requestIds);
+      await onCreateReposicion(requestIds, selectedFile);
       setRowSelection({});
       await fetchData(tableState);
     } catch (error) {
-      console.error("Error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Error al crear la reposición"
-      );
+      toast.error("Error al crear la reposición");
     }
   };
 
@@ -476,26 +460,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           </div>
 
           {mode === "requests" && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={handleSendRequests}
-                    disabled={!Object.keys(rowSelection).length}
-                    className="bg-emerald-600 hover:bg-emerald-700 transition-colors whitespace-nowrap"
-                  >
-                    <SendHorizontal className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Enviar</span>
-                    <Badge variant="secondary" className="ml-2">
-                      {Object.keys(rowSelection).length}
-                    </Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Enviar solicitudes seleccionadas
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <SubmitFile
+              onCreateReposicion={handleSendRequests}
+              selectedRequests={Object.keys(rowSelection)}
+            />
           )}
         </div>
 
