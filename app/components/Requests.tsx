@@ -32,7 +32,7 @@ const fetchRequests = async (status: string): Promise<number> => {
 
 const fetchRepositions = async (status: string): Promise<number> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/reposiciones?status=${status}&month=${currentMonth}&action=count`,
+    `${process.env.NEXT_PUBLIC_API_URL}/reposiciones?status=${status}&action=count`,
     {
       method: "GET",
       headers: {
@@ -48,6 +48,8 @@ const fetchRepositions = async (status: string): Promise<number> => {
   }
 
   const data = await response.json();
+  console.log("data", data);
+  console.log("data count", data.count);
   return data.count;
 };
 
