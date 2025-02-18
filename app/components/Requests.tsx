@@ -201,3 +201,45 @@ export const InRepositionRequests = () => {
     </div>
   );
 };
+
+export const InRepositionNumber = () => {
+  const [inRepositionRequests, setInRepositionRequests] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const count = useMotionValue(inRepositionRequests); // Iniciar con el valor actual
+  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchRequests("in_reposition");
+        setInRepositionRequests(data);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (inRepositionRequests > 0) {
+      const controls = animate(count, inRepositionRequests, { duration: 0.25 });
+      return () => controls.stop();
+    }
+  }, [inRepositionRequests, count]);
+
+  if (isLoading) {
+    return <Loader fullScreen={false} text="Cargando..." />;
+  }
+
+  return (
+    <div className="flex flex-row flex-wrap text-orange-500 items-center">
+      <motion.pre>{rounded}</motion.pre>
+    </div>
+  );
+};
