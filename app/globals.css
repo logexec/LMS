@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* :root {
   --primary: #e53430;
   --primary-light: #ff1a1a;
   --primary-dark: #b91c1c;
   --secondary: #5c5e5d;
   --secondary-dark: #3c3c3c;
   --secondary-darker: #2c2c2c;
-}
+} */
 
 .rule-gradient {
   width: 15rem;
@@ -23,7 +23,7 @@
 }
 
 .title {
-  color: var(--secondary);
+  color: #5c5e5d;
   font-weight: bold;
   font-style: italic;
   font-size: 1.25rem;
