@@ -1,18 +1,19 @@
 steps:
-  # Build con cache
+  # Construir la imagen del frontend con cache
   - name: "gcr.io/cloud-builders/docker"
     args:
-      - "build"
-      - "-t"
-      - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
-      - "--cache-from"
-      - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
-      - "--build-arg"
-      - "NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec/api"
-      - "."
-    id: "build"
+      [
+        "build",
+        "-t",
+        "gcr.io/logex-alfresco-180118/lms-frontend:latest",
+        "--build-arg",
+        "CACHE_BUST=$BUILD_ID",
+        "--cache-from",
+        "gcr.io/logex-alfresco-180118/lms-frontend:latest",
+        ".",
+      ]
 
-  # Deploy to Cloud Run
+  # Desplegar en Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
@@ -30,8 +31,6 @@ steps:
       - "8080"
       - "--set-env-vars"
       - "NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.lms.logex.com.ec,APP_KEY=base64:p7tR5ZsljVHi003Ob+gFZsFVJVVws7JxsD5FEwCLioQ="
-    id: "deploy"
-    waitFor: ["build"]
 
 images:
   - "gcr.io/logex-alfresco-180118/lms-frontend:latest"
