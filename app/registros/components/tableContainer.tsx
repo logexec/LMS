@@ -156,24 +156,6 @@ export default function TableContainer({
               onUpdateReposicion={handleUpdateReposicion}
             />
           </div>
-          <div className="col-span-2">
-            <h3 className="text-slate-400 font-semibold">
-              Reposiciones En revisión
-            </h3>
-            <RequestsTable<ReposicionProps>
-              mode={mode}
-              status={[Status.review]}
-            />
-          </div>
-          <div className="col-span-2">
-            <h3 className="text-slate-400 font-semibold">
-              Reposiciones Rechazadas
-            </h3>
-            <RequestsTable<ReposicionProps>
-              mode={mode}
-              status={[Status.rejected]}
-            />
-          </div>
         </div>
       )}
     </div>
