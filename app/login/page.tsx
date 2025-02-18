@@ -47,7 +47,7 @@ const LoginPage = () => {
     >
       <motion.span
         initial={{ opacity: 0, top: 50 }}
-        animate={{ opacity: 1, top: 0 }}
+        animate={{ opacity: 1, top: 4 }}
         transition={{ duration: 0.5, delay: 0.5 }}
         className="block w-fit h-fit m-0 p-0 fixed top-4 right-4"
       >
