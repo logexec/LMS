@@ -32,7 +32,6 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
-  SendHorizontal,
   Search,
   RefreshCw,
   Filter,
@@ -42,7 +41,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
@@ -371,7 +369,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       setRowSelection({});
       await fetchData(tableState);
     } catch (error) {
-      toast.error("Error al crear la reposición");
+      toast.error(
+        error instanceof Error ? error.message : "Error al crear la reposición"
+      );
+      console.error(error);
     }
   };
 

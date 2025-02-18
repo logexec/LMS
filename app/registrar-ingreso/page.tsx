@@ -39,13 +39,6 @@ const RegistroPage: React.FC = () => {
           <GastosForm />
         </TabsContent>
       </Tabs>
-
-      {/* TODO: Al enviar solicitud, agrupa todos los registros filtrados, suma
-      todos los valores y genera un registro de solicitud. (total y estado
-      (pending default))  */}
-
-      {/* TODO: Preguntar si esta seguro de enviar la solicitud.  */}
-
       {/* TODO: Agregar notificaciones: Si llega solicitud, que
       aparezca un numero junto al nombre del modulo  */}
     </div>

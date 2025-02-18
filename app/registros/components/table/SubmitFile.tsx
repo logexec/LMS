@@ -25,7 +25,7 @@ export function SubmitFile({
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const onDrop = (acceptedFiles: File[], _fileRejections: FileRejection[]) => {
+  const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setSelectedFile(acceptedFiles[0]);
     }
@@ -48,7 +48,10 @@ export function SubmitFile({
       setIsDialogOpen(false);
       setSelectedFile(null);
     } catch (error) {
-      toast.error("Error al enviar la solicitud");
+      toast.error(
+        error instanceof Error ? error.message : "Error al enviar la solicitud"
+      );
+      console.error(error);
     }
   };
 
