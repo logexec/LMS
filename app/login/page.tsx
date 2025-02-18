@@ -176,7 +176,7 @@ const LoginPage = () => {
               </div>
               <div className="flex items-center justify-between mt-4">
                 <Checkbox
-                  label="Mantener sesión iniciada"
+                  label="Mantener la sesión iniciada"
                   name="remember-me"
                   id="remember-me"
                   checked={rememberMe}
