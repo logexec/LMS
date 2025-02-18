@@ -16,7 +16,9 @@ export interface NavLink {
     url: string;
     icon: React.ElementType;
     requiredPermissions?: string[];
+    hidden?: boolean;
   }[];
+  hidden?: boolean;
 }
 
 export const sidenavLinks: NavLink[] = [
@@ -102,24 +104,20 @@ export const sidenavLinks: NavLink[] = [
     ],
   },
   {
-    category: "Presupuesto",
-    requiredPermissions: ["view_budget", "manage_budget"],
-    links: [
-      {
-        label: "Inicio",
-        url: "/presupuesto",
-        icon: LayoutDashboard,
-      },
-    ],
-  },
-  {
-    category: "Provisiones",
+    category: "Finanzas",
     requiredPermissions: ["manage_provisions"],
     links: [
       {
-        label: "Inicio",
-        url: "/provisiones",
+        label: "Presupuesto",
+        url: "/finanzas/presupuesto",
         icon: LayoutDashboard,
+        requiredPermissions: ["view_budget", "manage_budget"],
+      },
+      {
+        label: "Provisiones",
+        url: "/finanzas/provisiones",
+        icon: LayoutDashboard,
+        requiredPermissions: ["manage_provisions"],
       },
     ],
   },
@@ -133,5 +131,6 @@ export const sidenavLinks: NavLink[] = [
         icon: HandHelping,
       },
     ],
+    hidden: true,
   },
 ];

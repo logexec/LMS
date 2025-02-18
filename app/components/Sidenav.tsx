@@ -54,7 +54,8 @@ const Sidenav = () => {
       ...category,
       links: category.links.filter(
         (link) =>
-          !link.requiredPermissions || hasPermission(link.requiredPermissions)
+          !link.hidden &&
+          (!link.requiredPermissions || hasPermission(link.requiredPermissions))
       ),
     }));
 
