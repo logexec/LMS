@@ -51,11 +51,11 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
   // Para crear reposición
   const handleCreateReposicion = async (
     requestIds: string[],
-    file: File
+    attachment: File
   ): Promise<void> => {
     try {
       const formData = new FormData();
-      formData.append("attachment", file);
+      formData.append("attachment", attachment);
       requestIds.forEach((id) => formData.append("request_ids[]", id)); // ← Notación correcta para Laravel
 
       const response = await fetch(

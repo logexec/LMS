@@ -15,7 +15,7 @@ import { SendHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SubmitFileProps {
-  onCreateReposicion: (requestIds: string[], file: File) => Promise<void>;
+  onCreateReposicion: (requestIds: string[], attachment: File) => Promise<void>;
   selectedRequests: string[];
 }
 
