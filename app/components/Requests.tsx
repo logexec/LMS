@@ -30,27 +30,6 @@ const fetchRequests = async (status: string): Promise<number> => {
   return data.count;
 };
 
-const fetchRepositions = async (status: string): Promise<number> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/reposiciones?status=${status}&action=count`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${status} repositions`);
-  }
-
-  const data = await response.json();
-  return data.count;
-};
-
 export const PendingRequests = () => {
   const [requests, setRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,7 +169,7 @@ export const InRepositionRequests = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRepositions("pending");
+        const data = await fetchRequests("in_reposition");
         setInRepositionRequests(data);
       } catch (error) {
         toast.error(
@@ -233,7 +212,7 @@ export const InRepositionNumber = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRepositions("pending");
+        const data = await fetchRequests("in_reposition");
         setInRepositionNumber(data);
       } catch (error) {
         toast.error(

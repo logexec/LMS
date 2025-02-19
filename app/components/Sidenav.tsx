@@ -11,7 +11,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./sidenav.component.css";
 import { InRepositionNumber } from "./Requests";
-// import { toast } from "sonner";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -108,7 +107,7 @@ const Sidenav = () => {
         )}
       </AnimatePresence>
 
-      {/* Sidenav */}
+      {/* Sidebar */}
       <motion.aside
         {...sidenavAnimationProps}
         className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col overflow-y-auto bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-[17rem]"
