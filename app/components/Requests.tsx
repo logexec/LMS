@@ -62,7 +62,7 @@ export const PendingRequests = () => {
   }, [requests, count]);
 
   if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando solicitudes..." />;
+    return <Loader fullScreen={false} text="Cargando..." />;
   }
 
   return (
@@ -105,7 +105,7 @@ export const PaidRequests = () => {
   }, [paidRequests, count]);
 
   if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando solicitudes..." />;
+    return <Loader fullScreen={false} text="Cargando..." />;
   }
 
   return (
@@ -148,7 +148,7 @@ export const RejectedRequests = () => {
   }, [rejectedRequests, count]);
 
   if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando solicitudes..." />;
+    return <Loader fullScreen={false} text="Cargando..." />;
   }
 
   return (
@@ -191,54 +191,13 @@ export const InRepositionRequests = () => {
   }, [inRepositionRequests, count]);
 
   if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando solicitudes..." />;
+    return <Loader fullScreen={false} text="Cargando..." />;
   }
 
   return (
     <div className="flex flex-row flex-wrap text-indigo-500 items-center">
       <motion.pre>{rounded}</motion.pre>
       <span className="text-xs font-normal ml-2">En reposición</span>
-    </div>
-  );
-};
-
-export const InRepositionNumber = () => {
-  const [inRepositionNumber, setInRepositionNumber] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const count = useMotionValue(inRepositionNumber); // Iniciar con el valor actual
-  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await fetchRequests("in_reposition");
-        setInRepositionNumber(data);
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Error desconocido"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (inRepositionNumber > 0) {
-      const controls = animate(count, inRepositionNumber, { duration: 0.25 });
-      return () => controls.stop();
-    }
-  }, [inRepositionNumber, count]);
-
-  if (isLoading) {
-    return <Loader fullScreen={false} text="Cargando..." />;
-  }
-
-  return (
-    <div className="flex flex-row flex-wrap text-orange-500 items-center">
-      <motion.pre>{rounded}</motion.pre>
     </div>
   );
 };

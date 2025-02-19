@@ -10,7 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./sidenav.component.css";
-import { InRepositionNumber } from "./Requests";
+import { InRepositionRequests } from "./Requests";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -31,7 +31,7 @@ const Sidenav = () => {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const path = usePathname();
   const { hasPermission } = useAuth();
-  const notification = InRepositionNumber();
+  const notification = InRepositionRequests();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
