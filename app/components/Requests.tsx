@@ -233,7 +233,7 @@ export const InRepositionNumber = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRequests("pending");
+        const data = await fetchRepositions("pending");
         setInRepositionNumber(data);
       } catch (error) {
         toast.error(
