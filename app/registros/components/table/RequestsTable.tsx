@@ -476,7 +476,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="bg-slate-50 hover:bg-slate-50"
+                  className="bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-900"
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
@@ -511,10 +511,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                         transition-colors
                         ${
                           row.getIsSelected()
-                            ? "bg-slate-100"
-                            : "even:bg-slate-100"
+                            ? "bg-slate-100 dark:bg-slate-900"
+                            : "even:bg-slate-100 even:dark:bg-slate-900"
                         }
-                        hover:bg-slate-100
+                        hover:bg-slate-100 dark:hover:bg-slate-900
                       `}
                     >
                       {row.getVisibleCells().map((cell) => (
@@ -544,7 +544,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                 <TableRow>
                   <TableCell colSpan={table.getAllColumns().length}>
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2">
-                      <div className="text-sm text-slate-600">
+                      <div className="text-sm text-slate-600 dark:text-slate-400">
                         Mostrando {meta.per_page * (meta.current_page - 1) + 1}{" "}
                         a{" "}
                         {Math.min(
