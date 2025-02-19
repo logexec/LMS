@@ -367,7 +367,10 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
                 Proyecto {row.original.project}
               </DialogDescription>
             </DialogHeader>
-            <RequestDetailsTable requests={row.original.requests || []} />
+            <RequestDetailsTable
+              repositionId={row.original.id}
+              requests={row.original.requests || []}
+            />
           </DialogContent>
         </Dialog>
       );

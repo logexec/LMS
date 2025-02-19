@@ -22,9 +22,20 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { getAuthToken } from "@/services/auth.service";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
+  repositionId?: number | string;
 }
 
 export const fetchAccounts = async () => {
@@ -78,6 +89,24 @@ export const fetchVehicles = async () => {
   return response.json();
 };
 
+export const fetchFile = async (id: number | string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}?action=getFile`,
+    {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Error fetching vehicles");
+  }
+
+  return response.json();
+};
+
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig = {
     paid: {
@@ -114,7 +143,10 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
+const RequestDetailsTable = ({
+  requests,
+  repositionId,
+}: RequestDetailsTableProps) => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
   const [vehicles, setVehicles] = useState<TransportProps[]>([]);
@@ -122,19 +154,22 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filteredRequests, setFilteredRequests] = useState(requests);
+  const [fileData, setFileData] = useState<string>("");
 
   const loadData = useCallback(async () => {
     try {
       setIsRefreshing(true);
-      const [accountsData, responsiblesData, vehiclesData] = await Promise.all([
-        fetchAccounts(),
-        fetchResponsibles(),
-        fetchVehicles(),
-      ]);
+      const [accountsData, responsiblesData, vehiclesData, fileData] =
+        await Promise.all([
+          fetchAccounts(),
+          fetchResponsibles(),
+          fetchVehicles(),
+          fetchFile(repositionId!),
+        ]);
       setAccounts(accountsData);
       setResponsibles(responsiblesData);
       setVehicles(vehiclesData);
-      toast.success("Datos actualizados correctamente");
+      setFileData(fileData);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Error al cargar los datos");
@@ -190,6 +225,42 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-4"
           />
+          {/* Archivo Adjunto */}
+          <AlertDialog>
+            <AlertDialogTrigger className="border border-slate-400 px-4 py-2 rounded text-lg font-semibold shadow hover:shadow-none hover:scale-[.99] transition-all duration-200 active:scale-95">
+              Archivo adjunto
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-white max-h-[90vh] max-w-6xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Respaldo de reposición</AlertDialogTitle>
+                <AlertDialogDescription>
+                  <div className="relative w-full aspect-[9/16] lg:aspect-[16/9] h-[60vh] md:h-auto">
+                    <object
+                      data={fileData}
+                      className="absolute inset-0 w-full h-full"
+                    >
+                      <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center">
+                        <p className="text-center mb-4">
+                          No se puede mostrar el contenido del archivo
+                        </p>
+                        <a
+                          href={fileData}
+                          download
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-red-600 text-white rounded-md"
+                        >
+                          <Download /> Descargar docuemnto adjunto
+                        </a>
+                      </div>
+                    </object>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cerrar</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <TooltipProvider>
           <Tooltip>
@@ -251,9 +322,6 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
                   Transporte
                 </th>
               )}
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Archivo
-              </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
                 Observación
               </th>
@@ -325,29 +393,6 @@ const RequestDetailsTable = ({ requests }: RequestDetailsTableProps) => {
                           vehicleMap[request.transport_id]}
                       </td>
                     )}
-                    <td className="px-4 py-3">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <a
-                              href={`${process.env.NEXT_PUBLIC_API_URL}/requests/${request.id}?action=download`}
-                              //TODO: Cambiar a la ruta correcta desde el controller
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sky-600 hover:text-sky-800 flex items-center gap-2 transition-colors group-hover:underline"
-                            >
-                              <Download className="h-4 w-4" />
-                              <span className="hidden sm:inline">
-                                Descargar
-                              </span>
-                            </a>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Descargar archivo adjunto
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </td>
                     <td className="px-4 py-3 max-w-xs truncate">
                       <TooltipProvider>
                         <Tooltip>

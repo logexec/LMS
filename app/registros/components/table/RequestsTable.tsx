@@ -112,6 +112,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   onStatusChange,
   onCreateReposicion,
   onUpdateReposicion,
+  repositionId,
 }: DataTableProps<TData>) {
   // Estados para la tabla
   const [data, setData] = useState<TData[]>([]);

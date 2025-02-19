@@ -97,6 +97,7 @@ export interface DataTableProps<TData> {
     previousStatus: Status
   ) => Promise<void>;
   status?: Status | Status[];
+  repositionId?: number | string;
 }
 
 // Auth
