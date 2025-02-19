@@ -28,7 +28,8 @@ const fetchRequests = async (status: string): Promise<number> => {
   }
 
   const data = await response.json();
-  return data.count;
+  console.log("DATA de requests", data);
+  return data;
 };
 
 export const PendingRequests = () => {
