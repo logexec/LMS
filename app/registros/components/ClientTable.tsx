@@ -55,7 +55,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
   ): Promise<void> => {
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("attachment", file);
       requestIds.forEach((id) => formData.append("request_ids[]", id)); // ← Notación correcta para Laravel
 
       const response = await fetch(
