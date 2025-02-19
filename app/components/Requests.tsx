@@ -28,7 +28,6 @@ const fetchRequests = async (status: string): Promise<number> => {
   }
 
   const data = await response.json();
-  console.log("DATAAAAAAAAAA", data);
   return data;
 };
 
@@ -197,9 +196,8 @@ export const InRepositionRequests = () => {
   }
 
   return (
-    <div className="flex flex-row flex-wrap text-indigo-500 items-center">
+    <div className={`flex flex-row flex-wrap items-center`}>
       <motion.pre>{rounded}</motion.pre>
-      <span className="text-xs font-normal ml-2">En reposición</span>
     </div>
   );
 };
