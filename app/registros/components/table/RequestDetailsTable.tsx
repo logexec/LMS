@@ -101,10 +101,12 @@ export const fetchFile = async (id: number | string) => {
   );
 
   if (!response.ok) {
-    throw new Error("Error fetching vehicles");
+    throw new Error("Error obteniendo el archivo");
   }
 
-  return response.json();
+  const data = await response.json();
+
+  return data.file_url;
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -159,7 +161,7 @@ const RequestDetailsTable = ({
   const loadData = useCallback(async () => {
     try {
       setIsRefreshing(true);
-      const [accountsData, responsiblesData, vehiclesData, fileData] =
+      const [accountsData, responsiblesData, vehiclesData, fileUrl] =
         await Promise.all([
           fetchAccounts(),
           fetchResponsibles(),
@@ -169,7 +171,7 @@ const RequestDetailsTable = ({
       setAccounts(accountsData);
       setResponsibles(responsiblesData);
       setVehicles(vehiclesData);
-      setFileData(fileData);
+      setFileData(fileUrl); // Ahora almacena la URL correctamente
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Error al cargar los datos");
