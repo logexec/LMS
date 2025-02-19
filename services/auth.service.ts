@@ -20,6 +20,7 @@ export interface LoginResponse {
       id: number;
       name: string;
     }>;
+    projects: string[];
   };
 }
 
@@ -148,18 +149,15 @@ export const login = async (
       if (remember) {
         // Si remember está activo, el token durará 10 horas
         options.expires = 10 / 24; // 10 horas en días
-      } else {
-        // Si no, durará hasta que se cierre el navegador
-        // No establecemos expires para que sea una cookie de sesión
       }
 
       Cookies.set("jwt-token", data.jwt_token, options);
     }
-
     return data;
   } catch (error) {
     console.error("Error en el login:", error);
-    throw error;
+    toast.error("Hubo un problema al tratar de iniciar sesión");
+    throw Error;
   }
 };
 
