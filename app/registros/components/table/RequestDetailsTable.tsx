@@ -179,7 +179,7 @@ const RequestDetailsTable = ({
       setIsRefreshing(false);
       setIsLoading(false);
     }
-  }, []);
+  }, [repositionId]);
 
   useEffect(() => {
     loadData();
