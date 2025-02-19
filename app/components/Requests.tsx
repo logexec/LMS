@@ -28,7 +28,7 @@ const fetchRequests = async (status: string): Promise<number> => {
   }
 
   const data = await response.json();
-  console.log("DATA de requests", data);
+  console.log("DATAAAAAAAAAA", data);
   return data;
 };
 
