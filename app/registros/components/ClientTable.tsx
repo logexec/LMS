@@ -56,7 +56,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      requestIds.forEach((id) => formData.append("request_ids[]", id)); // Enviar como array real
+      requestIds.forEach((id) => formData.append("request_ids[]", id)); // ← Notación correcta para Laravel
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
