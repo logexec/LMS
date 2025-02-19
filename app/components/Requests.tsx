@@ -5,6 +5,7 @@ import Loader from "../Loader";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { getAuthToken } from "@/services/auth.service";
 import { toast } from "sonner";
+import { Status } from "@/utils/types";
 
 const currentMonth = new Date().getMonth() + 1;
 
@@ -169,7 +170,7 @@ export const InRepositionRequests = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRequests("in_reposition");
+        const data = await fetchRequests(Status.in_reposition);
         setInRepositionRequests(data);
       } catch (error) {
         toast.error(

@@ -138,6 +138,7 @@ export const login = async (
     }
 
     const data = await response.json();
+    console.log("User data:", data);
 
     // Guardar tokens con expiración según remember
     if (data.jwt_token) {
