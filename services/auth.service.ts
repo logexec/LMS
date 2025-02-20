@@ -140,7 +140,10 @@ export const login = async (
     const data = await response.json();
     console.log("User data:", data);
 
-    // Guardar tokens con expiración según remember
+    // Guardar el objeto user completo en localStorage, asegurando que incluya assignedProjects
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    // Guardar tokens con expiración según 'remember'
     if (data.jwt_token) {
       const options: Cookies.CookieAttributes = {
         secure: true,
@@ -148,8 +151,8 @@ export const login = async (
       };
 
       if (remember) {
-        // Si remember está activo, el token durará 10 horas
-        options.expires = 10 / 24; // 10 horas en días
+        // 10 horas en días
+        options.expires = 10 / 24;
       }
 
       Cookies.set("jwt-token", data.jwt_token, options);
@@ -181,6 +184,11 @@ export const refreshToken = async (): Promise<void> => {
     const data = await response.json();
     if (data.token) Cookies.set("token", data.token);
     if (data.jwt_token) Cookies.set("jwt-token", data.jwt_token);
+
+    // Actualizar el objeto user en localStorage si viene en la respuesta
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
   } catch (error) {
     console.error("Error refreshing token:", error);
     throw error;
