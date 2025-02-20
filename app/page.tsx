@@ -127,7 +127,7 @@ const Home = () => {
                   <RejectedRequests />
                 </motion.span>
                 <motion.span
-                  className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500 flex flex-row"
+                  className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500 flex flex-row justify-end items-center"
                   whileHover={{ scale: 1.05 }}
                 >
                   <InRepositionRequests />
