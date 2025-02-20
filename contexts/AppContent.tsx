@@ -2,16 +2,16 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useAuth } from "@/contexts/AuthContext";
-import Footer from "./components/Footer";
-import Navigation from "./components/Navigation";
-import Sidenav from "./components/Sidenav";
-import LoginPage from "./login/page";
-import Loader from "./Loader";
+import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import Sidenav from "@/app/components/Sidenav";
+import Navigation from "@/app/components/Navigation";
+import Footer from "@/app/components/Footer";
+import Loader from "@/app/Loader";
+import LoginPage from "@/app/login/page";
 const queryClient = new QueryClient();
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
