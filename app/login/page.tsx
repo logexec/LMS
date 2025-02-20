@@ -2,13 +2,13 @@
 import React, { useState } from "react";
 import { User, Lock } from "lucide-react";
 import { motion } from "motion/react";
-import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/public/images/logo_transparent.png";
 import logo_small from "@/public/images/logex_logo.png";
 import Image from "next/image";
 import { toast } from "sonner";
 import Checkbox from "../components/Checkbox";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { login } from "@/services/auth.service";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -16,7 +16,6 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
