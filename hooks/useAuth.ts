@@ -28,9 +28,10 @@ export const useAuth = () => {
 
   const hasProjects = (): string[] => {
     if (!context.user?.assignedProjects) return [];
-    return context.user.assignedProjects.map((project) =>
-      project.id.toString()
-    );
+
+    context.user.assignedProjects.map((p) => console.log("Proyectosssss", p));
+
+    return context.user.assignedProjects.map((project) => project);
   };
 
   return {
