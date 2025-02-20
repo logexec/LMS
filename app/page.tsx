@@ -98,7 +98,7 @@ const Home = () => {
         initial={{ opacity: 0, bottom: -500 }}
         animate={{ opacity: 1, bottom: 0 }}
         transition={{ duration: 0.5, delay: 0.75 }}
-        className="-mt-3 mb-4"
+        className="-mt-7 mb-4"
       >
         <span className="text-2xl font-bold text-opacity-70">
           {new Date().getHours() > 6 && new Date().getHours() < 12
@@ -112,7 +112,7 @@ const Home = () => {
           initial={{ opacity: 0, left: -50 }}
           animate={{ opacity: 1, left: 0 }}
           transition={{ duration: 0.75, delay: 0.5 }}
-          className="block text-sm text-stone-600 dark:text-stone-600"
+          className="block text-sm text-stone-600 dark:text-stone-400"
         >
           Hoy es{" "}
           {new Date().toLocaleDateString("es-EC", {
