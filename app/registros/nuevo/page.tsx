@@ -39,8 +39,7 @@ const RegistroPage: React.FC = () => {
           <GastosForm />
         </TabsContent>
       </Tabs>
-      {/* TODO: Agregar notificaciones: Si llega solicitud, que
-      aparezca un numero junto al nombre del modulo  */}
+      {/* TODO: Agregar notificaciones  */}
     </div>
   );
 };
