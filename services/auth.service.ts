@@ -20,7 +20,7 @@ export interface LoginResponse {
       id: number;
       name: string;
     }>;
-    assignedProjects: string[];
+    assigned_projects: string[];
   };
 }
 
