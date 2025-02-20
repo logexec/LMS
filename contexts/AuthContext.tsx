@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const formattedUser = formatUserData(response.user);
         setUser(formattedUser);
         localStorage.setItem("user", JSON.stringify(formattedUser));
-        router.push("/");
+        router.replace("/");
       }
     } catch (error) {
       console.error("Error en login:", error);
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       Cookies.remove("jwt-token");
       localStorage.removeItem("user");
       setUser(null);
-      router.push("/login");
+      router.replace("/login");
     }
   };
 
