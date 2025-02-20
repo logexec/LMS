@@ -1,4 +1,4 @@
-import { LuMonitor, LuUsers } from "react-icons/lu";
+import { LuUsers } from "react-icons/lu";
 import { SquarePlus, LayoutDashboard, Landmark, Wallet } from "lucide-react";
 import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
@@ -26,12 +26,6 @@ export const sidenavLinks: NavLink[] = [
     category: "Administración General",
     requiredPermissions: ["manage_users"],
     links: [
-      {
-        label: "Monitoreo",
-        url: "/monitoreo",
-        icon: LuMonitor,
-        requiredPermissions: ["manage_users", "view_users"],
-      },
       {
         label: "Usuarios",
         url: "/usuarios",
