@@ -140,8 +140,13 @@ export const login = async (
     const data = await response.json();
     console.log("User data:", data);
 
-    // Guardar el objeto user completo en localStorage, asegurando que incluya assignedProjects
+    // Guardar el objeto user completo en localStorage
     localStorage.setItem("user", JSON.stringify(data.user));
+    // Verifica lo que se guardó en localStorage
+    console.log(
+      "Usuario almacenado en localStorage:",
+      JSON.parse(localStorage.getItem("user")!)
+    );
 
     // Guardar tokens con expiración según 'remember'
     if (data.jwt_token) {
@@ -161,7 +166,7 @@ export const login = async (
   } catch (error) {
     console.error("Error en el login:", error);
     toast.error("Hubo un problema al tratar de iniciar sesión");
-    throw Error;
+    throw error;
   }
 };
 
@@ -188,6 +193,10 @@ export const refreshToken = async (): Promise<void> => {
     // Actualizar el objeto user en localStorage si viene en la respuesta
     if (data.user) {
       localStorage.setItem("user", JSON.stringify(data.user));
+      console.log(
+        "Usuario actualizado en localStorage:",
+        JSON.parse(localStorage.getItem("user")!)
+      );
     }
   } catch (error) {
     console.error("Error refreshing token:", error);
