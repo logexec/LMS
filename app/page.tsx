@@ -65,16 +65,11 @@ const subtractMinutes = (date: Date) => {
 
 const Home = () => {
   const [isShiftOver, setIsShiftOver] = useState(false);
-  const [canSeeRequests, setCanSeeRequests] = useState(false);
+  const [canSeeLogexInfo, setCanSeeLogexInfo] = useState(false);
   const user = useAuth();
 
   useEffect(() => {
-    setCanSeeRequests(
-      user.hasRole("admin") ||
-        user.hasRole("developer") ||
-        user.hasRole("custodio") ||
-        user.hasRole("auditor")
-    );
+    setCanSeeLogexInfo(user.hasRole("admin") || user.hasRole("developer"));
   }, [user]);
 
   useEffect(() => {
@@ -132,7 +127,7 @@ const Home = () => {
                   <RejectedRequests />
                 </motion.span>
                 <motion.span
-                  className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500"
+                  className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500 flex flex-row"
                   whileHover={{ scale: 1.05 }}
                 >
                   <InRepositionRequests />
@@ -145,7 +140,7 @@ const Home = () => {
           </Card>
         </motion.div>
 
-        {canSeeRequests && (
+        {canSeeLogexInfo && (
           <>
             <motion.div variants={fadeInUp}>
               <Card className="h-52 p-4 md:p-5">
