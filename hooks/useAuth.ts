@@ -26,9 +26,21 @@ export const useAuth = () => {
     return userPermissions.includes(permission);
   };
 
+  const assignedProjects = (projects: string | string[]): boolean => {
+    if (!context.user?.assignedProjects) return false;
+
+    const userProjects = context.user.assignedProjects.map((p) => p);
+
+    if (Array.isArray(projects)) {
+      return projects.some((p) => userProjects.includes(p));
+    }
+    return userProjects.includes(projects);
+  };
+
   return {
     ...context,
     hasRole,
     hasPermission,
+    assignedProjects,
   };
 };
