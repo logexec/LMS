@@ -26,26 +26,15 @@ export const useAuth = () => {
     return userPermissions.includes(permission);
   };
 
-  const hasProjects = (projects: string | string[]): boolean => {
-    if (!context.user?.assignedProjects.projects) return false;
+  const hasProjects = (): string[] => {
+    if (!context.user?.assignedProjects) return [];
 
-    const userProjects = context.user.assignedProjects.projects.map(
-      (p) => p.name
+    context.user.assignedProjects.projects.map((p) =>
+      console.log("Proyectosssss", p)
     );
 
-    if (Array.isArray(projects)) {
-      return projects.some((p) => userProjects.includes(p));
-    }
-    return userProjects.includes(projects);
+    return context.user.assignedProjects.projects.map((project) => project);
   };
-
-  // const hasProjects = (): string[] => {
-  //   if (!context.user?.assignedProjects) return [];
-
-  //   context.user.assignedProjects.map((p) => console.log("Proyectosssss", p));
-
-  //   return context.user.assignedProjects.map((project) => project);
-  // };
 
   return {
     ...context,
