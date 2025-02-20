@@ -92,7 +92,7 @@ const Home = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
-      className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6 lg:p-8"
+      className="min-h-screen p-4 md:p-6 lg:p-8"
     >
       <motion.h3
         initial={{ opacity: 0, bottom: -500 }}
