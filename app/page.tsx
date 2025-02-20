@@ -111,8 +111,9 @@ const Home = () => {
           initial={{ opacity: 0, left: -50 }}
           animate={{ opacity: 1, left: 0 }}
           transition={{ duration: 0.75, delay: 0.5 }}
-          className="text-sm text-stone-600 dark:text-stone-600"
+          className="block text-sm text-stone-600 dark:text-stone-600"
         >
+          Hoy es{" "}
           {new Date().toLocaleDateString("es-EC", {
             weekday: "long",
             day: "numeric",
