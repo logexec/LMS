@@ -134,7 +134,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto">
       <h1 className="text-2xl font-bold mb-5">{title}</h1>
       {mode === "requests" ? (
         <RequestsTable<RequestProps>

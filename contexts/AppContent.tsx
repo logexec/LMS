@@ -9,7 +9,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import Sidenav from "@/app/components/Sidenav";
 import Navigation from "@/app/components/Navigation";
-import Footer from "@/app/components/Footer";
 import Loader from "@/app/Loader";
 import LoginPage from "@/app/login/page";
 const queryClient = new QueryClient();
@@ -23,7 +22,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="relative min-h-screen bg-slate-100 dark:bg-slate-900 antialiased">
         <Toaster position="top-right" richColors closeButton expand />
         <Sidenav />
-        <div className="lg:ml-[17rem]">
+        <div className="md:ml-[17rem]">
           <Navigation />
           <AnimatePresence mode="wait">
             <motion.main
@@ -46,7 +45,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               </motion.div>
             </motion.main>
           </AnimatePresence>
-          <Footer />
         </div>
         {process.env.NODE_ENV === "development" && (
           <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60">
