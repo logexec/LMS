@@ -113,6 +113,8 @@ export interface User {
     id: number;
     name: string;
   }>;
+  assignedProjects: string[];
+  area?: string;
 }
 
 export interface LoginResponse {
