@@ -203,6 +203,20 @@ export interface Role {
   name: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface AssignedProjects {
+  id: number;
+  user_id: number;
+  projects: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ApiResponseRaw {
   data: User[];
   meta: {

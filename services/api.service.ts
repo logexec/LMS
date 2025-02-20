@@ -37,15 +37,23 @@ export const apiService = {
   getPermissions: () => fetchWithAuth(`/permissions`),
 
   // Projects
-  getProjects: async () => {
-    return await fetchWithAuth(`/projects`);
+  getProjects: async (projectIds?: string[]) => {
+    const queryParams = projectIds?.length
+      ? `?projects=${projectIds.join(",")}`
+      : "";
+
+    return await fetchWithAuth(`/projects${queryParams}`);
+  },
+
+  getProjectsByUser: async (userId: string) => {
+    return await fetchWithAuth(`/projects?user_id=${userId}`);
   },
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
     try {
       return await fetchWithAuth(`/users/${userId}/projects`, {
         method: "POST",
-        body: { projectIds } as unknown as BodyInit,
+        body: JSON.stringify({ projectIds }),
       });
     } catch (error) {
       console.error("Error updating projects:", error);
