@@ -91,13 +91,13 @@ const Home = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.25, delay: 0.5 }}
       className="min-h-screen p-4 md:p-6 lg:p-8"
     >
       <motion.h3
         initial={{ opacity: 0, bottom: -500 }}
         animate={{ opacity: 1, bottom: 0 }}
-        transition={{ duration: 0.5, delay: 0.25 }}
+        transition={{ duration: 0.5, delay: 0.75 }}
       >
         <span className="text-2xl font-bold">
           {new Date().getHours() > 6 && new Date().getHours() < 12
