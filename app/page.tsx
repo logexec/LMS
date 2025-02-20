@@ -98,6 +98,7 @@ const Home = () => {
         initial={{ opacity: 0, bottom: -500 }}
         animate={{ opacity: 1, bottom: 0 }}
         transition={{ duration: 0.5, delay: 0.75 }}
+        className="-mt-3 mb-4"
       >
         <span className="text-2xl font-bold">
           {new Date().getHours() > 6 && new Date().getHours() < 12
