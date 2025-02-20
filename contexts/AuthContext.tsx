@@ -21,6 +21,31 @@ interface AuthContextProps {
   handleLogout: () => Promise<void>;
 }
 
+interface RawAssignedProjectsObject {
+  id: number;
+  user_id: number;
+  projects: string[];
+}
+
+type RawAssignedProjects = RawAssignedProjectsObject | string[];
+
+// Define la interfaz para los datos crudos del usuario
+interface RawUser {
+  id: number | string;
+  name?: string;
+  email?: string;
+  area?: string;
+  role?: {
+    id: number;
+    name: string;
+  };
+  permissions?: {
+    id: number;
+    name: string;
+  }[];
+  assignedProjects?: RawAssignedProjects;
+}
+
 export const AuthContext = createContext<AuthContextProps | undefined>(
   undefined
 );
@@ -101,23 +126,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  function formatUserData(userData: User): User {
+  function formatUserData(userData: RawUser): User {
+    let formattedAssignedProjects: {
+      id: number;
+      user_id: number;
+      projects: string[];
+    } = {
+      id: 0,
+      user_id: 0,
+      projects: [],
+    };
+
+    // Si assignedProjects es un arreglo de strings, lo transformamos en objeto
+    if (Array.isArray(userData.assignedProjects)) {
+      formattedAssignedProjects = {
+        id: 0,
+        user_id: 0,
+        projects: userData.assignedProjects,
+      };
+    }
+    // Si es un objeto, extraemos sus propiedades
+    else if (
+      userData.assignedProjects &&
+      typeof userData.assignedProjects === "object"
+    ) {
+      formattedAssignedProjects = {
+        id: userData.assignedProjects.id ?? 0,
+        user_id: userData.assignedProjects.user_id ?? 0,
+        projects: Array.isArray(userData.assignedProjects.projects)
+          ? userData.assignedProjects.projects
+          : [],
+      };
+    }
+
     return {
-      id: userData?.id?.toString() || "",
-      name: userData?.name || "Usuario sin nombre",
-      email: userData?.email || "Sin correo",
-      area: userData?.area || "",
+      id: userData.id.toString(),
+      name: userData.name || "Usuario sin nombre",
+      email: userData.email || "No hay un correo asignado",
+      area: userData.area || "Sin área especificada",
       role: {
-        id: userData?.role?.id ?? 0,
-        name: userData?.role?.name || "user",
+        id: userData.role?.id ?? 0,
+        name: userData.role?.name || "user",
       },
-      permissions: Array.isArray(userData.permissions)
+      permissions: userData.permissions
         ? userData.permissions.map((p) => ({
-            id: p?.id ?? 0,
-            name: p?.name || "",
+            id: p.id,
+            name: p.name,
           }))
         : [],
-      assignedProjects: userData?.assignedProjects ?? [],
+      assignedProjects: formattedAssignedProjects,
     };
   }
 

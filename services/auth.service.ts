@@ -11,7 +11,6 @@ export interface LoginResponse {
     id: string;
     name: string;
     email: string;
-    proyecto?: string;
     role: {
       id: number;
       name: string;

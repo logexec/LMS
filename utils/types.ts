@@ -113,7 +113,11 @@ export interface User {
     id: number;
     name: string;
   }>;
-  assignedProjects: string[];
+  assignedProjects: {
+    id: number;
+    user_id: number;
+    projects: string[];
+  };
   area?: string;
 }
 
