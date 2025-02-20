@@ -28,6 +28,7 @@ import { getAuthToken } from "@/services/auth.service";
 import * as XLSX from "xlsx";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { LoadingState } from "@/utils/types";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GastosFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
@@ -327,11 +328,17 @@ const GastosForm: React.FC<GastosFormProps> = ({
 
   // const currentUser = useAuth().user;
 
+  const auth = useAuth();
+
   const fetchProjects = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, projects: true }));
+    const assignedProjectIds = auth.hasProjects();
+
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
+        `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/projects?projects=${assignedProjectIds.join(",")}`,
         {
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,

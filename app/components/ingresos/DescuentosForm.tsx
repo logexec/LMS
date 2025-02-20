@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +9,7 @@ import MassDiscountForm from "./MassDiscountForm";
 import ExcelUploadSection from "./ExcelUploadSection";
 import * as XLSX from "xlsx";
 import { getAuthToken } from "@/services/auth.service";
+import { useAuth } from "@/hooks/useAuth";
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -29,17 +31,25 @@ const DescuentosForm = () => {
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState("normal");
+  const auth = useAuth();
 
   // Fetch inicial de datos
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading((prev) => ({ ...prev, projects: true, areas: true }));
+      const assignedProjectIds = auth.hasProjects();
+
       try {
         const [projectsRes, areasRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
-            headers: { Authorization: `Bearer ${getAuthToken()}` },
-            credentials: "include",
-          }),
+          fetch(
+            `${
+              process.env.NEXT_PUBLIC_API_URL
+            }/projects?projects=${assignedProjectIds.join(",")}`,
+            {
+              headers: { Authorization: `Bearer ${getAuthToken()}` },
+              credentials: "include",
+            }
+          ),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/areas`, {
             headers: {
               Authorization: `Bearer ${getAuthToken()}`,
@@ -64,7 +74,6 @@ const DescuentosForm = () => {
               value: project.id,
             })
           ),
-
           areas: areasData.map((area: { name: string; id: string }) => ({
             label: area.name,
             value: area.id,
