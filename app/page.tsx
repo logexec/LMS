@@ -100,7 +100,7 @@ const Home = () => {
         transition={{ duration: 0.5, delay: 0.75 }}
         className="-mt-3 mb-4"
       >
-        <span className="text-2xl font-bold">
+        <span className="text-2xl font-bold text-opacity-70">
           {new Date().getHours() > 6 && new Date().getHours() < 12
             ? "¡Buen día, "
             : new Date().getHours() > 6 && new Date().getHours() < 12
