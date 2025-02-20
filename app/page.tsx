@@ -89,10 +89,38 @@ const Home = () => {
 
   return (
     <motion.div
-      initial="initial"
-      animate="animate"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25 }}
       className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6 lg:p-8"
     >
+      <motion.h3
+        initial={{ opacity: 0, bottom: -500 }}
+        animate={{ opacity: 1, bottom: 0 }}
+        transition={{ duration: 0.5, delay: 0.25 }}
+      >
+        <span className="text-2xl font-bold">
+          {new Date().getHours() > 6 && new Date().getHours() < 12
+            ? "¡Buen día, "
+            : new Date().getHours() > 6 && new Date().getHours() < 12
+            ? "¡Buenas tardes, "
+            : "¡Buenas noches, "}
+          {user.user?.name.split(" ")[0]}!
+        </span>
+        <motion.span
+          initial={{ opacity: 0, left: -50 }}
+          animate={{ opacity: 1, left: 0 }}
+          transition={{ duration: 0.75, delay: 0.5 }}
+          className="text-sm text-stone-600 dark:text-stone-600"
+        >
+          {new Date().toLocaleDateString("es-EC", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+        </motion.span>
+      </motion.h3>
       <motion.section
         variants={staggerContainer}
         className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6`}
