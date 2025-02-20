@@ -8,6 +8,7 @@ import {
   logout as logoutService,
 } from "@/services/auth.service";
 import { User } from "@/utils/types";
+import { toast } from "sonner";
 
 interface AuthContextProps {
   user: User | null;
@@ -80,6 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         router.replace("/");
       }
     } catch (error) {
+      toast.error("Hubo un problema al tratar de iniciar sesión.");
       console.error("Error en login:", error);
     } finally {
       setIsLoading(false);
