@@ -2,60 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.rule-gradient {
-  width: 15rem;
-  height: 1px;
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 255, 255, 0.75),
-    transparent
-  );
-}
-
-.title {
-  color: #5c5e5d;
-  font-weight: bold;
-  font-style: italic;
-  font-size: 1.25rem;
-}
-
-#Polygon-1,
-#Polygon-2,
-#Polygon-3,
-#Polygon-4,
-#Polygon-4,
-#Polygon-5 {
-  animation: float 1s infinite ease-in-out alternate;
-}
-#Polygon-2 {
-  animation-delay: 0.2s;
-}
-#Polygon-3 {
-  animation-delay: 0.4s;
-}
-#Polygon-4 {
-  animation-delay: 0.6s;
-}
-#Polygon-5 {
-  animation-delay: 0.8s;
-}
-
-@keyframes float {
-  100% {
-    transform: translateY(20px);
-  }
-}
-@media (max-width: 450px) {
-  svg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -250px;
-    margin-left: -190px;
-  }
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -135,5 +81,59 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+.rule-gradient {
+  width: 15rem;
+  height: 1px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.75),
+    transparent
+  );
+}
+
+.title {
+  color: #5c5e5d;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 1.25rem;
+}
+
+#Polygon-1,
+#Polygon-2,
+#Polygon-3,
+#Polygon-4,
+#Polygon-4,
+#Polygon-5 {
+  animation: float 1s infinite ease-in-out alternate;
+}
+#Polygon-2 {
+  animation-delay: 0.2s;
+}
+#Polygon-3 {
+  animation-delay: 0.4s;
+}
+#Polygon-4 {
+  animation-delay: 0.6s;
+}
+#Polygon-5 {
+  animation-delay: 0.8s;
+}
+
+@keyframes float {
+  100% {
+    transform: translateY(20px);
+  }
+}
+@media (max-width: 450px) {
+  svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -250px;
+    margin-left: -190px;
   }
 }
