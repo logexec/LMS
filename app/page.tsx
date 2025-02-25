@@ -124,7 +124,7 @@ const Home = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25, delay: 0.5 }}
-      className="min-h-screen p-4 md:p-6 lg:p-8"
+      className="min-h-screen p-4 md:p-6 lg:p-8 bg-white dark:bg-black"
     >
       <motion.h3
         initial={{ opacity: 0, bottom: -500 }}
@@ -132,7 +132,7 @@ const Home = () => {
         transition={{ duration: 0.5, delay: 0.75 }}
         className="-mt-7 mb-4"
       >
-        <span className="text-2xl font-bold text-opacity-70">
+        <span className="text-2xl font-bold text-opacity-70 text-black dark:text-white">
           {ecuadorHour >= 5 && ecuadorHour < 12
             ? "¡Buen día, "
             : ecuadorHour >= 12 && ecuadorHour < 18
