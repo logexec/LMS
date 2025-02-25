@@ -137,3 +137,10 @@
     margin-left: -190px;
   }
 }
+
+@media (min-width: 768px) {
+  .information-container {
+    margin-left: 17rem /* 272px */;
+    width: calc(100vw - 17rem /* 272px */);
+  }
+}

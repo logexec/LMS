@@ -22,7 +22,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="relative min-h-screen bg-slate-100 dark:bg-slate-900 antialiased">
         <Toaster position="top-right" richColors closeButton expand />
         <Sidenav />
-        <div className="md:ml-[17rem] md:w-[calc(100vw-17rem)]">
+        <div className="information-container">
           <Navigation />
           <AnimatePresence mode="wait">
             <motion.main

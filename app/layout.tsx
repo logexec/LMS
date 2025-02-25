@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AppContent from "@/contexts/AppContent";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "LMS | Logex Administración",
