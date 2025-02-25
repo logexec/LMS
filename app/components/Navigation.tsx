@@ -3,11 +3,28 @@ import { LogOut } from "lucide-react";
 import { motion } from "motion/react";
 import { logout } from "@/services/auth.service";
 
-const Navigation = () => {
-  const formatMinutes = (minutes: number) =>
-    minutes < 10 ? `0${minutes}` : minutes;
-  const formatHours = (hours: number) => (hours < 10 ? `0${hours}` : hours);
+// Get current hour in Ecuador time zone
+const getEcuadorHour = (date = new Date()) => {
+  return parseInt(
+    Intl.DateTimeFormat("es-EC", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/Guayaquil",
+    }).format(date)
+  );
+};
 
+// Get current minute in Ecuador time zone
+const getEcuadorMinute = (date = new Date()) => {
+  return parseInt(
+    Intl.DateTimeFormat("es-EC", {
+      minute: "numeric",
+      timeZone: "America/Guayaquil",
+    }).format(date)
+  );
+};
+
+const Navigation = () => {
   return (
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
@@ -23,9 +40,7 @@ const Navigation = () => {
           className="flex items-center space-x-2 text-sm md:text-base pointer-events-none select-none"
         >
           <div className="ml-9 flex items-center space-x-1 border-l border-gray-600 pl-2 lg:ml-0 ">
-            <span className="font-medium">
-              {formatHours(new Date().getHours())}
-            </span>
+            <span className="font-medium">{getEcuadorHour(new Date())}</span>
             <motion.span
               animate={{ opacity: [1, 0, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
@@ -33,9 +48,7 @@ const Navigation = () => {
             >
               :
             </motion.span>
-            <span className="font-medium">
-              {formatMinutes(new Date().getMinutes())}
-            </span>
+            <span className="font-medium">{getEcuadorMinute(new Date())}</span>
           </div>
         </motion.div>
 

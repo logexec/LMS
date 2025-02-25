@@ -29,8 +29,29 @@ const staggerContainer = {
   },
 };
 
-const subtractHours = (date: Date) => {
-  const currentHour = date.getHours();
+// Get current hour in Ecuador time zone
+const getEcuadorHour = (date = new Date()) => {
+  return parseInt(
+    Intl.DateTimeFormat("es-EC", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/Guayaquil",
+    }).format(date)
+  );
+};
+
+// Get current minute in Ecuador time zone
+const getEcuadorMinute = (date = new Date()) => {
+  return parseInt(
+    Intl.DateTimeFormat("es-EC", {
+      minute: "numeric",
+      timeZone: "America/Guayaquil",
+    }).format(date)
+  );
+};
+
+const subtractHours = (date = new Date()) => {
+  const currentHour = getEcuadorHour(date);
   if (currentHour < 8 || currentHour >= 16) {
     return 0;
   }
@@ -41,9 +62,9 @@ const subtractHours = (date: Date) => {
   return remainingHours;
 };
 
-const subtractMinutes = (date: Date) => {
-  const currentHour = date.getHours();
-  const currentMinute = date.getMinutes();
+const subtractMinutes = (date = new Date()) => {
+  const currentHour = getEcuadorHour(date);
+  const currentMinute = getEcuadorMinute(date);
 
   if (currentHour < 8 || currentHour >= 17) {
     return 0;
@@ -66,6 +87,7 @@ const subtractMinutes = (date: Date) => {
 const Home = () => {
   const [isShiftOver, setIsShiftOver] = useState(false);
   const [canSeeLogexInfo, setCanSeeLogexInfo] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const user = useAuth();
 
   useEffect(() => {
@@ -74,9 +96,9 @@ const Home = () => {
 
   useEffect(() => {
     const checkShiftStatus = () => {
-      setIsShiftOver(
-        subtractHours(new Date()) === 0 && subtractMinutes(new Date()) === 0
-      );
+      const now = new Date();
+      setCurrentTime(now);
+      setIsShiftOver(subtractHours(now) === 0 && subtractMinutes(now) === 0);
     };
     const interval = setInterval(checkShiftStatus, 60000);
 
@@ -86,6 +108,16 @@ const Home = () => {
       clearInterval(interval);
     };
   }, []);
+
+  const ecuadorHour = getEcuadorHour(currentTime);
+
+  const ecuadorDate = new Intl.DateTimeFormat("es-EC", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Guayaquil",
+  }).format(currentTime);
 
   return (
     <motion.div
@@ -101,9 +133,9 @@ const Home = () => {
         className="-mt-7 mb-4"
       >
         <span className="text-2xl font-bold text-opacity-70">
-          {new Date().getHours() > 6 && new Date().getHours() < 12
+          {ecuadorHour >= 5 && ecuadorHour < 12
             ? "¡Buen día, "
-            : new Date().getHours() > 6 && new Date().getHours() < 12
+            : ecuadorHour >= 12 && ecuadorHour < 18
             ? "¡Buenas tardes, "
             : "¡Buenas noches, "}
           {user.user?.name.split(" ")[0]}!
@@ -114,13 +146,7 @@ const Home = () => {
           transition={{ duration: 0.75, delay: 0.5 }}
           className="block text-sm text-stone-600 dark:text-stone-400"
         >
-          Hoy es{" "}
-          {new Date().toLocaleDateString("es-EC", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+          Hoy es {ecuadorDate}
         </motion.span>
       </motion.h3>
       <motion.section
@@ -218,11 +244,10 @@ const Home = () => {
             </span>
           ) : (
             <>
-              {subtractHours(new Date()) !== 1 ? "Quedan" : "Queda"}{" "}
-              {subtractHours(new Date())}{" "}
-              {subtractHours(new Date()) !== 1 ? "horas" : "hora"} y{" "}
-              {subtractMinutes(new Date())} minutos para que se termine la
-              jornada, ¡&Aacute;nimo! <span className="text-3xl">🙌🏻</span>
+              {subtractHours() !== 1 ? "Quedan" : "Queda"} {subtractHours()}{" "}
+              {subtractHours() !== 1 ? "horas" : "hora"} y {subtractMinutes()}{" "}
+              minutos para que se termine la jornada, ¡&Aacute;nimo!{" "}
+              <span className="text-3xl">🙌🏻</span>
             </>
           )}
         </motion.p>
