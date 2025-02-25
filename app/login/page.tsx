@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import Checkbox from "../components/Checkbox";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { login } from "@/services/auth.service";
-import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -17,8 +16,6 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +25,7 @@ const LoginPage = () => {
     try {
       await login(email, password, rememberMe);
       toast.success("¡Autenticación exitosa!");
-      router.replace("/");
+      window.location.href = "/";
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al iniciar sesión"
