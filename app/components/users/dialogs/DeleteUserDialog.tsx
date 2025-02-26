@@ -39,12 +39,9 @@ export const DeleteUserDialog = ({
         if (!open) handleClose();
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] md:max-w-lg">
         <DialogHeader>
           <DialogTitle>Eliminar Usuario</DialogTitle>
-          <DialogDescription>
-            Esta acción no se puede deshacer.
-          </DialogDescription>
         </DialogHeader>
         <Alert variant="destructive" className="bg-red-100 border-red-600">
           <AlertTriangle className="h-4 w-4 text-red-600" />
