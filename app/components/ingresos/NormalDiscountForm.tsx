@@ -29,6 +29,8 @@ interface NormalDiscountFormProps {
 }
 
 const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
+  options,
+  loading,
   onSubmit,
 }) => {
   const [normalFormData, setNormalFormData] = React.useState<NormalFormData>({
@@ -44,30 +46,49 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   });
 
   const [localOptions, setLocalOptions] = React.useState<OptionsState>({
-    projects: [],
+    projects: options.projects, // Usar los proyectos que vienen de props
     responsibles: [],
     transports: [],
     accounts: [],
-    areas: [],
+    areas: options.areas, // Usar las áreas que vienen de props
   });
 
   const [localLoading, setLocalLoading] = React.useState<LoadingState>({
-    submit: false,
-    projects: false,
+    submit: loading.submit,
+    projects: loading.projects,
     responsibles: false,
     transports: false,
     accounts: false,
-    areas: false,
+    areas: loading.areas,
   });
 
   const [formValid, setFormValid] = React.useState(false);
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>(
     {}
   );
+
+  // Actualizar localOptions cuando cambien las props
+  useEffect(() => {
+    setLocalOptions((prevOptions) => ({
+      ...prevOptions,
+      projects: options.projects,
+      areas: options.areas,
+    }));
+  }, [options.projects, options.areas]);
+
+  // Actualizar localLoading cuando cambien las props
+  useEffect(() => {
+    setLocalLoading((prevLoading) => ({
+      ...prevLoading,
+      submit: loading.submit,
+      projects: loading.projects,
+      areas: loading.areas,
+    }));
+  }, [loading.submit, loading.projects, loading.areas]);
+
   const fetchAccounts = useCallback(async (tipo: string) => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
-      // const response = await fetchWithAuth(`/accounts?account_type=${tipo}`);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_type=${tipo}`,
         {
@@ -176,39 +197,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     }
   }, []);
 
-  const fetchProjects = useCallback(async () => {
-    setLocalLoading((prev) => ({ ...prev, projects: true }));
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) throw new Error("Error al cargar proyectos");
-
-      const data = await response.json();
-      setLocalOptions((prev) => ({
-        ...prev,
-        projects: data.map((project: { name: string; id: string }) => ({
-          label: project.name,
-          value: project.id,
-        })),
-      }));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al cargar los proyectos"
-      );
-    } finally {
-      setLocalLoading((prev) => ({ ...prev, projects: false }));
-    }
-  }, []);
-
   useEffect(() => {
     if (normalFormData.tipo) {
       fetchAccounts(normalFormData.tipo);
@@ -220,12 +208,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       fetchResponsibles(normalFormData.proyecto);
     }
   }, [normalFormData.proyecto, normalFormData.tipo, fetchResponsibles]);
-
-  useEffect(() => {
-    if (normalFormData.tipo) {
-      fetchProjects();
-    }
-  }, [normalFormData.tipo, fetchProjects]);
 
   useEffect(() => {
     if (normalFormData.tipo === "transportista") {
