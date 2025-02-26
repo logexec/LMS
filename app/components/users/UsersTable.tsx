@@ -374,15 +374,15 @@ export const UsersTable = () => {
                       +{row.original.permissions.length - 3} más
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow">
+                  <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800">
                     <div className="space-y-1">
                       <p className="font-medium text-xs mb-1">
                         Permisos adicionales:
                       </p>
                       {row.original.permissions.slice(3).map((perm) => (
-                        <div key={perm.id} className="text-xs">
-                          • {formatPermissionName(perm.name)}
-                        </div>
+                        <ul key={perm.id} className="text-xs list-disc pl-4">
+                          <li>{formatPermissionName(perm.name)}</li>
+                        </ul>
                       ))}
                     </div>
                   </TooltipContent>
@@ -409,7 +409,7 @@ export const UsersTable = () => {
                         {project.name || "Proyecto sin identificar"}
                       </Badge>
                     </TooltipTrigger>
-                    <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow">
+                    <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800">
                       <div className="space-y-1">
                         <p className="font-medium text-xs mb-1">
                           {project.description}
@@ -433,7 +433,7 @@ export const UsersTable = () => {
                       +{row.original.projects.length - 3} más
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow">
+                  <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800">
                     <div className="space-y-1">
                       <p className="font-medium text-xs mb-1">
                         Proyectos adicionales:

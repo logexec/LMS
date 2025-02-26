@@ -39,25 +39,26 @@ export const apiService = {
 
   // Projects
   getProjects: async (projectIds?: string[]) => {
-    console.log("📞 API Call: getProjects", { projectIds });
     try {
       const queryParams = projectIds?.length
         ? `?projects=${projectIds.join(",")}`
         : "";
 
       const endpoint = `/projects/${queryParams}`;
-      console.log(`📞 API Endpoint: ${endpoint}`);
-
       const response = await fetchWithAuth(endpoint);
       console.log("📦 Raw projects API response:", response);
 
-      // Garantizar que siempre devolvemos un array
       if (Array.isArray(response)) {
         return response;
       } else if (response && typeof response === "object") {
-        if (Array.isArray(response.data)) {
-          return response.data;
-        }
+        const values = Object.values(response);
+
+        // Filtrar posibles valores que no sean objetos del array esperado
+        const filteredValues = values.filter(
+          (item) => typeof item === "object" && item !== null
+        );
+
+        return filteredValues;
       }
 
       console.warn(

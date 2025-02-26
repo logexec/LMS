@@ -136,7 +136,6 @@ interface Permission {
 interface Project {
   id: string;
   name: string;
-  code?: string;
   description?: string;
 }
 
@@ -217,8 +216,7 @@ export const EditUserDialog = ({
         // Mapear para asegurar que tengan la propiedad code
         return projectsData.map((project: Project) => ({
           ...project,
-          code:
-            project.code ||
+          name:
             (project.name ? project.name.substring(0, 4).toUpperCase() : "") ||
             `PRJ-${project.id}`,
         }));
@@ -229,7 +227,7 @@ export const EditUserDialog = ({
       }
     },
     enabled: isOpen && activeTab === "projects",
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 10, // 10 segundos
   });
 
   // Inicializar el formulario cuando cambia el usuario o se abre el diálogo
@@ -392,7 +390,7 @@ export const EditUserDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Editar Usuario</DialogTitle>
           <DialogDescription>
@@ -603,8 +601,7 @@ export const EditUserDialog = ({
                             htmlFor={`project-${project.id}`}
                             className="flex-1 cursor-pointer"
                           >
-                            <span className="font-medium">{project.code}</span>{" "}
-                            - {project.name}
+                            <span className="font-medium">{project.name}</span>
                             {project.description && (
                               <p className="text-xs text-muted-foreground">
                                 {project.description}

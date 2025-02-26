@@ -179,44 +179,30 @@ export const CreateUserDialog = ({
   const [projectSearchTerm, setProjectSearchTerm] = useState<string>("");
 
   // Fetch projects from the API
-  const { data: projectsData, isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
       try {
         const response = await apiService.getProjects();
+        // Usar la misma lógica simple del componente original
+        const projectsData = Array.isArray(response) ? response : [];
 
-        // Normalizar la respuesta
-        if (Array.isArray(response)) {
-          return response;
-        } else if (response && typeof response === "object") {
-          if (Array.isArray(response.data)) {
-            return response.data;
-          } else if (
-            response.data &&
-            typeof response.data === "object" &&
-            Array.isArray(response.data.items)
-          ) {
-            return response.data.items;
-          }
-        }
-
-        console.warn(
-          "Formato de respuesta inesperado en getProjects:",
-          response
-        );
-        return [];
+        // Mapear para asegurar que tengan la propiedad code
+        return projectsData.map((project: Project) => ({
+          ...project,
+          name:
+            (project.name ? project.name.substring(0, 4).toUpperCase() : "") ||
+            `PRJ-${project.id}`,
+        }));
       } catch (error) {
-        console.error("Error fetching projects:", error);
+        console.error("Error al cargar proyectos:", error);
         toast.error("Error al cargar los proyectos");
         return [];
       }
     },
-    enabled: isOpen && activeTab === "projects", // Cargar solo cuando el diálogo está abierto y la pestaña de proyectos está activa
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: isOpen && activeTab === "projects",
+    staleTime: 1000 * 10, // 10 segundos
   });
-
-  // Asegurarse de que projects sea siempre un array
-  const projects = Array.isArray(projectsData) ? projectsData : [];
 
   // Resetear el formulario cuando se cierra
   useEffect(() => {
