@@ -46,7 +46,6 @@ export const apiService = {
 
       const endpoint = `/projects/${queryParams}`;
       const response = await fetchWithAuth(endpoint);
-      console.log("📦 Raw projects API response:", response);
 
       if (Array.isArray(response)) {
         return response;
