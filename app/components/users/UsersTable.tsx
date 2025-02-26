@@ -399,13 +399,25 @@ export const UsersTable = () => {
           <div className="flex flex-wrap gap-1">
             {row.original.projects && row.original.projects.length > 0 ? (
               row.original.projects.slice(0, 3).map((project) => (
-                <Badge
-                  key={project.id}
-                  variant="outline"
-                  className="text-xs whitespace-nowrap"
-                >
-                  {project.name || "Proyecto sin identificar"}
-                </Badge>
+                <TooltipProvider key={project.id}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className="text-xs whitespace-nowrap"
+                      >
+                        {project.name || "Proyecto sin identificar"}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow">
+                      <div className="space-y-1">
+                        <p className="font-medium text-xs mb-1">
+                          {project.description}
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               ))
             ) : (
               <span className="text-gray-500 text-sm">Sin proyectos</span>
