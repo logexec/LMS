@@ -15,11 +15,9 @@ export function useRoles() {
       try {
         console.log("🔍 Fetching roles...");
         const response = await apiService.getRoles();
-        console.log("📦 Raw roles response:", response);
 
         // Verificar si la respuesta es directamente un array
         if (Array.isArray(response)) {
-          console.log("✅ Roles response is a direct array");
           return response;
         }
 
@@ -27,7 +25,6 @@ export function useRoles() {
         if (response && typeof response === "object") {
           // Si tiene la propiedad 'data' que es un array
           if (Array.isArray(response.data)) {
-            console.log("✅ Roles has a data property that is an array");
             return response.data;
           }
 
@@ -37,7 +34,6 @@ export function useRoles() {
             .map(([_, value]) => value as Role);
 
           if (rolesArray.length > 0) {
-            console.log("✅ Roles extracted from object with numeric keys");
             return rolesArray;
           }
         }
