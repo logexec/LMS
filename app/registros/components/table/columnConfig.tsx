@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { ColumnDef } from "@tanstack/react-table";
 import { ReposicionProps, RequestProps, Status } from "@/utils/types";
 import { Button } from "@/components/ui/button";
@@ -23,11 +21,12 @@ interface ColumnHelpers {
   onStatusChange?: (id: number, status: Status) => Promise<void>;
 }
 
+// Columnas para RequestProps
 export const getRequestColumns = ({
   accountMap,
   responsibleMap,
   vehicleMap,
-}: ColumnHelpers): ColumnDef<RequestProps, any>[] => [
+}: ColumnHelpers): ColumnDef<RequestProps>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -53,10 +52,7 @@ export const getRequestColumns = ({
     enableSorting: false,
     enableHiding: false,
   },
-  {
-    accessorKey: "unique_id",
-    header: "ID",
-  },
+  { accessorKey: "unique_id", header: "ID" },
   {
     accessorKey: "updated_at",
     header: "Fecha",
@@ -66,10 +62,7 @@ export const getRequestColumns = ({
       </p>
     ),
   },
-  {
-    accessorKey: "invoice_number",
-    header: "Factura o Vale",
-  },
+  { accessorKey: "invoice_number", header: "Factura o Vale" },
   {
     accessorKey: "account_id",
     header: "Cuenta",
@@ -88,10 +81,7 @@ export const getRequestColumns = ({
       </p>
     ),
   },
-  {
-    accessorKey: "project",
-    header: "Proyecto",
-  },
+  { accessorKey: "project", header: "Proyecto" },
   {
     accessorKey: "responsible_id",
     header: "Responsable",
@@ -127,7 +117,8 @@ export const getRequestColumns = ({
   },
 ];
 
-export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
+// Columnas para ReposicionProps
+export const getReposicionColumns = (): ColumnDef<ReposicionProps>[] => [
   {
     accessorKey: "unique_id",
     header: "ID",
@@ -270,7 +261,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
           "opacity-50"
         }`}
       >
-        {row.getValue("note") !== null || row.getValue("note") !== ""
+        {row.getValue("note") !== null && row.getValue("note") !== ""
           ? row.getValue("note")
           : "Sin observaciones"}
       </p>
@@ -280,18 +271,12 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
     accessorKey: "details",
     header: "Detalles",
     cell: ({ row }) => {
+      const requests = row.original.requests || [];
+      const id = row.original.id;
       return (
         <Dialog>
           <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={`${
-                (row.original.status === "rejected" ||
-                  row.original.status === "paid") &&
-                "opacity-70"
-              }`}
-            >
+            <Button variant="outline" size="sm">
               <FileText className="h-4 w-4 mr-1" />
               Detalle
             </Button>
@@ -303,7 +288,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
                 Proyecto {row.original.project}
               </DialogDescription>
             </DialogHeader>
-            <RequestDetailsTable requests={row.original.requests || []} />
+            <RequestDetailsTable requests={requests} repositionId={id} />
           </DialogContent>
         </Dialog>
       );
@@ -316,12 +301,13 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
   },
 ];
 
+// Función genérica para obtener columnas
 export function getColumns<T extends RequestProps | ReposicionProps>(
   mode: "requests" | "reposiciones",
   helpers?: ColumnHelpers
-): ColumnDef<T, any>[] {
+): ColumnDef<T>[] {
   if (mode === "requests" && helpers) {
-    return getRequestColumns(helpers) as ColumnDef<T, any>[];
+    return getRequestColumns(helpers) as ColumnDef<T>[];
   }
-  return getReposicionColumns() as ColumnDef<T, any>[];
+  return getReposicionColumns() as ColumnDef<T>[];
 }

@@ -1,14 +1,13 @@
 "use client";
 
-import React from "react";
-import { Download, RefreshCw, Search } from "lucide-react";
+import React, { JSX, useCallback, useEffect, useState } from "react";
+import { Download, Paperclip, RefreshCw, Search } from "lucide-react";
 import {
   AccountProps,
   RequestProps,
   ResponsibleProps,
   TransportProps,
 } from "@/utils/types";
-import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import Loader from "@/app/Loader";
 import { motion, AnimatePresence } from "motion/react";
@@ -32,13 +31,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import apiService from "@/services/api.service";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
   repositionId?: number | string;
 }
 
-export const fetchAccounts = async () => {
+export const fetchAccounts = async (): Promise<AccountProps[]> => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
@@ -53,7 +53,7 @@ export const fetchAccounts = async () => {
   return response.json();
 };
 
-export const fetchResponsibles = async () => {
+export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
     {
@@ -71,7 +71,7 @@ export const fetchResponsibles = async () => {
   return response.json();
 };
 
-export const fetchVehicles = async () => {
+export const fetchVehicles = async (): Promise<TransportProps[]> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
     {
@@ -89,51 +89,39 @@ export const fetchVehicles = async () => {
   return response.json();
 };
 
-export const fetchFile = async (id: number | string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}?action=getFile`,
-    {
-      headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      credentials: "include",
-    }
-  );
+export interface FileMetadata {
+  file_url: string;
+  file_name: string;
+}
 
-  if (!response.ok) {
-    throw new Error("Error obteniendo el archivo");
-  }
-
-  const data = await response.json();
-
-  return data.file_url;
-};
-
-const StatusBadge = ({ status }: { status: string }) => {
-  const statusConfig = {
+const StatusBadge = ({ status }: { status: string }): JSX.Element => {
+  const statusConfig: Record<string, { color: string; text: string }> = {
     paid: {
-      color: "bg-green-100 text-green-800 border-green-600",
+      color: "bg-green-100 text-green-800",
       text: "Pagado",
     },
     pending: {
-      color: "bg-yellow-100 text-orange-800 border-orange-600",
+      color: "bg-yellow-100 text-orange-800",
       text: "Pendiente",
     },
     rejected: {
-      color: "bg-red-100 text-red-800 border-red-600",
+      color: "bg-red-100 text-red-800",
       text: "Rechazado",
     },
     review: {
-      color: "bg-sky-100 text-sky-800 border-sky-600",
+      color: "bg-sky-100 text-sky-800",
       text: "Revisar",
     },
     in_reposition: {
-      color: "bg-indigo-100 text-indigo-800 border-indigo-600",
+      color: "bg-indigo-100 text-indigo-800",
       text: "En Reposición",
     },
   };
 
-  const config = statusConfig[status as keyof typeof statusConfig];
+  const config = statusConfig[status] || {
+    color: "bg-gray-100 text-gray-800",
+    text: status,
+  };
 
   return (
     <Badge
@@ -145,33 +133,61 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const RequestDetailsTable = ({
+const RequestDetailsTableComponent = ({
   requests,
   repositionId,
 }: RequestDetailsTableProps) => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
   const [vehicles, setVehicles] = useState<TransportProps[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [filteredRequests, setFilteredRequests] = useState(requests);
-  const [fileData, setFileData] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [filteredRequests, setFilteredRequests] =
+    useState<RequestProps[]>(requests);
+  const [fileData, setFileData] = useState<FileMetadata>();
+
+  const fetchFile = async (id: string | number) => {
+    try {
+      const response = await apiService.getRepositionFile(id.toString());
+      if (response.status === 404) {
+        console.warn("Archivo no encontrado para la reposición", id);
+        return null;
+      }
+      if (!response.ok) {
+        throw new Error("Error fetching file");
+      }
+      return response;
+    } catch (error) {
+      console.error("Error fetching file:", error);
+      return null;
+    }
+  };
 
   const loadData = useCallback(async () => {
     try {
       setIsRefreshing(true);
-      const [accountsData, responsiblesData, vehiclesData, fileUrl] =
-        await Promise.all([
-          fetchAccounts(),
-          fetchResponsibles(),
-          fetchVehicles(),
-          fetchFile(repositionId!),
-        ]);
-      setAccounts(accountsData);
-      setResponsibles(responsiblesData);
-      setVehicles(vehiclesData);
-      setFileData(fileUrl); // Ahora almacena la URL correctamente
+      const results = await Promise.allSettled([
+        fetchAccounts(),
+        fetchResponsibles(),
+        fetchVehicles(),
+        fetchFile(repositionId!),
+      ]);
+
+      if (results[0].status === "fulfilled") setAccounts(results[0].value);
+      else toast.error("Error al cargar cuentas");
+
+      if (results[1].status === "fulfilled") setResponsibles(results[1].value);
+      else toast.error("Error al cargar responsables");
+
+      if (results[2].status === "fulfilled") setVehicles(results[2].value);
+      else toast.error("Error al cargar vehículos");
+
+      if (results[3].status === "fulfilled") setFileData(results[3].value);
+      else {
+        console.error("Error fetching file:", results[3].reason);
+        setFileData(undefined);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Error al cargar los datos");
@@ -181,9 +197,12 @@ const RequestDetailsTable = ({
     }
   }, [repositionId]);
 
+  const [hasLoaded, setHasLoaded] = useState(false);
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!hasLoaded) {
+      loadData().then(() => setHasLoaded(true));
+    }
+  }, [loadData, hasLoaded]);
 
   useEffect(() => {
     const filtered = requests.filter((request) =>
@@ -196,21 +215,23 @@ const RequestDetailsTable = ({
     setFilteredRequests(filtered);
   }, [searchTerm, requests]);
 
-  // Mapear los datos para las columnas
-  const accountMap = accounts.reduce((acc, account) => {
+  const accountMap = accounts.reduce<Record<string, string>>((acc, account) => {
     acc[account.id] = account.name;
     return acc;
-  }, {} as Record<string, string>);
+  }, {});
 
-  const responsibleMap = responsibles.reduce((acc, responsible) => {
-    acc[responsible.id] = responsible.nombre_completo;
-    return acc;
-  }, {} as Record<string, string>);
+  const responsibleMap = responsibles.reduce<Record<string, string>>(
+    (acc, responsible) => {
+      acc[responsible.id] = responsible.nombre_completo;
+      return acc;
+    },
+    {}
+  );
 
-  const vehicleMap = vehicles.reduce((acc, vehicle) => {
+  const vehicleMap = vehicles.reduce<Record<string, string>>((acc, vehicle) => {
     acc[vehicle.id] = vehicle.name;
     return acc;
-  }, {} as Record<string, string>);
+  }, {});
 
   return (
     <motion.div
@@ -219,45 +240,66 @@ const RequestDetailsTable = ({
       className="space-y-4"
     >
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar en todas las columnas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 pr-4"
-          />
-          {/* Archivo Adjunto */}
+        <div className="flex flex-row gap-3 w-96">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Buscar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4"
+            />
+          </div>
           <AlertDialog>
-            <AlertDialogTrigger className="border border-slate-400 px-4 py-2 rounded text-lg font-semibold shadow hover:shadow-none hover:scale-[.99] transition-all duration-200 active:scale-95">
+            <AlertDialogTrigger className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow" disabled={!fileData}>
+              <Paperclip className="h-5 w-5 mr-2" />
               Archivo adjunto
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-white max-h-[90vh] max-w-6xl">
               <AlertDialogHeader>
                 <AlertDialogTitle>Respaldo de reposición</AlertDialogTitle>
-                <AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogDescription>
+                {fileData === null ? (
+                  <p className="text-center">
+                    No se encontró archivo adjunto para esta reposición.
+                  </p>
+                ) : fileData ? (
                   <div className="relative w-full aspect-[9/16] lg:aspect-[16/9] h-[60vh] md:h-auto">
                     <object
-                      data={fileData}
+                      key={fileData.file_name}
+                      data={fileData.file_name}
                       className="absolute inset-0 w-full h-full"
+                      type={
+                        fileData.file_name.split(".").pop() === "pdf"
+                          ? "application/pdf"
+                          : fileData.file_name.split(".").pop() === "jpg" ||
+                            fileData.file_name.split(".").pop() === "jpeg" ||
+                            fileData.file_name.split(".").pop() === "png"
+                          ? "image/jpeg"
+                          : "application/octet-stream"
+                      }
                     >
                       <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center">
                         <p className="text-center mb-4">
                           No se puede mostrar el contenido del archivo
                         </p>
                         <a
-                          href={fileData}
+                          href={fileData.file_url}
                           download
+                          target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 bg-red-600 text-white rounded-md"
+                          className="px-4 py-2 bg-red-600 text-white rounded-md flex flex-row gap-2 items-center"
                         >
-                          <Download /> Descargar docuemnto adjunto
+                          <Download /> Descargar documento adjunto
                         </a>
                       </div>
                     </object>
                   </div>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
+                ) : (
+                  <p className="text-center">Cargando archivo...</p>
+                )}
+              </AlertDialogDescription>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cerrar</AlertDialogCancel>
               </AlertDialogFooter>
@@ -415,5 +457,7 @@ const RequestDetailsTable = ({
     </motion.div>
   );
 };
+
+const RequestDetailsTable = React.memo(RequestDetailsTableComponent);
 
 export default RequestDetailsTable;

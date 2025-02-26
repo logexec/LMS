@@ -85,6 +85,25 @@ export const apiService = {
       throw error;
     }
   },
+
+  getRepositionFile: async (repositionId: string) => {
+    try {
+      const response = await fetchWithAuth(
+        `/reposiciones/${repositionId}/file`
+      );
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.warn(`Archivo no encontrado para reposición ${repositionId}`);
+          return null;
+        }
+        throw new Error(`Error fetching file for reposition ${repositionId}`);
+      }
+      return response;
+    } catch (error) {
+      console.error("Error in getRepositionFile:", error);
+      throw error;
+    }
+  },
 };
 
 export default apiService;
