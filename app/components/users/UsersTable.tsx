@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useMemo } from "react";
@@ -33,6 +31,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -42,32 +46,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  MoreVertical,
-  Search,
-  UserCog,
-  Shield,
-  Trash,
-  Filter,
-  FolderKanban,
-} from "lucide-react";
+import { MoreVertical, Search, UserCog, Trash, Filter } from "lucide-react";
 import { RiUserAddLine } from "react-icons/ri";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
-import {
-  CreateUserDialog,
-  EditUserDialog,
-  PermissionsDialog,
-  DeleteUserDialog,
-  ProjectsDialog,
-} from "./dialogs";
 import { TableSkeleton } from "./TableSkeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { type User, type Role, type Permission } from "@/types/dialogs";
-import React from "react";
+import { type User, type Role } from "@/types/dialogs";
 import { apiService } from "@/services/api.service";
 import { useRoles } from "@/hooks/useRoles";
+import { CreateUserDialog, DeleteUserDialog, EditUserDialog } from "./dialogs";
+import { formatPermissionName } from "@/lib/utils";
 
 interface ErrorResponse {
   response?: {
@@ -75,58 +65,57 @@ interface ErrorResponse {
       message: string;
     };
   };
+  message?: string;
 }
 
 // API functions
 const fetchUsers = async () => {
   try {
+    console.log("🔍 Fetching users...");
     const response = await apiService.getUsers();
-    return response.data;
+    let usersData;
+    // Manejar diferentes estructuras de respuesta
+    if (Array.isArray(response)) {
+      usersData = response;
+    } else if (response && typeof response === "object") {
+      if (Array.isArray(response.data)) {
+        usersData = response.data;
+      } else if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data &&
+        Array.isArray(response.data.data)
+      ) {
+        usersData = response.data.data;
+      } else {
+        console.log(
+          "⚠️ Unexpected response structure, defaulting to empty array"
+        );
+        usersData = [];
+      }
+    } else {
+      console.log(
+        "⚠️ Response is neither an array nor an object, defaulting to empty array"
+      );
+      usersData = [];
+    }
+    return usersData;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("❌ Error fetching users:", error);
     toast.error(
       error instanceof Error ? error.message : "Error al cargar los usuarios"
     );
-    throw error;
+    return []; // Retornar array vacío en caso de error
   }
-};
-
-const formatPermissionName = (permission: string): string => {
-  const permissionMap: { [key: string]: string } = {
-    manage_users: "Administrar Usuarios",
-    view_users: "Ver Usuarios",
-    create_users: "Crear Usuarios",
-    edit_users: "Editar Usuarios",
-    delete_users: "Eliminar Usuarios",
-    register_income: "Registrar Ingresos",
-    view_income: "Ver Ingresos",
-    edit_income: "Editar Ingresos",
-    view_discounts: "Ver Descuentos",
-    manage_discounts: "Administrar Descuentos",
-    view_expenses: "Ver Gastos",
-    manage_expenses: "Administrar Gastos",
-    view_requests: "Ver Solicitudes",
-    manage_requests: "Administrar Solicitudes",
-    view_reports: "Ver Reportes",
-    manage_reports: "Administrar Reportes",
-    manage_special_income: "Administrar Ingresos Especiales",
-    view_budget: "Ver Presupuesto",
-    manage_budget: "Administrar Presupuesto",
-    manage_provisions: "Administrar Provisiones",
-    view_provisions: "Ver Provisiones",
-    manage_support: "Administrar Soporte",
-  };
-  return permissionMap[permission] || permission;
 };
 
 export const UsersTable = () => {
   const queryClient = useQueryClient();
-  // Estados para diálogos
+
+  // Estados para diálogos - Simplificados a solo los que necesitamos
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // Estados para la tabla
@@ -155,6 +144,7 @@ export const UsersTable = () => {
       role_id: string;
       dob?: string;
       permissions: string[];
+      projectIds: string[];
     }) => {
       const response = await apiService.createUser(data);
       return response.data;
@@ -163,11 +153,18 @@ export const UsersTable = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario creado exitosamente");
       setIsCreateOpen(false);
-      window.location.reload();
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+        100
+      );
     },
     onError: (error: ErrorResponse) => {
       console.error("Error creating user:", error);
-      toast.error(error.response?.data?.message || "Error al crear el usuario");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Error al crear el usuario"
+      );
     },
   });
 
@@ -180,23 +177,27 @@ export const UsersTable = () => {
       data: { name: string; email: string; role_id: string };
     }) => {
       const response = await apiService.updateUser(id, data);
-      return response.data;
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario actualizado exitosamente");
       setIsEditOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      setSelectedUser(null);
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+        100
+      );
     },
     onError: (error: ErrorResponse) => {
       toast.error(
-        error.response?.data?.message || "Error al actualizar el usuario"
+        error.response?.data?.message ||
+          error.message ||
+          "Error al actualizar el usuario"
       );
     },
   });
 
+  // Mantener solo las mutaciones que se usarán con el nuevo EditUserDialog
   const updatePermissionsMutation = useMutation({
     mutationFn: async ({
       id,
@@ -206,39 +207,20 @@ export const UsersTable = () => {
       permissions: string[];
     }) => {
       const response = await apiService.updateUserPermissions(id, permissions);
-      return response.data;
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Permisos actualizados exitosamente");
-      setIsPermissionsOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    },
-    onError: (error: ErrorResponse) => {
-      toast.error(
-        error.response?.data?.message || "Error al actualizar los permisos"
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+        100
       );
     },
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiService.deleteUser(id);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Usuario eliminado exitosamente");
-      setIsDeleteOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    },
     onError: (error: ErrorResponse) => {
       toast.error(
-        error.response?.data?.message || "Error al eliminar el usuario"
+        error.response?.data?.message ||
+          error.message ||
+          "Error al actualizar los permisos"
       );
     },
   });
@@ -252,20 +234,20 @@ export const UsersTable = () => {
       projectIds: string[];
     }) => {
       const response = await apiService.updateUserProjects(id, projectIds);
-      console.table(response.data);
-      return response.data;
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Proyectos actualizados exitosamente. \nCargando...");
-      setIsProjectsOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      toast.success("Proyectos actualizados exitosamente");
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+        100
+      );
     },
     onError: (error: ErrorResponse) => {
       toast.error(
-        error.response?.data?.message || "Error al actualizar los proyectos"
+        error.response?.data?.message ||
+          error.message ||
+          "Error al actualizar los proyectos"
       );
       console.error(
         error.response?.data?.message || "Error al actualizar los proyectos"
@@ -273,18 +255,36 @@ export const UsersTable = () => {
     },
   });
 
-  // funciones auxiliares
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiService.deleteUser(id);
+      return response;
+    },
+    onSuccess: () => {
+      toast.success("Usuario eliminado exitosamente");
+      setIsDeleteOpen(false);
+      setSelectedUser(null);
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+        100
+      );
+    },
+    onError: (error: ErrorResponse) => {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Error al eliminar el usuario"
+      );
+    },
+  });
+
+  // Función simplificada para manejar acciones - Sólo edit y delete
   const handleAction = (action: string, user: User) => {
     setSelectedUser(user);
+
     switch (action) {
       case "edit":
         setIsEditOpen(true);
-        break;
-      case "permissions":
-        setIsPermissionsOpen(true);
-        break;
-      case "projects":
-        setIsProjectsOpen(true);
         break;
       case "delete":
         setIsDeleteOpen(true);
@@ -322,16 +322,23 @@ export const UsersTable = () => {
         accessorKey: "role_id",
         header: "Rol",
         cell: ({ row }: { row: Row<User> }) => {
-          const role = roles.find((r: Role) => r.id === row.original.role_id);
+          // Asegurarse que roles sea tratado siempre como array
+          const role = Array.isArray(roles)
+            ? roles.find(
+                (r: Role) =>
+                  r.id.toString() === row.original.role_id?.toString()
+              )
+            : null;
+
           return role ? (
-            <Badge
-              variant="outline"
-              className="capitalize bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300"
-            >
+            <Badge variant="outline" className="capitalize w-max">
               {role.name}
             </Badge>
           ) : (
-            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+            <Badge
+              variant="outline"
+              className="bg-yellow-50 text-yellow-800 w-max"
+            >
               Sin Rol
             </Badge>
           );
@@ -342,15 +349,46 @@ export const UsersTable = () => {
         header: "Permisos",
         cell: ({ row }: { row: Row<User> }) => (
           <div className="flex flex-wrap gap-1">
-            {row.original.permissions.map((perm: Permission) => (
-              <Badge
-                key={`perm-${perm.id}`}
-                variant="default"
-                className="text-xs whitespace-nowrap text-slate-500"
-              >
-                {formatPermissionName(perm.name)}
-              </Badge>
-            ))}
+            {Array.isArray(row.original.permissions) &&
+            row.original.permissions.length > 0 ? (
+              row.original.permissions.slice(0, 3).map((perm) => (
+                <Badge
+                  key={`perm-${perm.id}`}
+                  variant="outline"
+                  className="text-xs whitespace-nowrap text-slate-500"
+                >
+                  {formatPermissionName(perm.name)}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-gray-500 text-sm">Sin permisos</span>
+            )}
+            {row.original.permissions.length > 3 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className="text-xs whitespace-nowrap cursor-help"
+                    >
+                      +{row.original.permissions.length - 3} más
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow">
+                    <div className="space-y-1">
+                      <p className="font-medium text-xs mb-1">
+                        Permisos adicionales:
+                      </p>
+                      {row.original.permissions.slice(3).map((perm) => (
+                        <div key={perm.id} className="text-xs">
+                          • {formatPermissionName(perm.name)}
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         ),
       },
@@ -359,15 +397,45 @@ export const UsersTable = () => {
         header: "Proyectos",
         cell: ({ row }: { row: Row<User> }) => (
           <div className="flex flex-wrap gap-1">
-            {row.original.projects.map((project: any) => (
-              <Badge
-                key={project.id}
-                variant="outline"
-                className="text-xs whitespace-nowrap"
-              >
-                {project.code}
-              </Badge>
-            )) || "Sin proyectos"}
+            {row.original.projects && row.original.projects.length > 0 ? (
+              row.original.projects.slice(0, 3).map((project) => (
+                <Badge
+                  key={project.id}
+                  variant="outline"
+                  className="text-xs whitespace-nowrap"
+                >
+                  {project.name || "Proyecto sin identificar"}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-gray-500 text-sm">Sin proyectos</span>
+            )}
+            {row.original.projects.length > 3 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className="text-xs whitespace-nowrap cursor-help"
+                    >
+                      +{row.original.projects.length - 3} más
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-64 max-h-60 overflow-y-auto p-2 rounded shadow">
+                    <div className="space-y-1">
+                      <p className="font-medium text-xs mb-1">
+                        Proyectos adicionales:
+                      </p>
+                      {row.original.projects.slice(3).map((project) => (
+                        <div key={project.id} className="text-xs">
+                          • {project.name || "Proyecto sin identificar"}
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         ),
       },
@@ -389,20 +457,6 @@ export const UsersTable = () => {
               >
                 <UserCog className="mr-2 h-4 w-4" />
                 Editar Usuario
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleAction("permissions", row.original)}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Gestionar Permisos
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleAction("projects", row.original)}
-              >
-                <FolderKanban className="mr-2 h-4 w-4" />
-                Gestionar Proyectos
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -447,6 +501,28 @@ export const UsersTable = () => {
   );
 
   if (isLoadingUsers) return <TableSkeleton />;
+
+  // Mostrar mensaje cuando no hay usuarios
+  if (Array.isArray(users) && users.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-lg shadow">
+        <div className="text-6xl text-gray-300 mb-4">👤</div>
+        <h3 className="text-xl font-medium text-gray-900 mb-2">
+          No hay usuarios disponibles
+        </h3>
+        <p className="text-gray-500 mb-4">
+          No se encontraron usuarios para mostrar en la tabla.
+        </p>
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          <RiUserAddLine className="h-4 w-4 mr-2" />
+          Crear primer usuario
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -592,9 +668,16 @@ export const UsersTable = () => {
         </div>
       </div>
 
+      {/* Sólo mantener los diálogos necesarios */}
       <CreateUserDialog
         isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        onClose={() => {
+          setIsCreateOpen(false);
+          setTimeout(
+            () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+            100
+          );
+        }}
         onSubmit={(data) => {
           createUserMutation.mutate(data);
         }}
@@ -606,59 +689,79 @@ export const UsersTable = () => {
         user={selectedUser}
         roles={roles}
         isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
+        onClose={() => {
+          setIsEditOpen(false);
+          setSelectedUser(null);
+          setTimeout(
+            () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+            100
+          );
+        }}
         onSubmit={(data) => {
           if (selectedUser) {
-            const { name = "", email = "", role_id = "" } = data;
+            // Actualizar información básica
             updateUserMutation.mutate({
               id: selectedUser.id,
-              data: { name, email, role_id },
+              data: {
+                name: data.name,
+                email: data.email,
+                role_id: data.role_id,
+              },
             });
-          }
-        }}
-        isLoading={updateUserMutation.isPending}
-      />
 
-      <PermissionsDialog
-        user={selectedUser}
-        isOpen={isPermissionsOpen}
-        onClose={() => setIsPermissionsOpen(false)}
-        onSubmit={(permissions) => {
-          if (selectedUser) {
-            updatePermissionsMutation.mutate({
-              id: selectedUser.id,
-              permissions,
-            });
+            // Solo si han cambiado los permisos, actualizar
+            const currentPermissions = selectedUser.permissions.map((p) =>
+              p.id.toString()
+            );
+            if (
+              JSON.stringify([...data.permissions].sort()) !==
+              JSON.stringify([...currentPermissions].sort())
+            ) {
+              updatePermissionsMutation.mutate({
+                id: selectedUser.id,
+                permissions: data.permissions,
+              });
+            }
+
+            // Solo si han cambiado los proyectos, actualizar
+            const currentProjects = selectedUser.projects.map((p) =>
+              p.id.toString()
+            );
+            if (
+              JSON.stringify([...data.projectIds].sort()) !==
+              JSON.stringify([...currentProjects].sort())
+            ) {
+              updateProjectsMutation.mutate({
+                id: selectedUser.id,
+                projectIds: data.projectIds,
+              });
+            }
           }
         }}
-        isLoading={updatePermissionsMutation.isPending}
+        isLoading={
+          updateUserMutation.isPending ||
+          updatePermissionsMutation.isPending ||
+          updateProjectsMutation.isPending
+        }
       />
 
       <DeleteUserDialog
         user={selectedUser}
         isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setSelectedUser(null);
+          setTimeout(
+            () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+            100
+          );
+        }}
         onConfirm={() => {
           if (selectedUser) {
             deleteUserMutation.mutate(selectedUser.id);
           }
         }}
         isLoading={deleteUserMutation.isPending}
-      />
-
-      <ProjectsDialog
-        user={selectedUser}
-        isOpen={isProjectsOpen}
-        onClose={() => setIsProjectsOpen(false)}
-        onSubmit={(projectIds) => {
-          if (selectedUser) {
-            updateProjectsMutation.mutate({
-              id: selectedUser.id,
-              projectIds,
-            });
-          }
-        }}
-        isLoading={updateProjectsMutation.isPending}
       />
     </>
   );

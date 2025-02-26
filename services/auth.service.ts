@@ -39,7 +39,7 @@ export const fetchWithAuth = async (
 
   const headers = {
     "Content-Type": "application/json",
-    Accept: "application/json", // Forzar respuesta JSON
+    Accept: "application/json",
     Authorization: `Bearer ${token}`,
     ...options.headers,
   };
@@ -64,22 +64,48 @@ export const fetchWithAuth = async (
       throw new Error("No autorizado");
     }
 
-    const data = await response.json();
+    // Verificar si la respuesta tiene contenido antes de intentar parsearlo
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        const data = await response.json();
 
-    if (
-      data.message?.toLowerCase().includes("token") &&
-      data.message?.toLowerCase().includes("expired")
-    ) {
-      handleSessionExpired();
-      throw new Error("Sesión expirada");
+        if (
+          data.message?.toLowerCase().includes("token") &&
+          data.message?.toLowerCase().includes("expired")
+        ) {
+          handleSessionExpired();
+          throw new Error("Sesión expirada");
+        }
+
+        // Añadir la propiedad ok para consistencia
+        return { ...data, ok: response.ok };
+      } catch (error) {
+        console.error("Error al parsear JSON:", error);
+        // Si falla al parsear JSON pero la respuesta fue exitosa
+        if (response.ok) {
+          return { ok: true, message: "Operación exitosa" };
+        }
+        throw new Error("Error al procesar la respuesta");
+      }
+    } else {
+      // Para respuestas no-JSON
+      return {
+        ok: response.ok,
+        status: response.status,
+        message: response.ok ? "Operación exitosa" : "Error en la operación",
+      };
     }
-
-    return data;
   } catch (error) {
     if (error instanceof Error && error.message.includes("expired")) {
       handleSessionExpired();
     }
-    throw error;
+    // Mejorar el objeto de error para React Query
+    throw {
+      message: error instanceof Error ? error.message : "Error desconocido",
+      isAuthError:
+        error instanceof Error && error.message.includes("autorizado"),
+    };
   }
 };
 

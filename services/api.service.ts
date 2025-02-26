@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { fetchWithAuth } from "@/services/auth.service";
 
@@ -38,11 +39,35 @@ export const apiService = {
 
   // Projects
   getProjects: async (projectIds?: string[]) => {
-    const queryParams = projectIds?.length
-      ? `?projects=${projectIds.join(",")}`
-      : "";
+    console.log("📞 API Call: getProjects", { projectIds });
+    try {
+      const queryParams = projectIds?.length
+        ? `?projects=${projectIds.join(",")}`
+        : "";
 
-    return await fetchWithAuth(`/projects${queryParams}`);
+      const endpoint = `/projects/${queryParams}`;
+      console.log(`📞 API Endpoint: ${endpoint}`);
+
+      const response = await fetchWithAuth(endpoint);
+      console.log("📦 Raw projects API response:", response);
+
+      // Garantizar que siempre devolvemos un array
+      if (Array.isArray(response)) {
+        return response;
+      } else if (response && typeof response === "object") {
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+      }
+
+      console.warn(
+        "⚠️ Unexpected response format in getProjects, defaulting to empty array"
+      );
+      return [];
+    } catch (error) {
+      console.error("❌ Error in getProjects:", error);
+      throw error;
+    }
   },
 
   getProjectsByUser: async (userId: string) => {
