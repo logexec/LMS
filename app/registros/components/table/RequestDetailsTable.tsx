@@ -25,7 +25,6 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -251,7 +250,10 @@ const RequestDetailsTableComponent = ({
             />
           </div>
           <AlertDialog>
-            <AlertDialogTrigger className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow" disabled={!fileData}>
+            <AlertDialogTrigger
+              className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow disabled:opacity-50 disabled:cursor-progress"
+              disabled={!fileData}
+            >
               <Paperclip className="h-5 w-5 mr-2" />
               Archivo adjunto
             </AlertDialogTrigger>
@@ -259,7 +261,7 @@ const RequestDetailsTableComponent = ({
               <AlertDialogHeader>
                 <AlertDialogTitle>Respaldo de reposición</AlertDialogTitle>
               </AlertDialogHeader>
-              <AlertDialogDescription>
+              <div>
                 {fileData === null ? (
                   <p className="text-center">
                     No se encontró archivo adjunto para esta reposición.
@@ -273,10 +275,12 @@ const RequestDetailsTableComponent = ({
                       type={
                         fileData.file_name.split(".").pop() === "pdf"
                           ? "application/pdf"
-                          : fileData.file_name.split(".").pop() === "jpg" ||
-                            fileData.file_name.split(".").pop() === "jpeg" ||
-                            fileData.file_name.split(".").pop() === "png"
+                          : fileData.file_name.split(".").pop() === "jpg"
+                          ? "application/jpg"
+                          : fileData.file_name.split(".").pop() === "jpeg"
                           ? "image/jpeg"
+                          : fileData.file_name.split(".").pop() === "png"
+                          ? "image/png"
                           : "application/octet-stream"
                       }
                     >
@@ -299,7 +303,7 @@ const RequestDetailsTableComponent = ({
                 ) : (
                   <p className="text-center">Cargando archivo...</p>
                 )}
-              </AlertDialogDescription>
+              </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cerrar</AlertDialogCancel>
               </AlertDialogFooter>
