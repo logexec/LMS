@@ -9,8 +9,8 @@ import logo from "@/public/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import "./sidenav.component.css";
 import { InRepositionRequests } from "./Requests";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -108,89 +108,91 @@ const Sidenav = () => {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside
-        {...sidenavAnimationProps}
-        className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col overflow-y-auto bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-[17rem]"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6 flex justify-center h-9 w-full mx-auto relative"
+      <ScrollArea>
+        <motion.aside
+          {...sidenavAnimationProps}
+          className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-[17rem]"
         >
-          <Link href="/" className="block">
-            <Image
-              width={175}
-              height={100}
-              priority
-              src={logo.src}
-              alt="LogeX logo"
-              className="object-contain"
-              sizes="(max-width: 760px) 100cw, 150px"
-            />
-          </Link>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6 flex justify-center h-9 w-full mx-auto relative"
+          >
+            <Link href="/" className="block">
+              <Image
+                width={175}
+                height={100}
+                priority
+                src={logo.src}
+                alt="LogeX logo"
+                className="object-contain"
+                sizes="(max-width: 760px) 100cw, 150px"
+              />
+            </Link>
+          </motion.div>
 
-        <div className="flex flex-col space-y-6 overflow-y-auto">
-          {filteredNavLinks.map((item, categoryIndex) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + categoryIndex * 0.1 }}
-              key={item.category}
-              className="flex flex-col"
-            >
-              <h3 className="mb-2 text-sm font-semibold text-slate-400">
-                {item.category}
-              </h3>
-              <div className="mb-2 h-0.5 bg-gradient-to-r from-red-600 to-transparent" />
-              <ul className="space-y-1">
-                {item.links.map((link, linkIndex) => (
-                  <motion.li
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      delay: 0.3 + categoryIndex * 0.1 + linkIndex * 0.05,
-                    }}
-                    key={link.label}
-                  >
-                    <Link
-                      href={link.url}
-                      className={`group flex items-center justify-between rounded-lg p-2 text-sm transition-all duration-200
+          <div className="flex flex-col space-y-6 overflow-y-auto">
+            {filteredNavLinks.map((item, categoryIndex) => (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + categoryIndex * 0.1 }}
+                key={item.category}
+                className="flex flex-col"
+              >
+                <h3 className="mb-2 text-sm font-semibold text-slate-400">
+                  {item.category}
+                </h3>
+                <div className="mb-2 h-0.5 bg-gradient-to-r from-red-600 to-transparent" />
+                <ul className="space-y-1">
+                  {item.links.map((link, linkIndex) => (
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        delay: 0.3 + categoryIndex * 0.1 + linkIndex * 0.05,
+                      }}
+                      key={link.label}
+                    >
+                      <Link
+                        href={link.url}
+                        className={`group flex items-center justify-between rounded-lg p-2 text-sm transition-all duration-200
                         ${
                           path === link.url
                             ? "bg-red-600 text-white"
                             : "text-slate-300 hover:bg-red-600/30 hover:text-white"
                         }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <link.icon className="h-5 w-5" />
-                        <span>{link.label}</span>
-                      </div>
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <link.icon className="h-5 w-5" />
+                          <span>{link.label}</span>
+                        </div>
 
-                      {link.url === "/registros/reposiciones" && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={`flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-medium
+                        {link.url === "/registros/reposiciones" && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className={`flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-medium
                             ${
                               path === link.url
                                 ? "bg-white text-red-600"
                                 : "bg-red-600 text-white"
                             }`}
-                        >
-                          {notification}
-                        </motion.span>
-                      )}
-                    </Link>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
-        </div>
-      </motion.aside>
+                          >
+                            {notification}
+                          </motion.span>
+                        )}
+                      </Link>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </motion.aside>
+      </ScrollArea>
     </>
   );
 };
