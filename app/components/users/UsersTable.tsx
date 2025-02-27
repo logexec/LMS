@@ -297,26 +297,59 @@ export const UsersTable = () => {
       {
         accessorKey: "name",
         header: "Usuario",
-        cell: ({ row }: { row: Row<User> }) => (
-          <div className="flex items-center space-x-4">
-            <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
-              <span className="text-slate-600 font-medium">
-                {row.original.name.charAt(0).toUpperCase()}
-              </span>
+        cell: ({ row }: { row: Row<User> }) => {
+          const hasPhone = row.original.phone;
+          console.log("Row original", row.original);
+
+          return hasPhone ? (
+            <div className="flex items-center space-x-4">
+              <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="text-slate-600 font-medium">
+                  {row.original.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-medium text-slate-900">
+                  {row.original.name}
+                </h3>
+                <a
+                  href={`mailto:${row.original.email}`}
+                  className="text-sm text-red-600 hover:text-red-700 transition-colors"
+                >
+                  {row.original.email}
+                </a>
+                <a
+                  href={`tel:${row.original.phone}`}
+                  className="text-xs text-slate-600 hover:text-slate-700 transition-colors"
+                >
+                  {row.original.phone}
+                </a>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium text-slate-900">
-                {row.original.name}
-              </h3>
-              <a
-                href={`mailto:${row.original.email}`}
-                className="text-sm text-red-600 hover:text-red-700 transition-colors"
-              >
-                {row.original.email}
-              </a>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="text-slate-600 font-medium">
+                  {row.original.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-medium text-slate-900">
+                  {row.original.name}
+                </h3>
+                <a
+                  href={`mailto:${row.original.email}`}
+                  className="text-sm text-red-600 hover:text-red-700 transition-colors"
+                >
+                  {row.original.email}
+                </a>
+                <p className="text-xs text-slate-600 hover:text-slate-700 transition-colors">
+                  Sin teléfono disponible
+                </p>
+              </div>
             </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         accessorKey: "role_id",
