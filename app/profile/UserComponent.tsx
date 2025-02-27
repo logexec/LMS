@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { CogIcon, User2Icon } from "lucide-react";
+import { EditIcon, User2Icon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTitle,
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
+import { User } from "@/utils/types";
 
 interface Project {
   id: string;
@@ -24,21 +25,10 @@ interface Project {
   description?: string;
 }
 
-interface UserProfileProps {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    dob?: string;
-    phone?: string;
-    role: { name: string };
-  };
-}
-
-const UserProfileComponent = ({ user }: UserProfileProps) => {
+const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
   // Query de proyectos
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
-    queryKey: ["projects"],
+    queryKey: ["projects", id],
     queryFn: async () => {
       try {
         const response = await apiService.getProjects();
@@ -46,8 +36,7 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
         return projectsData.map((project: Project) => ({
           ...project,
           name:
-            (project.name ? project.name.substring(0, 4).toUpperCase() : "") ||
-            `PRJ-${project.id}`,
+            project.name?.substring(0, 4).toUpperCase() || `PRJ-${project.id}`,
         }));
       } catch (error) {
         console.error("Error al cargar proyectos:", error);
@@ -59,10 +48,10 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
   });
 
   // Estados para los campos del formulario de perfil
-  const [dob, setDob] = useState<Date | undefined>(
-    user.dob ? new Date(user.dob) : undefined
+  const [cumple, setCumple] = useState<Date | undefined>(
+    dob ? new Date(dob) : undefined
   );
-  const [phone, setPhone] = useState(user.phone || "");
+  const [telefono, setTelefono] = useState(phone || "");
   const [password, setPassword] = useState("");
 
   // Manejo del submit del formulario
@@ -71,22 +60,22 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
     try {
       const updateData: { dob?: string; phone?: string; password?: string } = {
         // Formatear la fecha a YYYY-MM-DD si está definida
-        dob: dob ? dob.toISOString().split("T")[0] : undefined,
-        phone,
+        dob: cumple?.toISOString().split("T")[0]
+          ? cumple?.toISOString().split("T")[0]
+          : undefined,
+        phone: telefono,
       };
-      if (password) {
-        updateData.password = password;
+      if (!password.trim()) {
+        delete updateData.password;
       }
-      // Se asume que el id del usuario está en user.id
-      await apiService.updateUserProfile(user.id, updateData);
+
+      await apiService.updateUserProfile(id, updateData);
       toast.success("Perfil actualizado correctamente");
     } catch (error) {
       console.error("Error actualizando perfil", error);
       toast.error("Error actualizando perfil");
     }
   };
-
-  console.log("Usuario:", user);
 
   return (
     <motion.div
@@ -152,16 +141,17 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
                         type="button"
                         className="bg-red-500 active:bg-red-600 uppercase text-white font-bold hover:shadow-md text-xs px-4 py-2 rounded flex items-center gap-3"
                       >
-                        <CogIcon className="mr-2" />
-                        Ajustes
+                        <EditIcon className="mr-2" />
+                        Editar
                       </button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Ajustes del Perfil</AlertDialogTitle>
+                        <AlertDialogTitle>Editar Información</AlertDialogTitle>
                       </AlertDialogHeader>
                       <AlertDialogDescription className="mb-4 text-sm text-gray-600">
-                        Actualiza tu fecha de nacimiento, teléfono y contraseña.
+                        No te preocupes si dejas algún campo vacío; no son
+                        obligatorios ni se va a borrar nada.
                       </AlertDialogDescription>
                       <form
                         onSubmit={handleProfileUpdate}
@@ -175,16 +165,14 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
                             type="date"
                             id="dob"
                             value={
-                              user.dob
-                                ? new Date(user.dob).toISOString().split("T")[0]
-                                : ""
+                              cumple ? cumple.toISOString().split("T")[0] : ""
                             }
                             onChange={(e) => {
                               const dateValue = e.target.value;
                               if (dateValue) {
-                                setDob(new Date(dateValue));
+                                setCumple(new Date(dateValue));
                               } else {
-                                setDob(undefined);
+                                setCumple(undefined);
                               }
                             }}
                             max={
@@ -206,8 +194,8 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
                           <input
                             type="text"
                             id="phone"
-                            value={user.phone ? user.phone : phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            value={phone ? phone : telefono}
+                            onChange={(e) => setTelefono(e.target.value)}
                             placeholder="Ingresa tu teléfono"
                             className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
                           />
@@ -250,15 +238,13 @@ const UserProfileComponent = ({ user }: UserProfileProps) => {
               </div>
               {/* Información del usuario */}
               <div className="text-center mt-12">
-                <h3 className="text-4xl font-semibold text-gray-800">
-                  {user.name}
-                </h3>
+                <h3 className="text-4xl font-semibold text-gray-800">{name}</h3>
                 <div className="text-sm text-gray-500 font-bold uppercase mb-2">
-                  {user.role.name}
+                  {role.name}
                 </div>
-                <div className="mb-2 text-red-700">{user.email}</div>
+                <div className="mb-2 text-red-700">{email}</div>
                 <div className="text-sm text-gray-500 font-semibold">
-                  {user.phone || "Aún no has agregado un número de teléfono."}
+                  {phone || "Aún no has agregado un número de teléfono."}
                 </div>
                 {/* Proyectos asignados */}
                 <div className="mt-10">

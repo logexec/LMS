@@ -5,6 +5,10 @@ import { fetchWithAuth } from "@/services/auth.service";
 export const apiService = {
   // Users
   getUsers: () => fetchWithAuth(`/users`),
+  getUser: (user: string) =>
+    fetchWithAuth(`/users/${user}`, {
+      credentials: "include",
+    }),
   createUser: (data: any) =>
     fetchWithAuth(`/users`, {
       method: "POST",

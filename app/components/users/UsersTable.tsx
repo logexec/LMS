@@ -299,7 +299,7 @@ export const UsersTable = () => {
         header: "Usuario",
         cell: ({ row }: { row: Row<User> }) => {
           const hasPhone = row.original.phone;
-          console.log("Row original", row.original);
+          // console.log("Row original", row.original);
 
           return hasPhone ? (
             <div className="flex items-center space-x-4">
