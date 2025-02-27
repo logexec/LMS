@@ -52,8 +52,9 @@ const Navigation = () => {
               :
             </motion.span>
             <span className="font-medium">
-              {getEcuadorMinute(new Date()) < 10 &&
-                `0${getEcuadorMinute(new Date())}`}
+              {getEcuadorMinute(new Date()) < 10
+                ? `0${getEcuadorMinute(new Date())}`
+                : getEcuadorMinute(new Date())}
             </span>
           </div>
         </motion.div>
