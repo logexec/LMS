@@ -22,4 +22,6 @@ export interface User {
   }>;
   assignedProjects: string[];
   area?: string;
+  dob?: string;
+  phone?: string;
 }

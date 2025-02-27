@@ -20,6 +20,8 @@ export interface LoginResponse {
       name: string;
     }>;
     assignedProjects: string[];
+    dob?: string;
+    phone?: string;
   };
 }
 
@@ -211,10 +213,6 @@ export const refreshToken = async (): Promise<void> => {
     // Actualizar el objeto user en localStorage si viene en la respuesta
     if (data.user) {
       localStorage.setItem("user", JSON.stringify(data.user));
-      console.log(
-        "Usuario actualizado en localStorage:",
-        JSON.parse(localStorage.getItem("user")!)
-      );
     }
   } catch (error) {
     console.error("Error refreshing token:", error);

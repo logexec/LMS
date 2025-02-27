@@ -119,6 +119,8 @@ export interface User {
     projects: string[];
   };
   area?: string;
+  dob?: string;
+  phone?: string;
 }
 
 export interface LoginResponse {

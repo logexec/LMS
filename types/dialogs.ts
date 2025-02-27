@@ -7,6 +7,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  dob?: string;
+  phone?: string;
   role_id: string;
   permissions: Permission[];
   projects: Project[];
