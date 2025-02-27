@@ -128,7 +128,7 @@ interface Role {
 interface Project {
   id: string;
   name: string;
-  code: string;
+  description: string;
 }
 
 interface CreateUserFormData {
@@ -400,7 +400,9 @@ export const CreateUserDialog = ({
           project.name
             ?.toLowerCase()
             .includes(projectSearchTerm.toLowerCase()) ||
-          project.code?.toLowerCase().includes(projectSearchTerm.toLowerCase())
+          project.description
+            ?.toLowerCase()
+            .includes(projectSearchTerm.toLowerCase())
       )
     : [];
 
@@ -636,8 +638,12 @@ export const CreateUserDialog = ({
                             htmlFor={`project-${project.id}`}
                             className="flex-1 cursor-pointer"
                           >
-                            <span className="font-medium">{project.code}</span>{" "}
-                            - {project.name}
+                            <span className="font-medium">{project.name}</span>{" "}
+                            {project.description && (
+                              <p className="text-xs text-muted-foreground">
+                                {project.description}
+                              </p>
+                            )}
                           </Label>
                         </div>
                       ))}

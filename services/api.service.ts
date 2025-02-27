@@ -44,7 +44,7 @@ export const apiService = {
         ? `?projects=${projectIds.join(",")}`
         : "";
 
-      const endpoint = `/projects/${queryParams}`;
+      const endpoint = `/projects${queryParams}`;
       const response = await fetchWithAuth(endpoint);
 
       if (Array.isArray(response)) {
@@ -104,6 +104,15 @@ export const apiService = {
       throw error;
     }
   },
+
+  updateUserProfile: (
+    userId: string,
+    data: { dob?: string; phone?: string; password?: string }
+  ) =>
+    fetchWithAuth(`/users/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 };
 
 export default apiService;
