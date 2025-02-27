@@ -58,6 +58,7 @@ import { apiService } from "@/services/api.service";
 import { useRoles } from "@/hooks/useRoles";
 import { CreateUserDialog, DeleteUserDialog, EditUserDialog } from "./dialogs";
 import { formatPermissionName } from "@/lib/utils";
+import { FaWhatsapp } from "react-icons/fa6";
 
 interface ErrorResponse {
   response?: {
@@ -299,7 +300,6 @@ export const UsersTable = () => {
         header: "Usuario",
         cell: ({ row }: { row: Row<User> }) => {
           const hasPhone = row.original.phone;
-          // console.log("Row original", row.original);
 
           return hasPhone ? (
             <div className="flex items-center space-x-4">
@@ -318,12 +318,22 @@ export const UsersTable = () => {
                 >
                   {row.original.email}
                 </a>
-                <a
-                  href={`tel:${row.original.phone}`}
-                  className="text-xs text-slate-600 hover:text-slate-700 transition-colors"
-                >
-                  {row.original.phone}
-                </a>
+                <div className="flex flex-row items-center gap-1">
+                  <a
+                    href={`tel:${row.original.phone}`}
+                    target="_blank"
+                    className="block text-xs text-slate-600 transition-all hover:underline hover:text-slate-800 hover:font-semibold"
+                  >
+                    {row.original.phone}
+                  </a>
+                  <a
+                    href={`http://wa.me/+593${row.original.phone}`}
+                    target="_blank"
+                    className="text-xs text-red-600 transition-all hover:underline hover:text-red-800 hover:font-semibold"
+                  >
+                    <FaWhatsapp size={16} />
+                  </a>
+                </div>
               </div>
             </div>
           ) : (
