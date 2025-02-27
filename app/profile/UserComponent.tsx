@@ -1,0 +1,326 @@
+import React, { useState } from "react";
+import { motion } from "motion/react";
+import { CogIcon, User2Icon } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogTitle,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTrigger,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import apiService from "@/services/api.service";
+import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
+
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface UserProfileProps {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    dob?: string;
+    phone?: string;
+    role: { name: string };
+  };
+}
+
+const UserProfileComponent = ({ user }: UserProfileProps) => {
+  // Query de proyectos
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      try {
+        const response = await apiService.getProjects();
+        const projectsData = Array.isArray(response) ? response : [];
+        return projectsData.map((project: Project) => ({
+          ...project,
+          name:
+            (project.name ? project.name.substring(0, 4).toUpperCase() : "") ||
+            `PRJ-${project.id}`,
+        }));
+      } catch (error) {
+        console.error("Error al cargar proyectos:", error);
+        toast.error("Error al cargar los proyectos");
+        return [];
+      }
+    },
+    staleTime: 10 * 1000, // 10 segundos
+  });
+
+  // Estados para los campos del formulario de perfil
+  const [dob, setDob] = useState<Date | undefined>(
+    user.dob ? new Date(user.dob) : undefined
+  );
+  const [phone, setPhone] = useState(user.phone || "");
+  const [password, setPassword] = useState("");
+
+  // Manejo del submit del formulario
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const updateData: { dob?: string; phone?: string; password?: string } = {
+        // Formatear la fecha a YYYY-MM-DD si está definida
+        dob: dob ? dob.toISOString().split("T")[0] : undefined,
+        phone,
+      };
+      if (password) {
+        updateData.password = password;
+      }
+      // Se asume que el id del usuario está en user.id
+      await apiService.updateUserProfile(user.id, updateData);
+      toast.success("Perfil actualizado correctamente");
+    } catch (error) {
+      console.error("Error actualizando perfil", error);
+      toast.error("Error actualizando perfil");
+    }
+  };
+
+  console.log("Usuario:", user);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.3 } }}
+      className="bg-white"
+    >
+      {/* Sección de fondo y header */}
+      <section className="relative block" style={{ height: "500px" }}>
+        <div
+          className="absolute top-0 w-full h-full bg-center bg-cover rounded-t-xl bg-white"
+          style={{
+            backgroundColor: "#fff",
+            backgroundImage:
+              'url("https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80")',
+          }}
+        >
+          <span className="w-full h-full absolute opacity-50 bg-black rounded-t-xl" />
+        </div>
+        <div
+          className="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden"
+          style={{ height: "70px", transform: "translateZ(0px)" }}
+        >
+          <svg
+            className="absolute bottom-0 overflow-hidden"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            version="1.1"
+            viewBox="0 0 2560 100"
+            x="0"
+            y="0"
+          >
+            <polygon
+              className="text-gray-300 fill-current"
+              points="2560 0 2560 100 0 100"
+            ></polygon>
+          </svg>
+        </div>
+      </section>
+
+      {/* Sección del perfil */}
+      <section className="relative py-16 bg-gray-200 rounded-b-xl">
+        <div className="container mx-auto px-4">
+          <div className="relative flex flex-col bg-white w-full mb-6 shadow-xl rounded-lg -mt-96">
+            <div className="px-6">
+              <div className="flex flex-wrap justify-center">
+                {/* Imagen del usuario */}
+                <div className="w-full lg:w-3/12 px-4 flex justify-center">
+                  <div className="relative">
+                    <User2Icon className="shadow-xl rounded-full w-28 h-28 bg-white p-2 border border-slate-400 absolute -m-16" />
+                  </div>
+                </div>
+                {/* Botón de Ajustes con AlertDialog */}
+                <motion.div
+                  initial={{ opacity: 0, x: -100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="w-full px-4 lg:text-center py-6 mt-32"
+                >
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        type="button"
+                        className="bg-red-500 active:bg-red-600 uppercase text-white font-bold hover:shadow-md text-xs px-4 py-2 rounded flex items-center gap-3"
+                      >
+                        <CogIcon className="mr-2" />
+                        Ajustes
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Ajustes del Perfil</AlertDialogTitle>
+                      </AlertDialogHeader>
+                      <AlertDialogDescription className="mb-4 text-sm text-gray-600">
+                        Actualiza tu fecha de nacimiento, teléfono y contraseña.
+                      </AlertDialogDescription>
+                      <form
+                        onSubmit={handleProfileUpdate}
+                        className="space-y-4"
+                      >
+                        <div className="flex flex-col">
+                          <Label htmlFor="dob" className="mb-1">
+                            Fecha de Nacimiento
+                          </Label>
+                          <input
+                            type="date"
+                            id="dob"
+                            value={
+                              user.dob
+                                ? new Date(user.dob).toISOString().split("T")[0]
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const dateValue = e.target.value;
+                              if (dateValue) {
+                                setDob(new Date(dateValue));
+                              } else {
+                                setDob(undefined);
+                              }
+                            }}
+                            max={
+                              new Date(
+                                new Date().setFullYear(
+                                  new Date().getFullYear() - 18
+                                )
+                              )
+                                .toISOString()
+                                .split("T")[0]
+                            }
+                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <Label htmlFor="phone" className="mb-1">
+                            Teléfono
+                          </Label>
+                          <input
+                            type="text"
+                            id="phone"
+                            value={user.phone ? user.phone : phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Ingresa tu teléfono"
+                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <Label htmlFor="password" className="mb-1">
+                            Nueva Contraseña
+                          </Label>
+                          <input
+                            type="password"
+                            id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Ingresa nueva contraseña"
+                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                          />
+                        </div>
+                        <AlertDialogFooter className="pt-4">
+                          <AlertDialogAction asChild>
+                            <button
+                              type="submit"
+                              className="uppercase font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                            >
+                              Guardar
+                            </button>
+                          </AlertDialogAction>
+                          <AlertDialogCancel asChild>
+                            <button
+                              type="button"
+                              className="uppercase text-gray-800 font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                            >
+                              Cancelar
+                            </button>
+                          </AlertDialogCancel>
+                        </AlertDialogFooter>
+                      </form>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </motion.div>
+              </div>
+              {/* Información del usuario */}
+              <div className="text-center mt-12">
+                <h3 className="text-4xl font-semibold text-gray-800">
+                  {user.name}
+                </h3>
+                <div className="text-sm text-gray-500 font-bold uppercase mb-2">
+                  {user.role.name}
+                </div>
+                <div className="mb-2 text-red-700">{user.email}</div>
+                <div className="text-sm text-gray-500 font-semibold">
+                  {user.phone || "Aún no has agregado un número de teléfono."}
+                </div>
+                {/* Proyectos asignados */}
+                <div className="mt-10">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    Proyectos asignados:
+                  </h3>
+                  {isLoadingProjects ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-600"></div>
+                      <span className="ml-2">Cargando proyectos...</span>
+                    </div>
+                  ) : projects.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">
+                        No tienes proyectos asignados todavía.
+                      </p>
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-[340px] pr-4 shadow-inner border-y border-slate-200 rounded">
+                      <ul className="space-y-3 columns-3">
+                        {projects.map((project: Project) => (
+                          <li
+                            key={project.id}
+                            className="flex items-center space-x-2 py-1"
+                          >
+                            <Label
+                              htmlFor={`project-${project.id}`}
+                              className="flex-1 cursor-pointer"
+                            >
+                              <span className="font-medium text-red-600">
+                                {project.name}
+                              </span>
+                              {project.description && (
+                                <p className="text-xs text-muted-foreground">
+                                  {project.description}
+                                </p>
+                              )}
+                            </Label>
+                          </li>
+                        ))}
+                      </ul>
+                    </ScrollArea>
+                  )}
+                </div>
+              </div>
+              <div className="mt-10 py-10 border-t border-gray-300 text-center">
+                <div className="flex flex-wrap justify-center">
+                  <div className="w-full lg:w-9/12 px-4">
+                    <p className="mb-4 text-lg text-gray-800 leading-relaxed">
+                      Te damos la bienvenida a tu perfil de usuario. Aquí podrás
+                      ver la información relacionada a tu cuenta. Puedes
+                      editarla en cualquier momento.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </motion.div>
+  );
+};
+
+export default UserProfileComponent;

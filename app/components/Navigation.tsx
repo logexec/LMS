@@ -1,7 +1,9 @@
 import React from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, User2 } from "lucide-react";
 import { motion } from "motion/react";
 import { logout } from "@/services/auth.service";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 // Get current hour in Ecuador time zone
 const getEcuadorHour = (date = new Date()) => {
@@ -25,6 +27,7 @@ const getEcuadorMinute = (date = new Date()) => {
 };
 
 const Navigation = () => {
+  const user = useAuth();
   return (
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
@@ -59,7 +62,17 @@ const Navigation = () => {
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
+          className="flex items-center space-x-6"
         >
+          <motion.div>
+            <Link
+              href="/profile"
+              className="flex flex-row items-center space-x-2"
+            >
+              <User2 size={24} className="rounded-full border border-white" />
+              <span className="font-bold">{user.user!.name}</span>
+            </Link>
+          </motion.div>
           <motion.button
             whileHover={{ scale: 0.99 }}
             whileTap={{ scale: 0.98 }}
