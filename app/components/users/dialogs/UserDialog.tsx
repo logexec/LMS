@@ -139,7 +139,7 @@ interface User {
   email: string;
   role_id: string;
   role?: Role;
-  dob?: string;
+  dob?: string | undefined;
   permissions: Permission[];
   projects: Project[];
 }
@@ -149,7 +149,7 @@ interface UserFormData {
   email: string;
   password?: string; // Opcional porque no se usa en modo edición
   role_id: string;
-  dob: string;
+  dob?: string | undefined;
   permissions: string[];
   projectIds: string[];
 }
@@ -184,7 +184,7 @@ export const UserDialog = ({
     email: "",
     password: mode === "create" ? DEFAULT_PASSWORD : undefined,
     role_id: "",
-    dob: "",
+    dob: undefined,
     permissions: [],
     projectIds: [],
   });
