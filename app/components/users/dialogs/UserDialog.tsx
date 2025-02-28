@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -21,11 +23,6 @@ import { CalendarIcon, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,8 +52,8 @@ const permissionMap: { [key: string]: { id: string; label: string } } = {
   manage_special_income: { id: "17", label: "Administrar Ingresos Especiales" },
   view_budget: { id: "18", label: "Ver Presupuesto" },
   manage_budget: { id: "19", label: "Administrar Presupuesto" },
-  manage_provisions: { id: "20", label: "Administrar Provisiones" },
-  view_provisions: { id: "21", label: "Ver Provisiones" },
+  view_provisions: { id: "20", label: "Ver Provisiones" },
+  manage_provisions: { id: "21", label: "Administrar Provisiones" },
   manage_support: { id: "22", label: "Administrar Soporte" },
 };
 
@@ -125,46 +122,67 @@ interface Role {
   name: string;
 }
 
+interface Permission {
+  id: string;
+  name: string;
+}
+
 interface Project {
   id: string;
   name: string;
-  description: string;
+  description?: string;
 }
 
-interface CreateUserFormData {
+interface User {
+  id: string;
   name: string;
   email: string;
-  password: string;
+  role_id: string;
+  role?: Role;
+  dob?: string;
+  permissions: Permission[];
+  projects: Project[];
+}
+
+interface UserFormData {
+  name: string;
+  email: string;
+  password?: string; // Opcional porque no se usa en modo edición
   role_id: string;
   dob: string;
   permissions: string[];
   projectIds: string[];
 }
 
-interface CreateUserDialogProps {
+interface UserDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateUserFormData) => void;
-  roles: Role[] | undefined;
+  onSubmit: (data: UserFormData) => void;
+  roles: Role[] | Record<string, Role> | undefined;
   isLoading: boolean;
+  mode: "create" | "edit"; // Modo del diálogo
+  user?: User | null; // Usuario para edición (opcional)
 }
 
 const DEFAULT_PASSWORD = "L0g3X2025*";
 const today = new Date();
 
-export const CreateUserDialog = ({
+export const UserDialog = ({
   isOpen,
   onClose,
   onSubmit,
   roles = [],
   isLoading,
-}: CreateUserDialogProps) => {
+  mode = "create",
+  user = null,
+}: UserDialogProps) => {
   const [activeTab, setActiveTab] = useState<string>("basic");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [formData, setFormData] = useState<CreateUserFormData>({
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [formData, setFormData] = useState<UserFormData>({
     name: "",
     email: "",
-    password: DEFAULT_PASSWORD,
+    password: mode === "create" ? DEFAULT_PASSWORD : undefined,
     role_id: "",
     dob: "",
     permissions: [],
@@ -177,6 +195,15 @@ export const CreateUserDialog = ({
   // Estado para el input del datalist de permisos
   const [permissionInput, setPermissionInput] = useState<string>("");
   const [projectSearchTerm, setProjectSearchTerm] = useState<string>("");
+
+  // Procesar roles para garantizar que sea un array
+  const processedRoles = Array.isArray(roles)
+    ? roles
+    : roles && typeof roles === "object"
+    ? Object.entries(roles)
+        .filter(([key]) => !isNaN(Number(key)))
+        .map(([_, value]) => value as Role)
+    : [];
 
   // Fetch projects from the API
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
@@ -204,13 +231,14 @@ export const CreateUserDialog = ({
     staleTime: 1000 * 10, // 10 segundos
   });
 
-  // Resetear el formulario cuando se cierra
+  // Inicializar o resetear el formulario basado en el modo y si el diálogo está abierto
   useEffect(() => {
     if (!isOpen) {
+      // Resetear el formulario cuando se cierra
       setFormData({
         name: "",
         email: "",
-        password: DEFAULT_PASSWORD,
+        password: mode === "create" ? DEFAULT_PASSWORD : undefined,
         role_id: "",
         dob: "",
         permissions: [],
@@ -221,11 +249,73 @@ export const CreateUserDialog = ({
       setProjectSearchTerm("");
       setActiveTab("basic");
       setErrors({});
+      setIsCalendarOpen(false);
+    } else if (mode === "edit" && user) {
+      // En modo edición, cargar datos del usuario seleccionado
+      const permissionIds = user.permissions?.map((p) => p.id.toString()) || [];
+      const projectIds = user.projects?.map((p) => p.id.toString()) || [];
+
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        // No incluimos password en modo edición
+        role_id: user.role_id?.toString() || "",
+        dob: user.dob || "",
+        permissions: permissionIds,
+        projectIds: projectIds,
+      });
+
+      // Establecer fecha si existe
+      if (user.dob) {
+        setSelectedDate(new Date(user.dob));
+      } else {
+        setSelectedDate(undefined);
+      }
+
+      // Resetear errores y otros estados
+      setErrors({});
+      setPermissionInput("");
+      setProjectSearchTerm("");
+      setIsCalendarOpen(false);
     }
-  }, [isOpen]);
+  }, [isOpen, mode, user]);
+
+  // Efecto para manejar cambios en el rol seleccionado (solo en modo creación)
+  useEffect(() => {
+    if (
+      mode === "create" &&
+      formData.role_id &&
+      Array.isArray(processedRoles)
+    ) {
+      // Buscamos en el array de roles el objeto correspondiente
+      const selectedRole = processedRoles.find(
+        (role) => role.id.toString() === formData.role_id.toString()
+      );
+      // Utilizamos el nombre del rol en minúsculas para obtener los permisos predeterminados
+      const defaults = selectedRole
+        ? roleDefaultPermissions[selectedRole.name.toLowerCase()] || []
+        : [];
+
+      // Convertir los nombres de permisos a IDs
+      const defaultPermissionIds = defaults.map((permission) => {
+        return getPermissionId(permission);
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        permissions: defaultPermissionIds,
+      }));
+    }
+  }, [formData.role_id, processedRoles, mode]);
 
   const handleCloseDialog = () => {
-    onClose();
+    // Asegurarnos de cerrar el calendario si está abierto
+    setIsCalendarOpen(false);
+
+    // Esperar un poco antes de cerrar el diálogo
+    setTimeout(() => {
+      onClose();
+    }, 50);
   };
 
   // Validación de campos
@@ -253,6 +343,9 @@ export const CreateUserDialog = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Cerrar el calendario si está abierto
+    setIsCalendarOpen(false);
 
     // Validar el formulario antes de enviar
     if (validateForm()) {
@@ -285,7 +378,6 @@ export const CreateUserDialog = ({
   };
 
   const handleRoleChange = (value: string) => {
-    // Actualiza el role_id; la asignación de los permisos predeterminados se hará en el useEffect.
     setFormData((prev) => ({
       ...prev,
       role_id: value,
@@ -297,23 +389,6 @@ export const CreateUserDialog = ({
     }
   };
 
-  useEffect(() => {
-    if (formData.role_id && Array.isArray(roles)) {
-      // Buscamos en el array de roles el objeto correspondiente (comparando id como string)
-      const selectedRole = roles.find(
-        (role) => role.id.toString() === formData.role_id.toString()
-      );
-      // Utilizamos el nombre del rol en minúsculas para obtener los permisos predeterminados
-      const defaults = selectedRole
-        ? roleDefaultPermissions[selectedRole.name.toLowerCase()] || []
-        : [];
-      setFormData((prev) => ({
-        ...prev,
-        permissions: defaults,
-      }));
-    }
-  }, [formData.role_id, roles]);
-
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if (date) {
@@ -321,7 +396,18 @@ export const CreateUserDialog = ({
         ...prev,
         dob: format(date, "yyyy-MM-dd"),
       }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        dob: "",
+      }));
     }
+    setIsCalendarOpen(false);
+  };
+
+  // Toggle para el calendario (enfoque directo sin popover)
+  const handleToggleCalendar = () => {
+    setIsCalendarOpen(!isCalendarOpen);
   };
 
   // Permisos - Permite agregar el permiso al hacer click o autocompletar
@@ -406,6 +492,23 @@ export const CreateUserDialog = ({
       )
     : [];
 
+  // Determinar títulos y textos basados en el modo
+  const dialogTitle =
+    mode === "create" ? "Crear nuevo usuario" : "Editar usuario";
+  const dialogDescription =
+    mode === "create"
+      ? "Ingresa la información del nuevo usuario."
+      : `Actualiza la información de ${user?.name || ""}`;
+
+  const submitButtonText =
+    mode === "create"
+      ? isLoading
+        ? "Creando..."
+        : "Crear usuario"
+      : isLoading
+      ? "Guardando..."
+      : "Guardar cambios";
+
   return (
     <Dialog
       open={isOpen}
@@ -413,12 +516,10 @@ export const CreateUserDialog = ({
         if (!open) handleCloseDialog();
       }}
     >
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]" autoFocus>
         <DialogHeader>
-          <DialogTitle>Crear nuevo usuario</DialogTitle>
-          <DialogDescription>
-            Ingresa la información del nuevo usuario.
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
@@ -480,9 +581,9 @@ export const CreateUserDialog = ({
                       <SelectValue placeholder="Selecciona un rol" />
                     </SelectTrigger>
                     <SelectContent className="w-full min-w-[200px]">
-                      {Array.isArray(roles) && roles.length > 0 ? (
-                        roles.map((role) => (
-                          <SelectItem key={role.id} value={role.id}>
+                      {processedRoles.length > 0 ? (
+                        processedRoles.map((role) => (
+                          <SelectItem key={role.id} value={role.id.toString()}>
                             {role.name}
                           </SelectItem>
                         ))
@@ -500,48 +601,48 @@ export const CreateUserDialog = ({
                   )}
                 </div>
                 <div className="grid gap-2">
-                  <Popover modal>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate
-                          ? format(selectedDate, "PPP")
-                          : "Fecha de nacimiento"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={handleDateSelect}
-                        disabled={(date) => date > today}
-                        fromYear={1940}
-                        toYear={today.getFullYear()}
-                        captionLayout="dropdown-buttons"
-                        fixedWeeks
-                        showOutsideDays={false}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  {/* Reemplazo de Popover por un enfoque más directo */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                    onClick={handleToggleCalendar}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate
+                      ? format(selectedDate, "PPP")
+                      : "Fecha de nacimiento"}
+                  </Button>
+
+                  {isCalendarOpen && (
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={handleDateSelect}
+                      disabled={(date) => date > today}
+                      fromYear={1940}
+                      toYear={today.getFullYear()}
+                      fixedWeeks
+                      showOutsideDays={false}
+                      className="mx-auto"
+                    />
+                  )}
                 </div>
-                <Card>
-                  <CardContent className="pt-4">
-                    <p className="text-sm text-muted-foreground">
-                      La contraseña por defecto será:{" "}
-                      <strong>{DEFAULT_PASSWORD}</strong>
-                    </p>
-                  </CardContent>
-                </Card>
+
+                {/* Mostrar información de contraseña solo en modo creación */}
+                {mode === "create" && (
+                  <Card>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-muted-foreground">
+                        La contraseña por defecto será:{" "}
+                        <strong>{DEFAULT_PASSWORD}</strong>
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </TabsContent>
 
@@ -669,7 +770,7 @@ export const CreateUserDialog = ({
               disabled={isLoading}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isLoading ? "Creando..." : "Crear usuario"}
+              {submitButtonText}
             </Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,5 @@
 /*eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -195,6 +195,9 @@ export const EditUserDialog = ({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const calendarPopoverRef = useRef<HTMLButtonElement>(null);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   // Procesar roles para garantizar que sea un array
   const processedRoles = Array.isArray(roles)
     ? roles
@@ -232,33 +235,16 @@ export const EditUserDialog = ({
 
   // Inicializar el formulario cuando cambia el usuario o se abre el diálogo
   useEffect(() => {
-    if (user && isOpen) {
-      // Mapear los IDs de permisos
-      const permissionIds = user.permissions?.map((p) => p.id.toString()) || [];
+    if (!isOpen) {
+      // Asegurarse de que el popover esté cerrado
+      setIsPopoverOpen(false);
 
-      // Mapear los IDs de proyectos
-      const projectIds = user.projects?.map((p) => p.id.toString()) || [];
-
-      setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        role_id: user.role_id?.toString() || "",
-        dob: user.dob || "",
-        permissions: permissionIds,
-        projectIds: projectIds,
-      });
-
-      // Establecer la fecha de nacimiento si existe
-      if (user.dob) {
-        setSelectedDate(new Date(user.dob));
-      } else {
-        setSelectedDate(undefined);
-      }
-
-      // Restablecer errores
-      setErrors({});
+      // Restablecer el foco a algo fuera del diálogo
+      setTimeout(() => {
+        document.body.focus();
+      }, 0);
     }
-  }, [user, isOpen]);
+  }, [isOpen]);
 
   // Validación del formulario
   const validateForm = () => {
@@ -386,10 +372,26 @@ export const EditUserDialog = ({
     }
   };
 
+  // Manejador onClose para asegurarte de que todo se limpie correctamente
+  const handleClose = () => {
+    // Cerrar primero el popover
+    setIsPopoverOpen(false);
+
+    // Pequeño retraso para asegurar que el popover se cierre primero
+    setTimeout(() => {
+      onClose();
+    }, 10);
+  };
+
   if (!user) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+    >
       <DialogContent className="sm:max-w-[600px] md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Editar Usuario</DialogTitle>
@@ -475,8 +477,12 @@ export const EditUserDialog = ({
                   )}
                 </div>
                 <div className="grid gap-2">
-                  <Popover modal>
-                    <PopoverTrigger asChild>
+                  <Popover
+                    modal
+                    open={isPopoverOpen}
+                    onOpenChange={setIsPopoverOpen}
+                  >
+                    <PopoverTrigger asChild ref={calendarPopoverRef}>
                       <Button
                         type="button"
                         variant="outline"
@@ -498,7 +504,11 @@ export const EditUserDialog = ({
                       <Calendar
                         mode="single"
                         selected={selectedDate}
-                        onSelect={handleDateSelect}
+                        onSelect={(date) => {
+                          handleDateSelect(date);
+                          // Cerrar el popover después de seleccionar una fecha
+                          setIsPopoverOpen(false);
+                        }}
                         disabled={(date) => date > today}
                         fromYear={1940}
                         toYear={today.getFullYear()}

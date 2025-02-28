@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   getFilteredRowModel,
   ColumnFiltersState,
@@ -56,7 +55,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type User, type Role } from "@/types/dialogs";
 import { apiService } from "@/services/api.service";
 import { useRoles } from "@/hooks/useRoles";
-import { CreateUserDialog, DeleteUserDialog, EditUserDialog } from "./dialogs";
+import { UserDialog } from "./dialogs"; // Nuevo componente unificado
+import { DeleteUserDialog } from "./dialogs";
 import { formatPermissionName } from "@/lib/utils";
 import { FaWhatsapp } from "react-icons/fa6";
 
@@ -69,51 +69,41 @@ interface ErrorResponse {
   message?: string;
 }
 
-// API functions
-const fetchUsers = async () => {
+// API functions modificada para aceptar parámetros de paginación
+const fetchUsers = async (page = 1, pageSize = 10, searchQuery = "") => {
   try {
-    console.log("🔍 Fetching users...");
-    const response = await apiService.getUsers();
-    let usersData;
-    // Manejar diferentes estructuras de respuesta
-    if (Array.isArray(response)) {
-      usersData = response;
-    } else if (response && typeof response === "object") {
-      if (Array.isArray(response.data)) {
-        usersData = response.data;
-      } else if (
-        response.data &&
-        typeof response.data === "object" &&
-        response.data.data &&
-        Array.isArray(response.data.data)
-      ) {
-        usersData = response.data.data;
-      } else {
-        console.log(
-          "⚠️ Unexpected response structure, defaulting to empty array"
-        );
-        usersData = [];
-      }
+    console.log(
+      `🔍 Fetching users for page ${page} with ${pageSize} items per page...`
+    );
+    let response;
+
+    // Si hay una consulta de búsqueda, ignoramos paginación para búsqueda global
+    if (searchQuery && searchQuery.trim().length > 0) {
+      response = await apiService.getUsers();
     } else {
-      console.log(
-        "⚠️ Response is neither an array nor an object, defaulting to empty array"
-      );
-      usersData = [];
+      response = await apiService.getUsers(page, pageSize);
     }
-    return usersData;
+
+    return response;
   } catch (error) {
     console.error("❌ Error fetching users:", error);
     toast.error(
       error instanceof Error ? error.message : "Error al cargar los usuarios"
     );
-    return []; // Retornar array vacío en caso de error
+    return {
+      data: [],
+      total: 0,
+      current_page: 1,
+      last_page: 1,
+      per_page: pageSize,
+    };
   }
 };
 
 export const UsersTable = () => {
   const queryClient = useQueryClient();
 
-  // Estados para diálogos - Simplificados a solo los que necesitamos
+  // Estados para diálogos
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -124,17 +114,99 @@ export const UsersTable = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility] = useState<VisibilityState>({});
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [pageIndex, setPageIndex] = useState(0);
 
-  // API functions y mutations...
-  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["users"],
-    queryFn: fetchUsers,
+  // Estados para la paginación del servidor
+  const [serverPageIndex, setServerPageIndex] = useState(1);
+  const [serverPageSize, setServerPageSize] = useState(10);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // API query con parámetros de paginación
+  const { data: response, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users", serverPageIndex, serverPageSize, globalFilter],
+    queryFn: () => fetchUsers(serverPageIndex, serverPageSize, globalFilter),
     retry: 1,
-    staleTime: 15000, // 15 segundos
+    staleTime: 15000,
   });
 
+  // Extraer los usuarios de la respuesta
+  const users = useMemo(() => {
+    if (!response) return [];
+
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (response && typeof response === "object") {
+      // Verificar estructura: response.data[]
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      // Verificar estructura: response.data.data[]
+      if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data &&
+        Array.isArray(response.data.data)
+      ) {
+        return response.data.data;
+      }
+
+      // La estructura de tu JSON es response con data[] dentro
+      if (response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+    }
+
+    // Log de depuración
+    console.log("Estructura de usuarios recibida:", {
+      isArray: Array.isArray(response),
+      hasDataProperty:
+        response && typeof response === "object" && "data" in response,
+      dataIsArray:
+        response &&
+        typeof response === "object" &&
+        "data" in response &&
+        Array.isArray(response.data),
+      responseKeys:
+        response && typeof response === "object" ? Object.keys(response) : [],
+    });
+
+    return [];
+  }, [response]);
+
+  // Actualizar metadatos de paginación cuando llega la respuesta
+  useEffect(() => {
+    if (response && typeof response === "object" && !Array.isArray(response)) {
+      // La estructura de la respuesta tiene los metadatos de paginación en el nivel raíz
+      if (response.total) {
+        setTotalUsers(response.total);
+        setTotalPages(response.last_page);
+      } else if (
+        response.data &&
+        typeof response.data === "object" &&
+        !Array.isArray(response.data)
+      ) {
+        // Si los metadatos están anidados dentro de data
+        if (response.data.total) {
+          setTotalUsers(response.data.total);
+          setTotalPages(response.data.last_page);
+        }
+      }
+
+      // Debug para ver qué estamos recibiendo
+      console.log("Estructura de paginación recibida:", {
+        totalFromResponse: response.total,
+        lastPageFromResponse: response.last_page,
+        hasDataObject: !!response.data,
+        totalFromDataObject: response.data?.total,
+        currentPage: response.current_page || response.data?.current_page,
+      });
+    }
+  }, [response]);
+
+  // Resto de mutaciones
   const { data: roles = [] } = useRoles();
 
   const createUserMutation = useMutation({
@@ -198,7 +270,6 @@ export const UsersTable = () => {
     },
   });
 
-  // Mantener solo las mutaciones que se usarán con el nuevo EditUserDialog
   const updatePermissionsMutation = useMutation({
     mutationFn: async ({
       id,
@@ -279,10 +350,8 @@ export const UsersTable = () => {
     },
   });
 
-  // Función simplificada para manejar acciones - Sólo edit y delete
   const handleAction = (action: string, user: User) => {
     setSelectedUser(user);
-
     switch (action) {
       case "edit":
         setIsEditOpen(true);
@@ -292,6 +361,36 @@ export const UsersTable = () => {
         break;
     }
   };
+
+  // Manejadores para cambiar de página
+  const handlePreviousPage = () => {
+    if (serverPageIndex > 1) {
+      setServerPageIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (serverPageIndex < totalPages) {
+      setServerPageIndex((prev) => prev + 1);
+    }
+  };
+
+  // Manejador para cambiar el tamaño de página
+  const handleChangePageSize = (size: string) => {
+    const newSize = Number(size);
+    setServerPageSize(newSize);
+    setServerPageIndex(1); // Volver a la primera página al cambiar el tamaño
+  };
+
+  // Búsqueda global con debounce
+  const debouncedSetGlobalFilter = useMemo(
+    () =>
+      debounce((value: string) => {
+        setGlobalFilter(value);
+        setServerPageIndex(1); // Volver a la primera página al buscar
+      }, 300),
+    []
+  );
 
   const columns = useMemo(
     () => [
@@ -483,7 +582,7 @@ export const UsersTable = () => {
                       </p>
                       {row.original.projects.slice(3).map((project) => (
                         <div key={project.id} className="text-xs">
-                          • {project.name || "Proyecto sin identificar"}
+                          • {project.name || "Proyecto sin nombre"}
                         </div>
                       ))}
                     </div>
@@ -536,31 +635,24 @@ export const UsersTable = () => {
       sorting,
       columnFilters,
       columnVisibility,
-      pagination: {
-        pageIndex,
-        pageSize: rowsPerPage,
-      },
       globalFilter,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    manualPagination: true, // Indica que la paginación es manual (del servidor)
+    pageCount: totalPages,
   });
-
-  const debouncedSetGlobalFilter = useMemo(
-    () => debounce((value: string) => setGlobalFilter(value), 300),
-    []
-  );
 
   if (isLoadingUsers) return <TableSkeleton />;
 
   // Mostrar mensaje cuando no hay usuarios
-  if (Array.isArray(users) && users.length === 0) {
+  if (Array.isArray(users) && users.length === 0 && !isLoadingUsers) {
     return (
-      <div className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-lg shadow">
+      <div className="flex flex-col items-center justify-center p-6 text-center">
         <div className="text-6xl text-gray-300 mb-4">👤</div>
         <h3 className="text-xl font-medium text-gray-900 mb-2">
           No hay usuarios disponibles
@@ -590,6 +682,26 @@ export const UsersTable = () => {
                 placeholder="Buscar usuarios..."
                 onChange={(e) => debouncedSetGlobalFilter(e.target.value)}
                 className="pl-9"
+              />
+
+              <DeleteUserDialog
+                user={selectedUser}
+                isOpen={isDeleteOpen}
+                onClose={() => {
+                  setIsDeleteOpen(false);
+                  setSelectedUser(null);
+                  setTimeout(
+                    () =>
+                      queryClient.invalidateQueries({ queryKey: ["users"] }),
+                    100
+                  );
+                }}
+                onConfirm={() => {
+                  if (selectedUser) {
+                    deleteUserMutation.mutate(selectedUser.id);
+                  }
+                }}
+                isLoading={deleteUserMutation.isPending}
               />
             </div>
             <DropdownMenu>
@@ -674,20 +786,17 @@ export const UsersTable = () => {
 
         <div className="flex items-center justify-between">
           <div className="flex-1 text-sm text-slate-500">
-            {table.getFilteredRowModel().rows.length} usuarios
+            {totalUsers} usuarios en total
           </div>
           <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex items-center space-x-2">
               <p className="text-sm font-medium">Filas por página</p>
               <Select
-                value={`${rowsPerPage}`}
-                onValueChange={(value) => {
-                  setRowsPerPage(Number(value));
-                  setPageIndex(0);
-                }}
+                value={`${serverPageSize}`}
+                onValueChange={handleChangePageSize}
               >
                 <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue placeholder={rowsPerPage} />
+                  <SelectValue placeholder={serverPageSize} />
                 </SelectTrigger>
                 <SelectContent side="top">
                   {[10, 20, 30, 40, 50].map((size) => (
@@ -702,19 +811,19 @@ export const UsersTable = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPageIndex((prev) => prev - 1)}
-                disabled={!table.getCanPreviousPage()}
+                onClick={handlePreviousPage}
+                disabled={serverPageIndex <= 1}
               >
                 Anterior
               </Button>
               <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Página {pageIndex + 1} de {table.getPageCount()}
+                Página {serverPageIndex} de {totalPages || 1}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPageIndex((prev) => prev + 1)}
-                disabled={!table.getCanNextPage()}
+                onClick={handleNextPage}
+                disabled={serverPageIndex >= totalPages}
               >
                 Siguiente
               </Button>
@@ -723,8 +832,8 @@ export const UsersTable = () => {
         </div>
       </div>
 
-      {/* Sólo mantener los diálogos necesarios */}
-      <CreateUserDialog
+      <UserDialog
+        mode="create"
         isOpen={isCreateOpen}
         onClose={() => {
           setIsCreateOpen(false);
@@ -740,9 +849,9 @@ export const UsersTable = () => {
         isLoading={createUserMutation.isPending}
       />
 
-      <EditUserDialog
+      <UserDialog
+        mode="edit"
         user={selectedUser}
-        roles={roles}
         isOpen={isEditOpen}
         onClose={() => {
           setIsEditOpen(false);
@@ -768,6 +877,7 @@ export const UsersTable = () => {
             const currentPermissions = selectedUser.permissions.map((p) =>
               p.id.toString()
             );
+
             if (
               JSON.stringify([...data.permissions].sort()) !==
               JSON.stringify([...currentPermissions].sort())
@@ -793,30 +903,12 @@ export const UsersTable = () => {
             }
           }
         }}
+        roles={roles}
         isLoading={
           updateUserMutation.isPending ||
           updatePermissionsMutation.isPending ||
           updateProjectsMutation.isPending
         }
-      />
-
-      <DeleteUserDialog
-        user={selectedUser}
-        isOpen={isDeleteOpen}
-        onClose={() => {
-          setIsDeleteOpen(false);
-          setSelectedUser(null);
-          setTimeout(
-            () => queryClient.invalidateQueries({ queryKey: ["users"] }),
-            100
-          );
-        }}
-        onConfirm={() => {
-          if (selectedUser) {
-            deleteUserMutation.mutate(selectedUser.id);
-          }
-        }}
-        isLoading={deleteUserMutation.isPending}
       />
     </>
   );

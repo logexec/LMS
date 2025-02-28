@@ -1,5 +1,5 @@
 export { ProjectsDialog } from "./ProjectsDialog";
-export { CreateUserDialog } from "./CreateUserDialog";
+export { UserDialog } from "./UserDialog";
 export { EditUserDialog } from "./EditUserDialog";
 export { PermissionsDialog } from "./PermissionsDialog";
 export { DeleteUserDialog } from "./DeleteUserDialog";

@@ -4,7 +4,12 @@ import { fetchWithAuth } from "@/services/auth.service";
 
 export const apiService = {
   // Users
-  getUsers: () => fetchWithAuth(`/users`),
+  getUsers: (page = 1, pageSize = 10) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", page.toString());
+    queryParams.append("per_page", pageSize.toString());
+    return fetchWithAuth(`/users?${queryParams.toString()}`);
+  },
   getUser: (user: string) =>
     fetchWithAuth(`/users/${user}`, {
       credentials: "include",
