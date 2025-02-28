@@ -122,6 +122,19 @@ export const apiService = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+
+  getAccounts: () =>
+    fetchWithAuth(`/accounts`, {
+      credentials: "include",
+    }),
+  updateAccount: (
+    accountId: string,
+    data: { name?: string; type?: string; account_status?: string }
+  ) =>
+    fetchWithAuth(`/accounts/${accountId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
 };
 
 export default apiService;
