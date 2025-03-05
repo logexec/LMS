@@ -16,7 +16,7 @@ import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AccountProps {
-  id: number;
+  id: string;
   name: string;
   account_number: string;
   account_type: string;
@@ -28,11 +28,11 @@ const CuentasPage = () => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingField, setEditingField] = useState<{
-    id: number;
+    id: string;
     field: keyof AccountProps;
   } | null>(null);
   const [editedValues, setEditedValues] = useState<{
-    [key: number]: Partial<AccountProps>;
+    [key: string]: Partial<AccountProps>;
   }>({});
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const CuentasPage = () => {
 
       setAccounts((prev) =>
         prev.map((acc) =>
-          acc.id === parseInt(id) ? { ...acc, account_status: newStatus } : acc
+          acc.id === id ? { ...acc, account_status: newStatus } : acc
         )
       );
 
@@ -73,7 +73,7 @@ const CuentasPage = () => {
     }
   };
 
-  const handleDoubleClick = (id: number, field: keyof AccountProps) => {
+  const handleDoubleClick = (id: string, field: keyof AccountProps) => {
     setEditingField({ id, field });
     setEditedValues((prev) => ({
       ...prev,
@@ -85,7 +85,7 @@ const CuentasPage = () => {
   };
 
   const handleInputChange = (
-    id: number,
+    id: string,
     field: keyof AccountProps,
     value: string
   ) => {
@@ -95,27 +95,35 @@ const CuentasPage = () => {
     }));
   };
 
-  const handleSave = async (id: number) => {
-    const idString = String(id);
-    if (!editedValues[id]) return;
-    try {
-      await apiService.updateAccount(idString, editedValues[id]);
-      setAccounts((prev) =>
-        prev.map((acc) =>
-          acc.id === id ? { ...acc, ...editedValues[id] } : acc
-        )
-      );
-      toast.success("Cuenta actualizada");
-      setEditingField(null);
-    } catch (error) {
-      toast.error("No se pudo actualizar la cuenta");
-      console.error(error);
-    }
+  const handleSave = async (id: string) => {
+    setEditedValues((prev) => {
+      const updatedData = prev[id];
+      if (!updatedData) return prev;
+
+      // Enviar datos actualizados al backend
+      apiService
+        .updateAccount(id, updatedData)
+        .then(() => {
+          setAccounts((prevAccounts) =>
+            prevAccounts.map((acc) =>
+              acc.id === id ? { ...acc, ...updatedData } : acc
+            )
+          );
+          toast.success("Cuenta actualizada");
+        })
+        .catch(() => toast.error("No se pudo actualizar la cuenta"))
+        .finally(() => setEditingField(null));
+
+      // Limpiar valores editados
+      const newValues = { ...prev };
+      delete newValues[id];
+      return newValues;
+    });
   };
 
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>,
-    id: number
+    id: string
   ) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Evita que el enter haga un submit inesperado
@@ -272,7 +280,7 @@ const CuentasPage = () => {
                             );
                             handleSave(item.id);
                           }}
-                          onBlur={() => handleSave(item.id)}
+                          onKeyDown={(e) => handleKeyDown(e, item.id)}
                           className="border px-2 py-1 rounded"
                         >
                           <option value="nomina">Nómina</option>
@@ -304,7 +312,7 @@ const CuentasPage = () => {
                             );
                             handleSave(item.id);
                           }}
-                          onBlur={() => handleSave(item.id)}
+                          onKeyDown={(e) => handleKeyDown(e, item.id)}
                           className="border px-2 py-1 rounded"
                         >
                           <option value="discount">Descuentos</option>
@@ -325,10 +333,7 @@ const CuentasPage = () => {
                       <CustomSwitch
                         checked={item.account_status === "active"}
                         onCheckedChange={() =>
-                          handleStatusToggle(
-                            item.id.toString(),
-                            item.account_status
-                          )
+                          handleStatusToggle(item.id, item.account_status)
                         }
                       />
                     </TableCell>
