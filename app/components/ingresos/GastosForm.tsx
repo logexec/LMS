@@ -29,6 +29,7 @@ import * as XLSX from "xlsx";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { LoadingState } from "@/utils/types";
 import { useAuth } from "@/hooks/useAuth";
+import apiService from "@/services/api.service";
 
 interface GastosFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
@@ -258,19 +259,11 @@ const GastosForm: React.FC<GastosFormProps> = ({
   const fetchAccounts = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_type=nomina`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          credentials: "include",
-        }
-      );
-
+      const response = await apiService.getAccounts("nomina");
       if (!response.ok) throw new Error("Error al cargar las cuentas");
 
-      const data = await response.json();
+      const data = await response.data;
+
       setLocalOptions((prev) => ({
         ...prev,
         accounts: data.map((account: { name: string; id: string }) => ({
@@ -325,8 +318,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
       }, 300),
     []
   );
-
-  // const currentUser = useAuth().user;
 
   const auth = useAuth();
 
