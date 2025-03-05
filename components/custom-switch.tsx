@@ -1,16 +1,38 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
-export default function CustomSwitch(id?: string, label?: string) {
+interface CustomSwitchProps extends React.ComponentProps<typeof Switch> {
+  id?: string;
+  label?: string;
+  className?: string;
+}
+
+const CustomSwitch: React.FC<CustomSwitchProps> = ({
+  id,
+  label,
+  className = "",
+  ...props
+}) => {
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className={`flex items-center gap-2 ${className}`}>
       <Switch
         id={id}
-        className="[&_span]:border-input h-3 w-9 border-none outline-offset-[6px] [&_span]:border"
+        {...props}
+        className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-slate-300 
+                   border border-red-400 dark:border-red-600 
+                   focus:ring-2 focus:ring-red-300 dark:focus:ring-red-900 
+                   transition-all duration-300"
       />
-      <Label htmlFor={id} className="sr-only">
-        {label}
-      </Label>
+      {label && (
+        <Label
+          htmlFor={id}
+          className="text-sm font-medium text-slate-700 dark:text-slate-300"
+        >
+          {label}
+        </Label>
+      )}
     </div>
   );
-}
+};
+
+export default CustomSwitch;
