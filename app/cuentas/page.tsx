@@ -49,16 +49,22 @@ const CuentasPage = () => {
     fetchAccounts();
   }, []);
 
-  const handleStatusToggle = async (id: number, currentStatus: string) => {
+  const handleStatusToggle = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
     try {
-      await apiService.updateAccount(String(id), { account_status: newStatus });
+      await apiService.updateAccount(id, { account_status: newStatus });
+
       setAccounts((prev) =>
         prev.map((acc) =>
-          acc.id === id ? { ...acc, account_status: newStatus } : acc
+          acc.id === parseInt(id) ? { ...acc, account_status: newStatus } : acc
         )
       );
-      toast.success("Estado actualizado");
+
+      toast.success(
+        `Cuenta ${
+          newStatus === "active" ? "activada" : "desactivada"
+        } exitosamente.`
+      );
     } catch (error) {
       toast.error("No se pudo actualizar el estado");
       console.error(error);
@@ -176,8 +182,11 @@ const CuentasPage = () => {
                   <TableCell className="text-right">
                     <Switch
                       checked={item.account_status === "active"}
-                      onChange={() =>
-                        handleStatusToggle(item.id, item.account_status)
+                      onCheckedChange={() =>
+                        handleStatusToggle(
+                          item.id.toString(),
+                          item.account_status
+                        )
                       }
                       className="h-3 w-9 border-none"
                     />
