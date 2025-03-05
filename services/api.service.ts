@@ -123,10 +123,19 @@ export const apiService = {
       body: JSON.stringify(data),
     }),
 
-  getAccounts: () =>
-    fetchWithAuth(`/accounts`, {
+  // Accounts
+  getAccounts: (accountType?: string) => {
+    const queryParams = new URLSearchParams();
+
+    if (accountType) {
+      queryParams.append("account_type", accountType);
+    }
+
+    return fetchWithAuth(`/accounts?${queryParams.toString()}`, {
       credentials: "include",
-    }),
+    });
+  },
+
   updateAccount: (
     accountId: string,
     data: { name?: string; type?: string; account_status?: string }

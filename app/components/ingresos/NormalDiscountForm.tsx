@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getAuthToken } from "@/services/auth.service";
+import apiService from "@/services/api.service";
 
 interface NormalDiscountFormProps {
   options: OptionsState;
@@ -89,19 +90,10 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   const fetchAccounts = useCallback(async (tipo: string) => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_type=${tipo}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          credentials: "include",
-        }
-      );
-
+      const response = await apiService.getAccounts(tipo);
       if (!response.ok) throw new Error("Error al cargar las cuentas");
 
-      const data = await response.json();
+      const data = await response.data;
 
       setLocalOptions((prev) => ({
         ...prev,
