@@ -1,12 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { LoadingState, OptionsState } from "@/utils/types";
 import { getAuthToken } from "@/services/auth.service";
 import { useAuth } from "@/hooks/useAuth";
+import NormalDiscountForm from "./NormalDiscountForm";
+import apiService from "@/services/api.service";
 
 const IngresosForm = () => {
+  const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState<LoadingState>({
     submit: false,
     projects: false,
@@ -29,11 +32,16 @@ const IngresosForm = () => {
   // Fetch inicial de datos
   useEffect(() => {
     const fetchInitialData = async () => {
-      setLoading((prev) => ({ ...prev, projects: true, areas: true }));
+      setLoading((prev) => ({
+        ...prev,
+        projects: true,
+        areas: true,
+        accounts: true,
+      }));
       const assignedProjectIds = auth.hasProjects();
 
       try {
-        const [projectsRes, areasRes] = await Promise.all([
+        const [projectsRes, areasRes, accountsRes] = await Promise.all([
           fetch(
             `${
               process.env.NEXT_PUBLIC_API_URL
@@ -49,18 +57,37 @@ const IngresosForm = () => {
             },
             credentials: "include",
           }),
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_affects="income"`,
+            {
+              headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+              },
+              credentials: "include",
+            }
+          ),
         ]);
 
         if (!projectsRes.ok) throw new Error("Error al cargar proyectos");
         if (!areasRes.ok) throw new Error("Error al cargar áreas");
+        if (!accountsRes.ok) throw new Error("Error al cargar las cuentas");
 
-        const [projectsData, areasData] = await Promise.all([
+        const [projectsData, areasData, accountsData] = await Promise.all([
           projectsRes.json(),
           areasRes.json(),
+          accountsRes.json(),
         ]);
+
+        console.log("AccountsData", accountsData);
 
         setOptions((prev) => ({
           ...prev,
+          accounts: accountsData.data.map(
+            (account: { name: string; id: string }) => ({
+              label: account.name,
+              value: account.id,
+            })
+          ),
           projects: projectsData.map(
             (project: { name: string; id: string }) => ({
               label: project.name,
@@ -72,6 +99,8 @@ const IngresosForm = () => {
             value: area.id,
           })),
         }));
+
+        console.log("Accounts", options.accounts);
       } catch (error) {
         toast.error("Error al cargar datos iniciales");
         console.error("Error al cargar datos iniciales:", error);
@@ -128,7 +157,7 @@ const IngresosForm = () => {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2 }}
             >
-              <IngresosForm
+              <NormalDiscountForm
                 options={options}
                 loading={loading}
                 onSubmit={handleNormalSubmit}

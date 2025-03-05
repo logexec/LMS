@@ -105,17 +105,17 @@ export const sidenavLinks: NavLink[] = [
       },
     ],
   },
-  {
-    category: "Ingresos Especiales",
-    requiredPermissions: ["manage_special_income"],
-    links: [
-      {
-        label: "Inicio",
-        url: "/ingresos-especiales",
-        icon: LayoutDashboard,
-      },
-    ],
-  },
+  // {
+  //   category: "Ingresos Especiales",
+  //   requiredPermissions: ["manage_special_income"],
+  //   links: [
+  //     {
+  //       label: "Inicio",
+  //       url: "/ingresos-especiales",
+  //       icon: LayoutDashboard,
+  //     },
+  //   ],
+  // },
   {
     category: "Finanzas",
     requiredPermissions: ["manage_provisions"],
