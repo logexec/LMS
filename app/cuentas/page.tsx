@@ -252,7 +252,6 @@ const CuentasPage = () => {
                         item.account_number
                       )}
                     </TableCell>
-                    {/* <TableCell>{item.account_number}</TableCell> */}
                     <TableCell
                       onDoubleClick={() =>
                         handleDoubleClick(item.id, "account_type")
@@ -265,13 +264,14 @@ const CuentasPage = () => {
                             editedValues[item.id]?.account_type ||
                             item.account_type
                           }
-                          onChange={(e) =>
+                          onChange={(e) => {
                             handleInputChange(
                               item.id,
                               "account_type",
                               e.target.value
-                            )
-                          }
+                            );
+                            handleSave(item.id);
+                          }}
                           onBlur={() => handleSave(item.id)}
                           className="border px-2 py-1 rounded"
                         >
@@ -296,13 +296,14 @@ const CuentasPage = () => {
                             editedValues[item.id]?.account_affects ||
                             item.account_affects
                           }
-                          onChange={(e) =>
+                          onChange={(e) => {
                             handleInputChange(
                               item.id,
                               "account_affects",
                               e.target.value
-                            )
-                          }
+                            );
+                            handleSave(item.id);
+                          }}
                           onBlur={() => handleSave(item.id)}
                           className="border px-2 py-1 rounded"
                         >
@@ -311,7 +312,13 @@ const CuentasPage = () => {
                           <option value="both">Ambos</option>
                         </select>
                       ) : (
-                        <p className="capitalize">{item.account_affects}</p>
+                        <p className="capitalize">
+                          {item.account_affects === "discount"
+                            ? "Descuentos"
+                            : item.account_affects === "income"
+                            ? "Ingresos"
+                            : "Ambos"}
+                        </p>
                       )}
                     </TableCell>
                     <TableCell className="text-right w-8">
