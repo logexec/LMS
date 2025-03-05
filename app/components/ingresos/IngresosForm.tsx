@@ -1,15 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { LoadingState, OptionsState } from "@/utils/types";
 import { getAuthToken } from "@/services/auth.service";
 import { useAuth } from "@/hooks/useAuth";
 import NormalDiscountForm from "./NormalDiscountForm";
-import apiService from "@/services/api.service";
 
 const IngresosForm = () => {
-  const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState<LoadingState>({
     submit: false,
     projects: false,
