@@ -213,7 +213,7 @@ export const UsersTable = () => {
     mutationFn: async (data: {
       name: string;
       email: string;
-      password: string;
+      password?: string;
       role_id: string;
       dob?: string;
       permissions: string[];

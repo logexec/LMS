@@ -182,7 +182,7 @@ export const UserDialog = ({
   const [formData, setFormData] = useState<UserFormData>({
     name: "",
     email: "",
-    password: mode === "create" ? DEFAULT_PASSWORD : undefined,
+    ...(mode === "create" ? { password: DEFAULT_PASSWORD } : {}),
     role_id: "",
     dob: undefined,
     permissions: [],
