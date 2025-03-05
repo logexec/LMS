@@ -13,7 +13,7 @@ import React from "react";
 
 interface ClientTableProps {
   mode: "requests" | "reposiciones";
-  type?: "discount" | "expense";
+  type?: "discount" | "expense" | "income";
   title?: string;
 }
 

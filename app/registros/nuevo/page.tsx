@@ -5,6 +5,7 @@ import "./registro.component.css";
 import DescuentosForm from "../../components/ingresos/DescuentosForm";
 import GastosForm from "../../components/ingresos/GastosForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import IngresosForm from "@/app/components/ingresos/IngresosForm";
 
 const RegistroPage: React.FC = () => {
   const [modalStatus] = useState({
@@ -29,6 +30,7 @@ const RegistroPage: React.FC = () => {
         <TabsList>
           <TabsTrigger value="discount">Descuentos</TabsTrigger>
           <TabsTrigger value="expense">Gastos</TabsTrigger>
+          <TabsTrigger value="income">Ingresos Especiales</TabsTrigger>
         </TabsList>
 
         <TabsContent value="discount">
@@ -37,6 +39,10 @@ const RegistroPage: React.FC = () => {
 
         <TabsContent value="expense">
           <GastosForm />
+        </TabsContent>
+
+        <TabsContent value="income">
+          <IngresosForm />
         </TabsContent>
       </Tabs>
       {/* TODO: Agregar notificaciones  */}

@@ -90,7 +90,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   const fetchAccounts = useCallback(async (tipo: string) => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
-      const response = await apiService.getAccounts(tipo);
+      const response = await apiService.getAccounts(tipo, "discount");
       if (!response.ok) throw new Error("Error al cargar las cuentas");
 
       const data = await response.data;

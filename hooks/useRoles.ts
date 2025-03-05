@@ -38,7 +38,7 @@ export function useRoles() {
           }
         }
 
-        console.log(
+        console.warn(
           "⚠️ Unexpected roles response format, defaulting to empty array"
         );
         return [];

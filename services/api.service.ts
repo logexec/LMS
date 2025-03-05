@@ -124,11 +124,15 @@ export const apiService = {
     }),
 
   // Accounts
-  getAccounts: (accountType?: string) => {
+  getAccounts: (accountType?: string, accountAffects?: string) => {
     const queryParams = new URLSearchParams();
 
     if (accountType) {
       queryParams.append("account_type", accountType);
+    }
+
+    if (accountAffects) {
+      queryParams.append("account_affects", accountAffects);
     }
 
     return fetchWithAuth(`/accounts?${queryParams.toString()}`, {

@@ -5,6 +5,7 @@ import {
   Landmark,
   Wallet,
   PiggyBank,
+  Banknote,
 } from "lucide-react";
 import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
@@ -71,6 +72,12 @@ export const sidenavLinks: NavLink[] = [
         label: "Gastos",
         url: "/registros/gastos",
         icon: GiPayMoney,
+        requiredPermissions: ["view_expenses", "manage_expenses"],
+      },
+      {
+        label: "Ingresos Especiales",
+        url: "/registros/ingresos-especiales",
+        icon: Banknote,
         requiredPermissions: ["view_expenses", "manage_expenses"],
       },
       {

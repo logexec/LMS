@@ -159,20 +159,6 @@ export const UsersTable = () => {
       }
     }
 
-    // Log de depuración
-    console.log("Estructura de usuarios recibida:", {
-      isArray: Array.isArray(response),
-      hasDataProperty:
-        response && typeof response === "object" && "data" in response,
-      dataIsArray:
-        response &&
-        typeof response === "object" &&
-        "data" in response &&
-        Array.isArray(response.data),
-      responseKeys:
-        response && typeof response === "object" ? Object.keys(response) : [],
-    });
-
     return [];
   }, [response]);
 
@@ -194,15 +180,6 @@ export const UsersTable = () => {
           setTotalPages(response.data.last_page);
         }
       }
-
-      // Debug para ver qué estamos recibiendo
-      console.log("Estructura de paginación recibida:", {
-        totalFromResponse: response.total,
-        lastPageFromResponse: response.last_page,
-        hasDataObject: !!response.data,
-        totalFromDataObject: response.data?.total,
-        currentPage: response.current_page || response.data?.current_page,
-      });
     }
   }, [response]);
 
