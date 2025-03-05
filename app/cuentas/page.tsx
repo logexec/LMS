@@ -306,8 +306,8 @@ const CuentasPage = () => {
                           onBlur={() => handleSave(item.id)}
                           className="border px-2 py-1 rounded"
                         >
-                          <option value="discounts">Descuentos</option>
-                          <option value="incomes">Ingresos</option>
+                          <option value="discount">Descuentos</option>
+                          <option value="income">Ingresos</option>
                           <option value="both">Ambos</option>
                         </select>
                       ) : (
