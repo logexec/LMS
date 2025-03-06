@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { fetchWithAuth } from "@/services/auth.service";
+import { AccountProps } from "@/utils/types";
 
 export const apiService = {
   // Users
@@ -124,6 +125,14 @@ export const apiService = {
     }),
 
   // Accounts
+  createAccount: async (formData: AccountProps) => {
+    return fetchWithAuth("/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+  },
+
   getAccounts: (accountType?: string, accountAffects?: string) => {
     const queryParams = new URLSearchParams();
 
