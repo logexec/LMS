@@ -152,6 +152,7 @@ export const login = async (
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
       method: "POST",
+      redirect: "manual",
       headers: {
         "Content-Type": "application/json",
       },
