@@ -74,12 +74,12 @@ export const sidenavLinks: NavLink[] = [
         icon: GiPayMoney,
         requiredPermissions: ["view_expenses", "manage_expenses"],
       },
-      {
-        label: "Ingresos Especiales",
-        url: "/registros/ingresos-especiales",
-        icon: Banknote,
-        requiredPermissions: ["view_expenses", "manage_expenses"],
-      },
+      // {
+      //   label: "Ingresos Especiales",
+      //   url: "/registros/ingresos-especiales",
+      //   icon: Banknote,
+      //   requiredPermissions: ["view_expenses", "manage_expenses"],
+      // },
       {
         label: "Reposiciones",
         url: "/registros/reposiciones",
