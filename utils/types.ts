@@ -12,9 +12,9 @@ export type TableMode = "requests" | "reposiciones";
 export type RequestType = "discount" | "expense";
 
 export interface BaseEntity {
-  id: number;
-  created_at: string;
-  updated_at: string;
+  id?: number | string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface RequestProps extends BaseEntity {
@@ -38,6 +38,8 @@ export interface AccountProps extends BaseEntity {
   name: string;
   account_number: string;
   account_type: string;
+  account_status: string;
+  account_affects: string;
 }
 
 export interface ResponsibleProps {

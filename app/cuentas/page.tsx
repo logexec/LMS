@@ -14,15 +14,8 @@ import CustomSwitch from "@/components/custom-switch";
 import apiService from "@/services/api.service";
 import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface AccountProps {
-  id: string;
-  name: string;
-  account_number: string;
-  account_type: string;
-  account_status: string;
-  account_affects: string;
-}
+import AddAccountComponent from "../components/cuentas/dialogs/AddAccount";
+import { AccountProps } from "@/utils/types";
 
 const CuentasPage = () => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
@@ -135,6 +128,12 @@ const CuentasPage = () => {
 
   return (
     <div>
+      <div className="flex justify-between items-center p-2">
+        <h3 className="text-2xl font-semibold text-black/70">
+          Gestión de Cuentas
+        </h3>
+        <AddAccountComponent setAccounts={setAccounts} />
+      </div>
       {/* Banner */}
       {isVisible && (
         <div className="bg-sky-100 text-indigo-600 border border-sky-600 px-4 py-3 md:py-2 mb-8 rounded max-w-2xl mx-auto">
@@ -211,19 +210,29 @@ const CuentasPage = () => {
                     }
                   >
                     <TableCell
-                      onDoubleClick={() => handleDoubleClick(item.id, "name")}
+                      onDoubleClick={() =>
+                        handleDoubleClick(item.id!.toString(), "name")
+                      }
                       className="w-max min-w-16 max-w-48"
                     >
-                      {editingField?.id === item.id &&
+                      {editingField?.id === item.id!.toString() &&
                       editingField.field === "name" ? (
                         <input
                           type="text"
-                          value={editedValues[item.id]?.name || item.name}
-                          onChange={(e) =>
-                            handleInputChange(item.id, "name", e.target.value)
+                          value={
+                            editedValues[item.id!.toString()]?.name || item.name
                           }
-                          onBlur={() => handleSave(item.id)}
-                          onKeyDown={(e) => handleKeyDown(e, item.id)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              item.id!.toString(),
+                              "name",
+                              e.target.value
+                            )
+                          }
+                          onBlur={() => handleSave(item.id!.toString())}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, item.id!.toString())
+                          }
                           autoFocus
                           className="border px-2 py-1 rounded"
                         />
@@ -233,26 +242,28 @@ const CuentasPage = () => {
                     </TableCell>
                     <TableCell
                       onDoubleClick={() =>
-                        handleDoubleClick(item.id, "account_number")
+                        handleDoubleClick(item.id!.toString(), "account_number")
                       }
                     >
-                      {editingField?.id === item.id &&
+                      {editingField?.id === item.id!.toString() &&
                       editingField.field === "account_number" ? (
                         <input
                           type="text"
                           value={
-                            editedValues[item.id]?.account_number ||
+                            editedValues[item.id!.toString()]?.account_number ||
                             item.account_number
                           }
                           onChange={(e) =>
                             handleInputChange(
-                              item.id,
+                              item.id!.toString(),
                               "account_number",
                               e.target.value
                             )
                           }
-                          onBlur={() => handleSave(item.id)}
-                          onKeyDown={(e) => handleKeyDown(e, item.id)}
+                          onBlur={() => handleSave(item.id!.toString())}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, item.id!.toString())
+                          }
                           autoFocus
                           className="border px-2 py-1 rounded"
                         />
@@ -262,25 +273,27 @@ const CuentasPage = () => {
                     </TableCell>
                     <TableCell
                       onDoubleClick={() =>
-                        handleDoubleClick(item.id, "account_type")
+                        handleDoubleClick(item.id!.toString(), "account_type")
                       }
                     >
-                      {editingField?.id === item.id &&
+                      {editingField?.id === item.id!.toString() &&
                       editingField.field === "account_type" ? (
                         <select
                           value={
-                            editedValues[item.id]?.account_type ||
+                            editedValues[item.id!.toString()]?.account_type ||
                             item.account_type
                           }
                           onChange={(e) => {
                             handleInputChange(
-                              item.id,
+                              item.id!.toString(),
                               "account_type",
                               e.target.value
                             );
-                            handleSave(item.id);
+                            handleSave(item.id!.toString());
                           }}
-                          onKeyDown={(e) => handleKeyDown(e, item.id)}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, item.id!.toString())
+                          }
                           className="border px-2 py-1 rounded"
                         >
                           <option value="nomina">Nómina</option>
@@ -294,25 +307,30 @@ const CuentasPage = () => {
                     </TableCell>
                     <TableCell
                       onDoubleClick={() =>
-                        handleDoubleClick(item.id, "account_affects")
+                        handleDoubleClick(
+                          item.id!.toString(),
+                          "account_affects"
+                        )
                       }
                     >
-                      {editingField?.id === item.id &&
+                      {editingField?.id === item.id!.toString() &&
                       editingField.field === "account_affects" ? (
                         <select
                           value={
-                            editedValues[item.id]?.account_affects ||
-                            item.account_affects
+                            editedValues[item.id!.toString()]
+                              ?.account_affects || item.account_affects
                           }
                           onChange={(e) => {
                             handleInputChange(
-                              item.id,
+                              item.id!.toString(),
                               "account_affects",
                               e.target.value
                             );
-                            handleSave(item.id);
+                            handleSave(item.id!.toString());
                           }}
-                          onKeyDown={(e) => handleKeyDown(e, item.id)}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, item.id!.toString())
+                          }
                           className="border px-2 py-1 rounded"
                         >
                           <option value="discount">Descuentos</option>
@@ -333,7 +351,10 @@ const CuentasPage = () => {
                       <CustomSwitch
                         checked={item.account_status === "active"}
                         onCheckedChange={() =>
-                          handleStatusToggle(item.id, item.account_status)
+                          handleStatusToggle(
+                            item.id!.toString(),
+                            item.account_status
+                          )
                         }
                       />
                     </TableCell>
