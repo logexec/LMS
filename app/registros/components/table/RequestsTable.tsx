@@ -148,7 +148,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         setDataMaps({
           accountMap: accounts.reduce(
             (acc: Record<string, string>, account: AccountProps) => {
-              acc[account.id] = account.name;
+              acc[account.id!] = account.name;
               return acc;
             },
             {}
