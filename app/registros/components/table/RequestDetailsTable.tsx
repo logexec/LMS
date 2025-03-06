@@ -215,7 +215,7 @@ const RequestDetailsTableComponent = ({
   }, [searchTerm, requests]);
 
   const accountMap = accounts.reduce<Record<string, string>>((acc, account) => {
-    acc[account.id] = account.name;
+    acc[account.id!] = account.name;
     return acc;
   }, {});
 
