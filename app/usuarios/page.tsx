@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { Card, CardContent } from "@/components/ui/card";
 import { UsersTable } from "../components/users/UsersTable";
 import { InfoIcon } from "lucide-react";
 
@@ -37,11 +36,9 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-6">
-          <UsersTable />
-        </CardContent>
-      </Card>
+      <div className="p-6">
+        <UsersTable />
+      </div>
     </motion.div>
   );
 };

@@ -72,9 +72,6 @@ interface ErrorResponse {
 // API functions modificada para aceptar parámetros de paginación
 const fetchUsers = async (page = 1, pageSize = 10, searchQuery = "") => {
   try {
-    console.log(
-      `🔍 Fetching users for page ${page} with ${pageSize} items per page...`
-    );
     let response;
 
     // Si hay una consulta de búsqueda, ignoramos paginación para búsqueda global
