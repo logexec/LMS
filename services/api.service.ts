@@ -157,6 +157,19 @@ export const apiService = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+
+  getSimpleAccounts: () => {
+    return fetchWithAuth(`/accounts`, {
+      credentials: "include",
+    });
+  },
+
+  //Sistema_onix
+  getPersonnel: () => {
+    return fetchWithAuth(`/responsibles?fields=id,nombre_completo`, {
+      credentials: "include",
+    });
+  },
 };
 
 export default apiService;
