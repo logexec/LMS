@@ -59,7 +59,8 @@ import {
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import { Tooltip } from "@/components/ui/tooltip";
-import { fetchVehicles } from "./RequestDetailsTable";
+import { fetchAccounts, fetchVehicles } from "./RequestDetailsTable";
+import { getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
 import apiService from "@/services/api.service";
 
@@ -136,78 +137,36 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     const loadDataMaps = async () => {
       try {
         const [accounts, responsibles, vehicles] = await Promise.all([
-          // fetchAccounts(),
-          apiService.getSimpleAccounts(),
+          fetchAccounts(),
           apiService.getPersonnel(),
           fetchVehicles(),
         ]);
 
-        // Función genérica para convertir valores no iterables a arrays
-        const ensureArray = (data: any) => {
-          if (Array.isArray(data)) {
-            return data;
-          }
-
-          // Si es un objeto con una propiedad data que es array
-          if (data && typeof data === "object") {
-            if (Array.isArray(data.data)) {
-              return data.data;
-            }
-
-            // Intenta convertir el objeto a array si tiene entradas numeradas
-            const values = Object.values(data);
-            if (values.length > 0) {
-              return values;
-            }
-          }
-          return [];
-        };
-
-        // Convertimos cada fuente de datos a array
-        const accountsArray = ensureArray(accounts);
-        const responsiblesArray = ensureArray(responsibles);
-        const vehiclesArray = ensureArray(vehicles);
-
-        // Creamos los mapas a partir de los arrays
-        const accountMap = accountsArray.reduce(
-          (acc: Record<string, string>, account: AccountProps) => {
-            if (account && account.id != null) {
-              acc[account.id.toString()] = account.name || "";
-            }
-            return acc;
-          },
-          {} as Record<string, string>
-        );
-
-        const responsibleMap = responsiblesArray.reduce(
-          (
-            personnel: Record<string, string>,
-            responsible: ResponsibleProps
-          ) => {
-            if (responsible && responsible.id != null) {
-              personnel[responsible.id.toString()] =
-                responsible.nombre_completo || "";
-            }
-            return personnel;
-          },
-          {} as Record<string, string>
-        );
-
-        const vehicleMap = vehiclesArray.reduce(
-          (acc: Record<string, string>, vehicle: TransportProps) => {
-            if (vehicle && vehicle.id != null) {
-              acc[vehicle.id.toString()] = vehicle.name || "";
-            }
-            return acc;
-          },
-          {} as Record<string, string>
-        );
-
-        // Actualización del estado con los mapas generados
         setDataMaps({
-          accountMap,
-          responsibleMap,
-          vehicleMap,
+          accountMap: accounts.reduce(
+            (acc: Record<string, string>, account: AccountProps) => {
+              acc[account.id!] = account.name;
+              return acc;
+            },
+            {}
+          ),
+          responsibleMap: responsibles.reduce(
+            (
+              personnel: Record<string, string>,
+              responsible: ResponsibleProps
+            ) => {
+              personnel[responsible.id] = responsible.nombre_completo;
+              return personnel;
+            },
+            {}
+          ),
+          vehicleMap: vehicles.reduce(
+            (acc: Record<string, string>, vehicle: TransportProps) => {
+              acc[vehicle.id] = vehicle.name;
+              return acc;
+            },
+            {}
+          ),
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
@@ -250,6 +209,9 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       try {
         setIsRefreshing(true);
         const response = await fetch(buildQueryUrl(tableState), {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           credentials: "include",
         });
 
@@ -395,7 +357,6 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         return;
       }
 
-      // Obtener los IDs de las filas seleccionadas
       const selectedRows = table.getSelectedRowModel().rows;
       const requestIds = selectedRows.map(
         (row) => (row.original as RequestProps).unique_id
