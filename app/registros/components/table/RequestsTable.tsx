@@ -59,10 +59,13 @@ import {
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import { Tooltip } from "@/components/ui/tooltip";
-import { fetchAccounts, fetchVehicles } from "./RequestDetailsTable";
+import {
+  fetchAccounts,
+  fetchResponsibles,
+  fetchVehicles,
+} from "./RequestDetailsTable";
 import { getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
-import apiService from "@/services/api.service";
 
 interface PaginationMeta {
   current_page: number;
@@ -138,39 +141,38 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       try {
         const [accounts, responsibles, vehicles] = await Promise.all([
           fetchAccounts(),
-          apiService.getPersonnel(),
+          fetchResponsibles(),
           fetchVehicles(),
         ]);
 
         setDataMaps({
-          accountMap: accounts.reduce(
-            (acc: Record<string, string>, account: AccountProps) => {
-              acc[account.id!] = account.name;
-              return acc;
-            },
-            {}
-          ),
-          responsibleMap: responsibles.reduce(
-            (
-              personnel: Record<string, string>,
-              responsible: ResponsibleProps
-            ) => {
-              personnel[responsible.id] = responsible.nombre_completo;
-              return personnel;
-            },
-            {}
-          ),
-          vehicleMap: vehicles.reduce(
-            (acc: Record<string, string>, vehicle: TransportProps) => {
-              acc[vehicle.id] = vehicle.name;
-              return acc;
-            },
-            {}
-          ),
+          accountMap: Array.isArray(accounts)
+            ? accounts.reduce((acc, account) => {
+                acc[account.id || ""] = account.name;
+                return acc;
+              }, {})
+            : {},
+          responsibleMap: Array.isArray(responsibles)
+            ? responsibles.reduce((acc, responsible) => {
+                acc[responsible.id || ""] = responsible.nombre_completo;
+                return acc;
+              }, {})
+            : {},
+          vehicleMap: Array.isArray(vehicles)
+            ? vehicles.reduce((acc, vehicle) => {
+                acc[vehicle.id || ""] = vehicle.name;
+                return acc;
+              }, {})
+            : {},
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
-        toast.error("Se produjo un error al tratar de cargar los datos");
+        toast.error("Error al cargar los datos de referencia");
+        setDataMaps({
+          accountMap: {},
+          responsibleMap: {},
+          vehicleMap: {},
+        });
       }
     };
 

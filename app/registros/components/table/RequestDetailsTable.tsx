@@ -20,7 +20,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { getAuthToken } from "@/services/auth.service";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -37,55 +36,46 @@ interface RequestDetailsTableProps {
   repositionId?: number | string;
 }
 
-export const fetchAccounts = async (): Promise<AccountProps[]> => {
+export const fetchAccounts = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
-    headers: {
-      Authorization: `Bearer ${getAuthToken()}`,
-    },
-    credentials: "include",
+    credentials: "include", // Solo cookies, sin Authorization
   });
-
   if (!response.ok) {
-    throw new Error("Error fetching accounts");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error fetching accounts");
   }
-
-  return response.json();
+  const data = await response.json();
+  return Array.isArray(data) ? data : []; // Asegura un array
 };
 
-export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
+export const fetchResponsibles = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
     {
-      headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
       credentials: "include",
     }
   );
-
   if (!response.ok) {
-    throw new Error("Error fetching responsibles");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error fetching responsibles");
   }
-
-  return response.json();
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
 };
 
-export const fetchVehicles = async (): Promise<TransportProps[]> => {
+export const fetchVehicles = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
     {
-      headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
       credentials: "include",
     }
   );
-
   if (!response.ok) {
-    throw new Error("Error fetching vehicles");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error fetching vehicles");
   }
-
-  return response.json();
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
 };
 
 export interface FileMetadata {

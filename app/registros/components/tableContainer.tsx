@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { getAuthToken } from "@/services/auth.service";
 import { RequestsTable } from "./table/RequestsTable";
 import {
   RequestProps,
@@ -33,6 +34,7 @@ export default function TableContainer({
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -52,41 +54,33 @@ export default function TableContainer({
   };
 
   // Para crear reposición desde gastos/descuentos
-  // Para crear reposición desde gastos/descuentos
   const handleCreateReposicion = async (
-    requestIds: string[],
-    selectedFile: File
+    requestIds: string[]
   ): Promise<void> => {
     try {
-      // Crear un FormData para enviar los datos y el archivo
-      const formData = new FormData();
-
-      // Añadir cada ID de solicitud al FormData
-      requestIds.forEach((id, index) => {
-        formData.append(`request_ids[${index}]`, id);
-      });
-
-      // Añadir el archivo
-      formData.append("attachment", selectedFile);
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+            "Content-Type": "application/json",
+          },
           credentials: "include",
-          body: formData,
+          body: JSON.stringify({
+            request_ids: requestIds,
+          }),
         }
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al crear la reposición");
+        throw new Error("Error al crear la reposición");
       }
 
       toast.success("Reposición creada correctamente");
     } catch (error) {
       console.error("Error:", error);
-      throw error; // Re-lanzar el error para que pueda ser manejado por el componente que llama
+      toast.error("Error al crear la reposición");
     }
   };
 
@@ -102,6 +96,7 @@ export default function TableContainer({
         {
           method: "PATCH",
           headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
