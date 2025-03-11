@@ -37,45 +37,89 @@ interface RequestDetailsTableProps {
 }
 
 export const fetchAccounts = async () => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
-    credentials: "include", // Solo cookies, sin Authorization
-  });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "Error fetching accounts");
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/accounts`,
+      {
+        credentials: "include",
+      }
+    );
+    const text = await response.text();
+    console.log("fetchAccounts response:", text);
+    if (!response.ok) {
+      throw new Error(`Error fetching accounts: ${response.status} - ${text}`);
+    }
+    const data = JSON.parse(text);
+    const result =
+      data.data && Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data)
+        ? data
+        : [];
+    console.log("fetchAccounts normalized:", result);
+    return result;
+  } catch (error) {
+    console.error("fetchAccounts error:", error);
+    return [];
   }
-  const data = await response.json();
-  return Array.isArray(data) ? data : []; // Asegura un array
 };
 
 export const fetchResponsibles = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
-    {
-      credentials: "include",
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
+      {
+        credentials: "include",
+      }
+    );
+    const text = await response.text();
+    console.log("fetchResponsibles response:", text);
+    if (!response.ok) {
+      throw new Error(
+        `Error fetching responsibles: ${response.status} - ${text}`
+      );
     }
-  );
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "Error fetching responsibles");
+    const data = JSON.parse(text);
+    const result =
+      data.data && Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data)
+        ? data
+        : [];
+    console.log("fetchResponsibles normalized:", result);
+    return result;
+  } catch (error) {
+    console.error("fetchResponsibles error:", error);
+    return [];
   }
-  const data = await response.json();
-  return Array.isArray(data) ? data : [];
 };
 
 export const fetchVehicles = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
-    {
-      credentials: "include",
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
+      {
+        credentials: "include",
+      }
+    );
+    const text = await response.text();
+    console.log("fetchVehicles response:", text);
+    if (!response.ok) {
+      throw new Error(`Error fetching vehicles: ${response.status} - ${text}`);
     }
-  );
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "Error fetching vehicles");
+    const data = JSON.parse(text);
+    const result =
+      data.data && Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data)
+        ? data
+        : [];
+    console.log("fetchVehicles normalized:", result);
+    return result;
+  } catch (error) {
+    console.error("fetchVehicles error:", error);
+    return [];
   }
-  const data = await response.json();
-  return Array.isArray(data) ? data : [];
 };
 
 export interface FileMetadata {

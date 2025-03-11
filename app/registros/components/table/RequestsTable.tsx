@@ -45,14 +45,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
 import debounce from "lodash/debounce";
-import {
-  AccountProps,
-  DataTableProps,
-  ReposicionProps,
-  RequestProps,
-  ResponsibleProps,
-  TransportProps,
-} from "@/utils/types";
+import { DataTableProps, ReposicionProps, RequestProps } from "@/utils/types";
 import {
   TooltipContent,
   TooltipProvider,
@@ -145,22 +138,26 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           fetchVehicles(),
         ]);
 
+        console.log("accounts:", accounts);
+        console.log("responsibles:", responsibles);
+        console.log("vehicles:", vehicles);
+
         setDataMaps({
           accountMap: Array.isArray(accounts)
             ? accounts.reduce((acc, account) => {
-                acc[account.id || ""] = account.name;
+                acc[account.id || ""] = account.name || "";
                 return acc;
               }, {})
             : {},
           responsibleMap: Array.isArray(responsibles)
             ? responsibles.reduce((acc, responsible) => {
-                acc[responsible.id || ""] = responsible.nombre_completo;
+                acc[responsible.id || ""] = responsible.nombre_completo || "";
                 return acc;
               }, {})
             : {},
           vehicleMap: Array.isArray(vehicles)
             ? vehicles.reduce((acc, vehicle) => {
-                acc[vehicle.id || ""] = vehicle.name;
+                acc[vehicle.id || ""] = vehicle.name || "";
                 return acc;
               }, {})
             : {},
