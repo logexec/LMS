@@ -42,7 +42,6 @@ export const fetchWithAuth = async (
   const headers = {
     "Content-Type": "application/json",
     Accept: "application/json",
-    Authorization: `Bearer ${token}`,
     ...options.headers,
   };
 
@@ -159,14 +158,6 @@ export const login = async (
       body: JSON.stringify({ email, password, remember }),
       credentials: "include",
     });
-
-    // Logs para depuracion
-    console.log("Status:", response.status);
-    console.log("Headers:", Object.fromEntries(response.headers.entries()));
-    if (response.status >= 300 && response.status < 400) {
-      console.log("Redirección a:", response.headers.get("Location"));
-    }
-    // Logs para depuracion
 
     if (!response.ok) {
       toast.error(`Error: ${response.statusText}`);
