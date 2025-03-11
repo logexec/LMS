@@ -138,9 +138,24 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           fetchVehicles(),
         ]);
 
-        console.log("accounts:", accounts);
-        console.log("responsibles:", responsibles);
-        console.log("vehicles:", vehicles);
+        console.log(
+          "loadDataMaps - accounts:",
+          accounts,
+          "isArray:",
+          Array.isArray(accounts)
+        );
+        console.log(
+          "loadDataMaps - responsibles:",
+          responsibles,
+          "isArray:",
+          Array.isArray(responsibles)
+        );
+        console.log(
+          "loadDataMaps - vehicles:",
+          vehicles,
+          "isArray:",
+          Array.isArray(vehicles)
+        );
 
         setDataMaps({
           accountMap: Array.isArray(accounts)

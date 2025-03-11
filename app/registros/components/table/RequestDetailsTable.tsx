@@ -45,7 +45,7 @@ export const fetchAccounts = async () => {
       }
     );
     const text = await response.text();
-    console.log("fetchAccounts response:", text);
+    console.log("fetchAccounts raw response:", text);
     if (!response.ok) {
       throw new Error(`Error fetching accounts: ${response.status} - ${text}`);
     }
@@ -56,7 +56,7 @@ export const fetchAccounts = async () => {
         : Array.isArray(data)
         ? data
         : [];
-    console.log("fetchAccounts normalized:", result);
+    console.log("fetchAccounts normalized result:", result);
     return result;
   } catch (error) {
     console.error("fetchAccounts error:", error);
@@ -73,7 +73,7 @@ export const fetchResponsibles = async () => {
       }
     );
     const text = await response.text();
-    console.log("fetchResponsibles response:", text);
+    console.log("fetchResponsibles raw response:", text);
     if (!response.ok) {
       throw new Error(
         `Error fetching responsibles: ${response.status} - ${text}`
@@ -86,7 +86,7 @@ export const fetchResponsibles = async () => {
         : Array.isArray(data)
         ? data
         : [];
-    console.log("fetchResponsibles normalized:", result);
+    console.log("fetchResponsibles normalized result:", result);
     return result;
   } catch (error) {
     console.error("fetchResponsibles error:", error);
@@ -103,7 +103,7 @@ export const fetchVehicles = async () => {
       }
     );
     const text = await response.text();
-    console.log("fetchVehicles response:", text);
+    console.log("fetchVehicles raw response:", text);
     if (!response.ok) {
       throw new Error(`Error fetching vehicles: ${response.status} - ${text}`);
     }
@@ -114,7 +114,7 @@ export const fetchVehicles = async () => {
         : Array.isArray(data)
         ? data
         : [];
-    console.log("fetchVehicles normalized:", result);
+    console.log("fetchVehicles normalized result:", result);
     return result;
   } catch (error) {
     console.error("fetchVehicles error:", error);
