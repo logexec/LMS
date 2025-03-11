@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { getAuthToken } from "@/services/auth.service";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -38,6 +39,9 @@ interface RequestDetailsTableProps {
 
 export const fetchAccounts = async (): Promise<AccountProps[]> => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
     credentials: "include",
   });
 
@@ -52,6 +56,9 @@ export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
     {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
       credentials: "include",
     }
   );
@@ -67,6 +74,9 @@ export const fetchVehicles = async (): Promise<TransportProps[]> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
     {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
       credentials: "include",
     }
   );
