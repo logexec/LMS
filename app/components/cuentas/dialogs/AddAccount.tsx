@@ -127,7 +127,7 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="discount">Descuentos</SelectItem>
-                <SelectItem value="income">Ingresos</SelectItem>
+                <SelectItem value="expense">Gastos</SelectItem>
                 <SelectItem value="both">Ambos</SelectItem>
               </SelectContent>
             </Select>
