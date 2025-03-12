@@ -47,11 +47,11 @@ import { ReposicionProvider } from "./ReposicionContext";
 import debounce from "lodash/debounce";
 import { DataTableProps, ReposicionProps, RequestProps } from "@/utils/types";
 import {
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@radix-ui/react-tooltip";
-import { Tooltip } from "@/components/ui/tooltip";
+  TooltipContent,
+  Tooltip,
+} from "@/components/ui/tooltip";
 import {
   fetchAccounts,
   fetchResponsibles,
@@ -80,7 +80,7 @@ interface TableOptionsWithMeta<TData>
     updateData: (args: {
       rowIndex: number;
       columnId: string;
-      value: any;
+      value: unknown;
     }) => void;
   };
 }
@@ -106,13 +106,9 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   onCreateReposicion,
   onUpdateReposicion,
 }: DataTableProps<TData>) {
-  // Estados para la tabla
   const [data, setData] = useState<TData[]>([]);
   const [tableState, setTableState] = useState<TableState>({
-    pagination: {
-      pageIndex: 0,
-      pageSize: 10,
-    },
+    pagination: { pageIndex: 0, pageSize: 10 },
     sorting: [],
     globalFilter: "",
   });
@@ -122,7 +118,6 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Estado para los maps
   const [dataMaps, setDataMaps] = useState({
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
@@ -152,31 +147,26 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           accountMap: safeAccounts.reduce((acc, account) => {
             acc[account.id || ""] = account.name || "";
             return acc;
-          }, {}),
+          }, {} as Record<string, string>),
           responsibleMap: safeResponsibles.reduce((acc, responsible) => {
             acc[responsible.id || ""] = responsible.nombre_completo || "";
             return acc;
-          }, {}),
+          }, {} as Record<string, string>),
           vehicleMap: safeVehicles.reduce((acc, vehicle) => {
             acc[vehicle.id || ""] = vehicle.name || "";
             return acc;
-          }, {}),
+          }, {} as Record<string, string>),
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
         toast.error("Error al cargar los datos de referencia");
-        setDataMaps({
-          accountMap: {},
-          responsibleMap: {},
-          vehicleMap: {},
-        });
+        setDataMaps({ accountMap: {}, responsibleMap: {}, vehicleMap: {} });
       }
     };
 
     loadDataMaps();
   }, []);
 
-  // Función para construir la URL
   const buildQueryUrl = useCallback(
     (state: TableState) => {
       const params = new URLSearchParams({
@@ -208,9 +198,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       try {
         setIsRefreshing(true);
         const response = await fetch(buildQueryUrl(tableState), {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
+          headers: { Authorization: `Bearer ${getAuthToken()}` },
           credentials: "include",
         });
 
@@ -237,14 +225,11 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
 
         setData(normalizedData.data);
         setMeta(normalizedData.meta);
-
-        // toast.success("Datos actualizados correctamente");
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error(
           error instanceof Error ? error.message : "Error al cargar los datos"
         );
-
         setData([]);
         setMeta({
           current_page: 1,
@@ -261,27 +246,18 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     [buildQueryUrl]
   );
 
-  // Debounce para la búsqueda global
   const debouncedFetch = useMemo(
     () => debounce((state: TableState) => fetchData(state), 300),
     [fetchData]
   );
 
-  // Effect para cargar datos cuando cambian los parámetros
   useEffect(() => {
     debouncedFetch(tableState);
-    return () => {
-      debouncedFetch.cancel();
-    };
+    return () => debouncedFetch.cancel();
   }, [tableState, debouncedFetch]);
 
-  // Memoizar las columnas con el tipo correcto
   const columns = useMemo(
-    () =>
-      getColumns<TData>(mode, {
-        ...dataMaps,
-        onStatusChange,
-      }),
+    () => getColumns<TData>(mode, { ...dataMaps, onStatusChange }),
     [mode, dataMaps, onStatusChange]
   );
 
@@ -293,21 +269,17 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     }: {
       rowIndex: number;
       columnId: string;
-      value: any;
+      value: unknown;
     }) => {
       setData((old) => {
         const newData = [...old];
-        newData[rowIndex] = {
-          ...newData[rowIndex],
-          [columnId]: value,
-        };
+        newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
         return newData;
       });
     },
     []
   );
 
-  // Configuración de la tabla con tipos explícitos
   const table = useReactTable<TData>({
     data,
     columns,
@@ -318,24 +290,19 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       rowSelection,
       globalFilter: tableState.globalFilter,
     },
-    meta: {
-      updateData: handleUpdateData,
-    },
-    onSortingChange: (sorting) => {
-      setTableState((prev) => ({ ...prev, sorting: sorting as SortingState }));
-    },
-    onPaginationChange: (pagination) => {
+    meta: { updateData: handleUpdateData },
+    onSortingChange: (sorting) =>
+      setTableState((prev) => ({ ...prev, sorting: sorting as SortingState })),
+    onPaginationChange: (pagination) =>
       setTableState((prev) => ({
         ...prev,
         pagination: pagination as PaginationState,
-      }));
-    },
-    onGlobalFilterChange: (globalFilter) => {
+      })),
+    onGlobalFilterChange: (globalFilter) =>
       setTableState((prev) => ({
         ...prev,
         globalFilter: globalFilter as string,
-      }));
-    },
+      })),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
@@ -348,38 +315,35 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
 
   const handleSendRequests = async (
     requestIds: string[],
-    selectedFile: File
-  ) => {
+    attachment: File
+  ): Promise<void> => {
     try {
-      if (!Object.keys(rowSelection).length) {
+      if (!requestIds.length) {
         toast.error("Selecciona al menos una solicitud");
         return;
       }
 
-      const selectedRows = table.getSelectedRowModel().rows;
-      const requestIds = selectedRows.map(
-        (row) => (row.original as RequestProps).unique_id
-      );
+      console.log("Sending request_ids:", requestIds, "file:", attachment);
 
       if (!onCreateReposicion) {
-        toast.error("Error en la configuración. Contacta a soporte.");
+        toast.error(
+          "Error en la configuración: onCreateReposicion no está definido. Contacta a soporte."
+        );
         return;
       }
 
-      await onCreateReposicion(requestIds, selectedFile);
+      await onCreateReposicion(requestIds, attachment);
       setRowSelection({});
       await fetchData(tableState);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al crear la reposición"
       );
-      console.error(error);
+      console.error("Error in handleSendRequests:", error);
     }
   };
 
-  const handleRefresh = () => {
-    fetchData(tableState);
-  };
+  const handleRefresh = () => fetchData(tableState);
 
   return (
     <ReposicionProvider onUpdateReposicion={onUpdateReposicion}>
@@ -506,15 +470,11 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className={`
-                        transition-colors
-                        ${
-                          row.getIsSelected()
-                            ? "bg-slate-100 dark:bg-slate-900"
-                            : "even:bg-slate-100 even:dark:bg-slate-900"
-                        }
-                        hover:bg-slate-100 dark:hover:bg-slate-900
-                      `}
+                      className={`transition-colors ${
+                        row.getIsSelected()
+                          ? "bg-slate-100 dark:bg-slate-900"
+                          : "even:bg-slate-100 even:dark:bg-slate-900"
+                      } hover:bg-slate-100 dark:hover:bg-slate-900`}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="py-3 px-4">
@@ -565,11 +525,9 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                             Anterior
                           </span>
                         </Button>
-
                         <span className="text-sm text-slate-600">
                           Página {meta.current_page} de {meta.last_page}
                         </span>
-
                         <Button
                           variant="outline"
                           size="sm"

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React from "react";
@@ -23,7 +24,6 @@ export default function TableContainer({
   type,
   title,
 }: TableContainerProps) {
-  // Para solicitudes individuales en tabla de gastos/descuentos
   const handleStatusChange = async (
     id: number,
     status: Status
@@ -53,81 +53,73 @@ export default function TableContainer({
     }
   };
 
-  // Para crear reposición desde gastos/descuentos
   const handleCreateReposicion = async (
-    requestIds: string[]
+    requestIds: string[],
+    attachment: File
   ): Promise<void> => {
     try {
+      const formData = new FormData();
+      formData.append("attachment", attachment);
+      requestIds.forEach((id) => formData.append("request_ids[]", id));
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({
-            request_ids: requestIds,
-          }),
+          body: formData,
         }
       );
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error("Error al crear la reposición");
+        throw new Error(result.message || "Error al crear la reposición");
       }
 
       toast.success("Reposición creada correctamente");
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error al crear la reposición");
+      console.error("Error creating reposición:", error);
+      throw error instanceof Error
+        ? error
+        : new Error("Error al crear la reposición");
     }
   };
 
-  // Para actualizar estado de reposición (y sus solicitudes asociadas)
   const handleUpdateReposicion = async (
     id: number,
-    data: ReposicionUpdateData,
-    previousStatus: Status
+    updateData: ReposicionUpdateData,
+    _previousStatus: Status // Prefijo _ para indicar que no se usa actualmente
   ): Promise<void> => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`,
         {
-          method: "PATCH",
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify(data),
+          body: JSON.stringify(updateData),
         }
       );
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Error al actualizar la reposición"
-        );
+        throw new Error(result.message || "Error al actualizar la reposición");
       }
 
-      // No mostramos toast aquí porque se manejará en el componente de la tabla
+      toast.success("Reposición actualizada correctamente");
     } catch (error) {
-      console.error("Error:", error);
-      // Si hay un error, intentamos revertir al estado anterior
-      try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reposiciones/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ status: previousStatus }),
-        });
-      } catch (revertError) {
-        console.error("Error al revertir cambios:", revertError);
-      }
-      throw error;
+      console.error("Error updating reposición:", error);
+      throw error instanceof Error
+        ? error
+        : new Error("Error al actualizar la reposición");
     }
   };
 

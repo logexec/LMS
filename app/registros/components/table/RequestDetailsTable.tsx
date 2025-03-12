@@ -14,10 +14,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  TooltipContent,
+  Tooltip,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -36,7 +36,7 @@ interface RequestDetailsTableProps {
   repositionId?: number | string;
 }
 
-export const fetchAccounts = async () => {
+export const fetchAccounts = async (): Promise<AccountProps[]> => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/accounts`,
@@ -45,7 +45,6 @@ export const fetchAccounts = async () => {
       }
     );
     const text = await response.text();
-    console.log("fetchAccounts raw response:", text);
     if (!response.ok) {
       throw new Error(`Error fetching accounts: ${response.status} - ${text}`);
     }
@@ -56,7 +55,6 @@ export const fetchAccounts = async () => {
         : Array.isArray(data)
         ? data
         : [];
-    console.log("fetchAccounts normalized result:", result);
     return result;
   } catch (error) {
     console.error("fetchAccounts error:", error);
@@ -64,16 +62,13 @@ export const fetchAccounts = async () => {
   }
 };
 
-export const fetchResponsibles = async () => {
+export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
-      {
-        credentials: "include",
-      }
+      { credentials: "include" }
     );
     const text = await response.text();
-    console.log("fetchResponsibles raw response:", text);
     if (!response.ok) {
       throw new Error(
         `Error fetching responsibles: ${response.status} - ${text}`
@@ -86,7 +81,6 @@ export const fetchResponsibles = async () => {
         : Array.isArray(data)
         ? data
         : [];
-    console.log("fetchResponsibles normalized result:", result);
     return result;
   } catch (error) {
     console.error("fetchResponsibles error:", error);
@@ -94,16 +88,13 @@ export const fetchResponsibles = async () => {
   }
 };
 
-export const fetchVehicles = async () => {
+export const fetchVehicles = async (): Promise<TransportProps[]> => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
-      {
-        credentials: "include",
-      }
+      { credentials: "include" }
     );
     const text = await response.text();
-    console.log("fetchVehicles raw response:", text);
     if (!response.ok) {
       throw new Error(`Error fetching vehicles: ${response.status} - ${text}`);
     }
@@ -114,7 +105,6 @@ export const fetchVehicles = async () => {
         : Array.isArray(data)
         ? data
         : [];
-    console.log("fetchVehicles normalized result:", result);
     return result;
   } catch (error) {
     console.error("fetchVehicles error:", error);
@@ -129,22 +119,10 @@ export interface FileMetadata {
 
 const StatusBadge = ({ status }: { status: string }): JSX.Element => {
   const statusConfig: Record<string, { color: string; text: string }> = {
-    paid: {
-      color: "bg-green-100 text-green-800",
-      text: "Pagado",
-    },
-    pending: {
-      color: "bg-yellow-100 text-orange-800",
-      text: "Pendiente",
-    },
-    rejected: {
-      color: "bg-red-100 text-red-800",
-      text: "Rechazado",
-    },
-    review: {
-      color: "bg-sky-100 text-sky-800",
-      text: "Revisar",
-    },
+    paid: { color: "bg-green-100 text-green-800", text: "Pagado" },
+    pending: { color: "bg-yellow-100 text-orange-800", text: "Pendiente" },
+    rejected: { color: "bg-red-100 text-red-800", text: "Rechazado" },
+    review: { color: "bg-sky-100 text-sky-800", text: "Revisar" },
     in_reposition: {
       color: "bg-indigo-100 text-indigo-800",
       text: "En Reposición",
@@ -178,9 +156,11 @@ const RequestDetailsTableComponent = ({
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [filteredRequests, setFilteredRequests] =
     useState<RequestProps[]>(requests);
-  const [fileData, setFileData] = useState<FileMetadata>();
+  const [fileData, setFileData] = useState<FileMetadata | undefined>(undefined);
 
-  const fetchFile = async (id: string | number) => {
+  const fetchFile = async (
+    id: string | number
+  ): Promise<FileMetadata | null> => {
     try {
       const response = await apiService.getRepositionFile(id.toString());
       if (response.status === 404) {
@@ -190,7 +170,7 @@ const RequestDetailsTableComponent = ({
       if (!response.ok) {
         throw new Error("Error fetching file");
       }
-      return response;
+      return response as FileMetadata;
     } catch (error) {
       console.error("Error fetching file:", error);
       return null;
@@ -204,7 +184,7 @@ const RequestDetailsTableComponent = ({
         fetchAccounts(),
         fetchResponsibles(),
         fetchVehicles(),
-        fetchFile(repositionId!),
+        ...(repositionId ? [fetchFile(repositionId)] : []),
       ]);
 
       if (results[0].status === "fulfilled") setAccounts(results[0].value);
@@ -216,10 +196,13 @@ const RequestDetailsTableComponent = ({
       if (results[2].status === "fulfilled") setVehicles(results[2].value);
       else toast.error("Error al cargar vehículos");
 
-      if (results[3].status === "fulfilled") setFileData(results[3].value);
-      else {
-        console.error("Error fetching file:", results[3].reason);
-        setFileData(undefined);
+      if (repositionId) {
+        const fileResult = results[3];
+        if (fileResult.status === "fulfilled") {
+          setFileData(fileResult.value || undefined);
+        } else if (fileResult.status === "rejected") {
+          console.error("Error fetching file:", fileResult.reason);
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -249,20 +232,20 @@ const RequestDetailsTableComponent = ({
   }, [searchTerm, requests]);
 
   const accountMap = accounts.reduce<Record<string, string>>((acc, account) => {
-    acc[account.id!] = account.name;
+    acc[account.id || ""] = account.name;
     return acc;
   }, {});
 
   const responsibleMap = responsibles.reduce<Record<string, string>>(
     (acc, responsible) => {
-      acc[responsible.id] = responsible.nombre_completo;
+      acc[responsible.id || ""] = responsible.nombre_completo;
       return acc;
     },
     {}
   );
 
   const vehicleMap = vehicles.reduce<Record<string, string>>((acc, vehicle) => {
-    acc[vehicle.id] = vehicle.name;
+    acc[vehicle.id || ""] = vehicle.name;
     return acc;
   }, {});
 
@@ -304,13 +287,13 @@ const RequestDetailsTableComponent = ({
                   <div className="relative w-full aspect-[9/16] lg:aspect-[16/9] h-[60vh] md:h-auto">
                     <object
                       key={fileData.file_name}
-                      data={fileData.file_name}
+                      data={fileData.file_url}
                       className="absolute inset-0 w-full h-full"
                       type={
                         fileData.file_name.split(".").pop() === "pdf"
                           ? "application/pdf"
                           : fileData.file_name.split(".").pop() === "jpg"
-                          ? "application/jpg"
+                          ? "image/jpg"
                           : fileData.file_name.split(".").pop() === "jpeg"
                           ? "image/jpeg"
                           : fileData.file_name.split(".").pop() === "png"
@@ -497,5 +480,4 @@ const RequestDetailsTableComponent = ({
 };
 
 const RequestDetailsTable = React.memo(RequestDetailsTableComponent);
-
 export default RequestDetailsTable;
