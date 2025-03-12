@@ -132,50 +132,61 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   useEffect(() => {
     const loadDataMaps = async () => {
       try {
+        console.log("Starting loadDataMaps");
+        const accountsPromise = fetchAccounts();
+        const responsiblesPromise = fetchResponsibles();
+        const vehiclesPromise = fetchVehicles();
+
         const [accounts, responsibles, vehicles] = await Promise.all([
-          fetchAccounts(),
-          fetchResponsibles(),
-          fetchVehicles(),
+          accountsPromise,
+          responsiblesPromise,
+          vehiclesPromise,
         ]);
 
         console.log(
           "loadDataMaps - accounts:",
           accounts,
+          "type:",
+          typeof accounts,
           "isArray:",
           Array.isArray(accounts)
         );
         console.log(
           "loadDataMaps - responsibles:",
           responsibles,
+          "type:",
+          typeof responsibles,
           "isArray:",
           Array.isArray(responsibles)
         );
         console.log(
           "loadDataMaps - vehicles:",
           vehicles,
+          "type:",
+          typeof vehicles,
           "isArray:",
           Array.isArray(vehicles)
         );
 
+        const safeAccounts = Array.isArray(accounts) ? accounts : [];
+        const safeResponsibles = Array.isArray(responsibles)
+          ? responsibles
+          : [];
+        const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+
         setDataMaps({
-          accountMap: Array.isArray(accounts)
-            ? accounts.reduce((acc, account) => {
-                acc[account.id || ""] = account.name || "";
-                return acc;
-              }, {})
-            : {},
-          responsibleMap: Array.isArray(responsibles)
-            ? responsibles.reduce((acc, responsible) => {
-                acc[responsible.id || ""] = responsible.nombre_completo || "";
-                return acc;
-              }, {})
-            : {},
-          vehicleMap: Array.isArray(vehicles)
-            ? vehicles.reduce((acc, vehicle) => {
-                acc[vehicle.id || ""] = vehicle.name || "";
-                return acc;
-              }, {})
-            : {},
+          accountMap: safeAccounts.reduce((acc, account) => {
+            acc[account.id || ""] = account.name || "";
+            return acc;
+          }, {}),
+          responsibleMap: safeResponsibles.reduce((acc, responsible) => {
+            acc[responsible.id || ""] = responsible.nombre_completo || "";
+            return acc;
+          }, {}),
+          vehicleMap: safeVehicles.reduce((acc, vehicle) => {
+            acc[vehicle.id || ""] = vehicle.name || "";
+            return acc;
+          }, {}),
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
