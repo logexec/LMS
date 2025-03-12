@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 //Tabla de Reposiciones, Gastos y Descuentos
 
 export enum Status {
@@ -54,6 +57,7 @@ export interface TransportProps {
 
 export interface ReposicionProps {
   id: number;
+  unique_id: string;
   fecha_reposicion: string;
   total_reposicion: number;
   status: Status;

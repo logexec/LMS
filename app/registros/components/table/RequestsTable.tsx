@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -323,8 +321,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         return;
       }
 
-      console.log("Sending request_ids:", requestIds, "file:", attachment);
-
+      // Verifica si onCreateReposicion está definido
       if (!onCreateReposicion) {
         toast.error(
           "Error en la configuración: onCreateReposicion no está definido. Contacta a soporte."
@@ -428,7 +425,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           {mode === "requests" && (
             <SubmitFile
               onCreateReposicion={handleSendRequests}
-              selectedRequests={Object.keys(rowSelection)}
+              selectedRequests={table
+                .getSelectedRowModel()
+                .rows.map((row) => row.original.unique_id)
+                .filter((id): id is string => id !== undefined)}
             />
           )}
         </div>
