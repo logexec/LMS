@@ -389,7 +389,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     setIsDownloading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/download-excel-template`,
+        `${process.env.NEXT_PUBLIC_API_URL}/download-expenses-template`,
         // `${process.env.NEXT_PUBLIC_API_URL}/download-expenses-excel-template`,
         {
           headers: {
