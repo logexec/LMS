@@ -7,7 +7,6 @@ import { LoadingState, OptionsState, RequestData } from "@/utils/types";
 import NormalDiscountForm from "./NormalDiscountForm";
 import MassDiscountForm from "./MassDiscountForm";
 import ExcelUploadSection from "./ExcelUploadSection";
-import * as XLSX from "xlsx";
 import { getAuthToken } from "@/services/auth.service";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -29,7 +28,6 @@ const DescuentosForm = () => {
     areas: [],
   });
 
-  const [isDownloading, setIsDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState("normal");
   const auth = useAuth();
 
@@ -89,129 +87,6 @@ const DescuentosForm = () => {
 
     fetchInitialData();
   }, []);
-
-  const handleExcelUpload = async (file: File) => {
-    setLoading((prev) => ({ ...prev, submit: true }));
-    try {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, {
-        cellDates: true,
-        dateNF: "yyyy-mm-dd",
-      });
-
-      // Obtener la primera hoja
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
-
-      // Validar estructura del Excel
-      const requiredColumns = [
-        "Fecha",
-        "Tipo",
-        "No. Factura",
-        "Cuenta",
-        "Valor",
-        "Proyecto",
-        "Responsable",
-        "Placa", // Opcional, solo para transportistas
-        "Observación",
-      ];
-
-      const rawHeaderRow = XLSX.utils.sheet_to_json(worksheet, {
-        header: 1,
-      })[0];
-      const headerRow = Array.isArray(rawHeaderRow)
-        ? rawHeaderRow.map(String)
-        : [];
-
-      const missingColumns = requiredColumns.filter(
-        (col) => col !== "Placa" && !headerRow.includes(col)
-      );
-
-      if (missingColumns.length > 0) {
-        throw new Error(`Columnas faltantes: ${missingColumns.join(", ")}`);
-      }
-
-      // Preparar FormData con los datos procesados
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("data", JSON.stringify(jsonData));
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/upload-discounts`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        if (result.errors) {
-          // Crear mensaje de error detallado para cada fila con error
-          const errorMessage = result.errors
-            .map(
-              (err: { row: number; error: string }) =>
-                `Fila ${err.row}: ${err.error}`
-            )
-            .join("\n");
-          throw new Error(errorMessage);
-        }
-        throw new Error(result.message || "Error al procesar el archivo");
-      }
-
-      toast.success(`${result.processed} descuentos procesados correctamente`);
-    } catch (error) {
-      console.error("Error:", error);
-      // Si el error tiene múltiples líneas, usar toast.error para cada línea
-      if (error instanceof Error && error.message.includes("\n")) {
-        error.message.split("\n").forEach((line) => toast.error(line));
-      } else {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error al procesar el archivo"
-        );
-      }
-    } finally {
-      setLoading((prev) => ({ ...prev, submit: false }));
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    setIsDownloading(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/download-discounts-template`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) throw new Error("Error al descargar la plantilla");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "Plantilla Descuentos.xlsx";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success("Plantilla descargada correctamente");
-    } catch (error) {
-      toast.error("Error al descargar la plantilla");
-      console.error("Error al descargar la plantilla:", error);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
@@ -280,12 +155,7 @@ const DescuentosForm = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <ExcelUploadSection
-          onFileUpload={handleExcelUpload}
-          onDownloadTemplate={handleDownloadTemplate}
-          isUploading={loading.submit}
-          isDownloading={isDownloading}
-        />
+        <ExcelUploadSection context="discounts" />
       </motion.div>
 
       {/* Sección de Formularios */}

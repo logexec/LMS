@@ -11,21 +11,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import apiService from "@/services/api.service";
+import { toast } from "sonner"; // Ajusta según tu librería de notificaciones
 
 interface ExcelUploadSectionProps {
-  onFileUpload: (file: File) => Promise<void>;
-  onDownloadTemplate: () => Promise<void>;
-  isUploading: boolean;
-  isDownloading: boolean;
+  context: "discounts" | "expenses"; // Solo el contexto es obligatorio
 }
 
-const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
-  onFileUpload,
-  onDownloadTemplate,
-  isUploading,
-  isDownloading,
-}) => {
+const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -43,7 +39,37 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      await onFileUpload(e.dataTransfer.files[0]);
+      await handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const result = await apiService.importExcelData(file, context);
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        "Se produjo un error al importar el archivo. Por favor, revisa la consola o contacta a soporte."
+      );
+      console.error("Error al importar:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    setIsDownloading(true);
+    try {
+      const result = await apiService.downloadTemplate(context);
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        "Se produjo un error al descargar la plantilla. Por favor, revisa la consola o contacta a soporte."
+      );
+      console.error("Error al descargar:", error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -68,7 +94,9 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
                   Carga de Excel
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Importa tus registros desde un archivo Excel
+                  Importa tus{" "}
+                  {context === "discounts" ? "descuentos" : "gastos"} desde un
+                  archivo Excel
                 </p>
               </div>
 
@@ -129,7 +157,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
                           accept=".xlsx,.xls,.csv"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {
-                              onFileUpload(e.target.files[0]);
+                              handleFileUpload(e.target.files[0]);
                             }
                           }}
                           className="hidden"
@@ -156,8 +184,8 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
                   ¿Necesitas la plantilla?
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Descarga la plantilla actualizada para asegurar una
-                  importación exitosa
+                  Descarga la plantilla actualizada para importar{" "}
+                  {context === "discounts" ? "descuentos" : "gastos"}
                 </p>
               </div>
 
@@ -166,7 +194,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        onClick={onDownloadTemplate}
+                        onClick={handleDownloadTemplate}
                         disabled={isDownloading}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200"
                       >
@@ -184,7 +212,8 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      Descarga la plantilla oficial para importar descuentos
+                      Descarga la plantilla oficial para importar{" "}
+                      {context === "discounts" ? "descuentos" : "gastos"}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

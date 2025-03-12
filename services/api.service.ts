@@ -158,17 +158,79 @@ export const apiService = {
       body: JSON.stringify(data),
     }),
 
-  getSimpleAccounts: () => {
-    return fetchWithAuth(`/accounts`, {
-      credentials: "include",
-    });
-  },
-
   //Sistema_onix
   getPersonnel: () => {
     return fetchWithAuth(`/responsibles?fields=id,nombre_completo`, {
       credentials: "include",
     });
+  },
+
+  // Descargar plantilla
+  downloadTemplate: async (context: "discounts" | "expenses") => {
+    const endpoint =
+      context === "discounts"
+        ? "/download-discounts-template"
+        : "/download-expenses-template";
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
+        {
+          method: "GET",
+          credentials: "include", // Incluye cookies para autenticación
+          headers: {
+            // Añade headers de autenticación si fetchWithAuth los usa
+            // Ejemplo: "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al descargar la plantilla");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download =
+        context === "discounts"
+          ? "Plantilla_Descuentos.xlsx"
+          : "Plantilla_Gastos.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return { success: true, message: "Plantilla descargada correctamente" };
+    } catch (error) {
+      console.error(`Error descargando plantilla (${context}):`, error);
+      throw error;
+    }
+  },
+
+  // Importar plantilla
+  importExcelData: async (file: File, context: "discounts" | "expenses") => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("context", context);
+
+    try {
+      const response = await fetchWithAuth("/requests/import", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al importar el archivo");
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error(`Error importando datos (${context}):`, error);
+      throw error;
+    }
   },
 };
 
