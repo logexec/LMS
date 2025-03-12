@@ -390,11 +390,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/download-expenses-template`,
-        // `${process.env.NEXT_PUBLIC_API_URL}/download-expenses-excel-template`,
         {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
           method: "GET",
           credentials: "include",
         }

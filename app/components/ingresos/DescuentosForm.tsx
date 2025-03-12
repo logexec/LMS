@@ -188,9 +188,6 @@ const DescuentosForm = () => {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/download-discounts-template`,
         {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
           method: "GET",
           credentials: "include",
         }
@@ -202,7 +199,7 @@ const DescuentosForm = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "Plantilla Descuentos Masivos | LogeX.xlsx";
+      link.download = "Plantilla Descuentos.xlsx";
       document.body.appendChild(link);
       link.click();
       link.remove();
