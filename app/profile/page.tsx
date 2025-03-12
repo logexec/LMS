@@ -20,6 +20,8 @@ const UserPage = () => {
   if (error) return <p>Error al cargar usuario</p>;
   if (!user) return <p>No se encontró el usuario</p>;
 
+  console.log("Datos obtenidos:", ...user);
+
   return <UserProfileComponent {...user} />;
 };
 
