@@ -132,7 +132,6 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   useEffect(() => {
     const loadDataMaps = async () => {
       try {
-        console.log("Starting loadDataMaps");
         const accountsPromise = fetchAccounts();
         const responsiblesPromise = fetchResponsibles();
         const vehiclesPromise = fetchVehicles();
@@ -142,31 +141,6 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           responsiblesPromise,
           vehiclesPromise,
         ]);
-
-        console.log(
-          "loadDataMaps - accounts:",
-          accounts,
-          "type:",
-          typeof accounts,
-          "isArray:",
-          Array.isArray(accounts)
-        );
-        console.log(
-          "loadDataMaps - responsibles:",
-          responsibles,
-          "type:",
-          typeof responsibles,
-          "isArray:",
-          Array.isArray(responsibles)
-        );
-        console.log(
-          "loadDataMaps - vehicles:",
-          vehicles,
-          "type:",
-          typeof vehicles,
-          "isArray:",
-          Array.isArray(vehicles)
-        );
 
         const safeAccounts = Array.isArray(accounts) ? accounts : [];
         const safeResponsibles = Array.isArray(responsibles)
