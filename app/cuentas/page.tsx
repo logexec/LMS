@@ -334,15 +334,15 @@ const CuentasPage = () => {
                           className="border px-2 py-1 rounded"
                         >
                           <option value="discount">Descuentos</option>
-                          <option value="income">Ingresos</option>
+                          <option value="expense">Gastos</option>
                           <option value="both">Ambos</option>
                         </select>
                       ) : (
                         <p className="capitalize">
                           {item.account_affects === "discount"
                             ? "Descuentos"
-                            : item.account_affects === "income"
-                            ? "Ingresos"
+                            : item.account_affects === "expense"
+                            ? "Gastos"
                             : "Ambos"}
                         </p>
                       )}
