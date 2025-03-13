@@ -284,7 +284,7 @@ const RequestDetailsTableComponent = ({
                     No se encontró archivo adjunto para esta reposición.
                   </p>
                 ) : fileData ? (
-                  <div className="relative w-full aspect-[9/16] lg:aspect-[16/9] h-[60vh] md:h-auto">
+                  <div className="relative w-full aspect-[9/16] lg:aspect-[16/9] h-[70vh] 2xl:h-auto">
                     <object
                       key={fileData.file_name}
                       data={fileData.file_url}
