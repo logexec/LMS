@@ -325,14 +325,8 @@ const CuentasPage = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center p-2">
-        <h3 className="text-2xl font-semibold text-black/70">
-          Gestión de Cuentas
-        </h3>
-        <AddAccountComponent setAccounts={setAccounts} />
-      </div>
       {isVisible && (
-        <div className="bg-sky-100 text-indigo-600 border border-sky-600 px-4 py-3 md:py-2 mb-8 rounded max-w-2xl mx-auto">
+        <div className="bg-sky-100 text-indigo-600 border border-sky-600 px-4 py-3 md:py-2 mb-8 rounded max-w-5xl mx-auto">
           <div className="flex gap-2 md:items-center">
             <div className="flex grow gap-3 md:items-center md:justify-center">
               <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -363,6 +357,15 @@ const CuentasPage = () => {
           </div>
         </div>
       )}
+      <div className="w-full flex items-center justify-between p-2 mb-4">
+        <h3 className="text-2xl font-semibold text-black/70 w-max">
+          Gestión de Cuentas
+        </h3>
+        <div className="w-fit justify-self-end">
+          <AddAccountComponent setAccounts={setAccounts} />
+        </div>
+      </div>
+
       <div className="mb-4 flex gap-4">
         <Input
           placeholder="Buscar en todas las cuentas..."
