@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import apiService from "@/services/api.service";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { User } from "@/utils/types";
@@ -25,8 +25,19 @@ interface Project {
   description?: string;
 }
 
-const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
-  // Query de proyectos
+interface UserProfileComponentProps extends User {
+  onProfileUpdate: () => void; // Callback para notificar al padre
+}
+
+const UserProfileComponent = ({
+  id,
+  name,
+  email,
+  dob,
+  phone,
+  role,
+  onProfileUpdate,
+}: UserProfileComponentProps) => {
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects", id],
     queryFn: async () => {
@@ -44,37 +55,49 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
         return [];
       }
     },
-    staleTime: 10 * 1000, // 10 segundos
+    staleTime: 10 * 1000,
   });
 
-  // Estados para los campos del formulario de perfil
   const [cumple, setCumple] = useState<Date | undefined>(
     dob ? new Date(dob) : undefined
   );
   const [telefono, setTelefono] = useState(phone || "");
   const [password, setPassword] = useState("");
 
-  // Manejo del submit del formulario
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const updateData: { dob?: string; phone?: string; password?: string } = {
-        // Formatear la fecha a YYYY-MM-DD si está definida
-        dob: cumple?.toISOString().split("T")[0]
-          ? cumple?.toISOString().split("T")[0]
-          : undefined,
-        phone: telefono,
-      };
-      if (!password.trim()) {
-        delete updateData.password;
-      }
-
-      await apiService.updateUserProfile(id, updateData);
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: {
+      dob?: string;
+      phone?: string;
+      password?: string;
+    }) => {
+      const response = await apiService.updateUserProfile(id, data);
+      return response;
+    },
+    onSuccess: () => {
       toast.success("Perfil actualizado correctamente");
-    } catch (error) {
+      onProfileUpdate(); // Notificar al padre para invalidar la caché
+    },
+    onError: (error) => {
       console.error("Error actualizando perfil", error);
       toast.error("Error actualizando perfil");
+    },
+  });
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updateData: { dob?: string; phone?: string; password?: string } = {};
+
+    const newDob = cumple?.toISOString().split("T")[0];
+    if (newDob && newDob !== dob) updateData.dob = newDob;
+    if (telefono && telefono !== phone) updateData.phone = telefono;
+    if (password.trim()) updateData.password = password;
+
+    if (Object.keys(updateData).length === 0) {
+      toast.info("No hay cambios para guardar");
+      return;
     }
+
+    updateProfileMutation.mutate(updateData);
   };
 
   return (
@@ -83,7 +106,6 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
       animate={{ opacity: 1, transition: { duration: 0.3 } }}
       className="bg-white"
     >
-      {/* Sección de fondo y header */}
       <section className="relative block" style={{ height: "500px" }}>
         <div
           className="absolute top-0 w-full h-full bg-center bg-cover rounded-t-xl bg-white"
@@ -116,19 +138,16 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
         </div>
       </section>
 
-      {/* Sección del perfil */}
       <section className="relative py-16 bg-gray-200 rounded-b-xl">
         <div className="container mx-auto px-4">
           <div className="relative flex flex-col bg-white w-full mb-6 shadow-xl rounded-lg -mt-96">
             <div className="px-6">
               <div className="flex flex-wrap justify-center">
-                {/* Imagen del usuario */}
                 <div className="w-full lg:w-3/12 px-4 flex justify-center">
                   <div className="relative">
                     <User2Icon className="shadow-xl rounded-full w-28 h-28 bg-white p-2 border border-slate-400 absolute -m-16" />
                   </div>
                 </div>
-                {/* Botón de Ajustes con AlertDialog */}
                 <motion.div
                   initial={{ opacity: 0, x: -100 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -194,7 +213,7 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
                           <input
                             type="text"
                             id="phone"
-                            value={phone ? phone : telefono}
+                            value={telefono}
                             onChange={(e) => setTelefono(e.target.value)}
                             placeholder="Ingresa tu teléfono"
                             className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
@@ -218,8 +237,11 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
                             <button
                               type="submit"
                               className="uppercase font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                              disabled={updateProfileMutation.isPending}
                             >
-                              Guardar
+                              {updateProfileMutation.isPending
+                                ? "Guardando..."
+                                : "Guardar"}
                             </button>
                           </AlertDialogAction>
                           <AlertDialogCancel asChild>
@@ -236,7 +258,6 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
                   </AlertDialog>
                 </motion.div>
               </div>
-              {/* Información del usuario */}
               <div className="text-center mt-12">
                 <h3 className="text-4xl font-semibold text-gray-800">{name}</h3>
                 <div className="text-sm text-gray-500 font-bold uppercase mb-2">
@@ -244,9 +265,8 @@ const UserProfileComponent = ({ id, name, email, dob, phone, role }: User) => {
                 </div>
                 <div className="mb-2 text-red-700">{email}</div>
                 <div className="text-sm text-gray-500 font-semibold">
-                  {phone || "Aún no has agregado un número de teléfono."}
+                  {telefono || "Aún no has agregado un número de teléfono."}
                 </div>
-                {/* Proyectos asignados */}
                 <div className="mt-10">
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">
                     Proyectos asignados:

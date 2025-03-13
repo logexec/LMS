@@ -27,14 +27,15 @@ interface RawAssignedProjectsObject {
   projects: string[];
 }
 
-type RawAssignedProjects = RawAssignedProjectsObject | string[];
+type RawAssignedProjects = RawAssignedProjectsObject | string[] | null;
 
-// Define la interfaz para los datos crudos del usuario
 interface RawUser {
   id: number | string;
   name?: string;
   email?: string;
   area?: string;
+  phone?: string | null;
+  dob?: string | null; // Ajustado para coincidir con el backend
   role?: {
     id: number;
     name: string;
@@ -52,10 +53,10 @@ export const AuthContext = createContext<AuthContextProps | undefined>(
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const handleUnauthorized = useCallback((): void => {
+  const handleUnauthorized = useCallback(() => {
     Cookies.remove("jwt-token");
     localStorage.removeItem("user");
     setUser(null);
@@ -70,13 +71,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         handleUnauthorized();
         return;
       }
+
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
-          const parsedUser: User = JSON.parse(storedUser);
+          const parsedUser: RawUser = JSON.parse(storedUser);
           if (parsedUser.id && parsedUser.email) {
             const formattedUser = formatUserData(parsedUser);
             setUser(formattedUser);
+          } else {
+            handleUnauthorized();
           }
         } else {
           handleUnauthorized();
@@ -127,54 +131,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   function formatUserData(userData: RawUser): User {
-    let formattedAssignedProjects: {
-      id: number;
-      user_id: number;
-      projects: string[];
-    } = {
-      id: 0,
-      user_id: 0,
-      projects: [],
-    };
-
-    // Si assignedProjects es un arreglo de strings, lo transformamos en objeto
-    if (Array.isArray(userData.assignedProjects)) {
-      formattedAssignedProjects = {
-        id: 0,
-        user_id: 0,
-        projects: userData.assignedProjects,
-      };
-    }
-    // Si es un objeto, extraemos sus propiedades
-    else if (
-      userData.assignedProjects &&
-      typeof userData.assignedProjects === "object"
-    ) {
-      formattedAssignedProjects = {
-        id: userData.assignedProjects.id ?? 0,
-        user_id: userData.assignedProjects.user_id ?? 0,
-        projects: Array.isArray(userData.assignedProjects.projects)
-          ? userData.assignedProjects.projects
-          : [],
-      };
-    }
+    const assignedProjects = userData.assignedProjects
+      ? Array.isArray(userData.assignedProjects)
+        ? { id: 0, user_id: 0, projects: userData.assignedProjects }
+        : {
+            id: userData.assignedProjects.id ?? 0,
+            user_id: userData.assignedProjects.user_id ?? 0,
+            projects: Array.isArray(userData.assignedProjects.projects)
+              ? userData.assignedProjects.projects
+              : [],
+          }
+      : { id: 0, user_id: 0, projects: [] };
 
     return {
-      id: userData.id.toString(),
+      id: String(userData.id), // Normalizamos a string
       name: userData.name || "Usuario sin nombre",
-      email: userData.email || "No hay un correo asignado",
-      area: userData.area || "Sin área especificada",
+      email: userData.email || "Sin correo asignado",
+      area: userData.area || undefined,
+      dob: userData.dob || undefined,
+      phone: userData.phone || undefined,
       role: {
         id: userData.role?.id ?? 0,
         name: userData.role?.name || "user",
       },
-      permissions: userData.permissions
-        ? userData.permissions.map((p) => ({
-            id: p.id,
-            name: p.name,
-          }))
-        : [],
-      assignedProjects: formattedAssignedProjects,
+      permissions:
+        userData.permissions?.map((p) => ({
+          id: p.id,
+          name: p.name,
+        })) || [],
+      assignedProjects,
     };
   }
 

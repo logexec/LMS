@@ -26,10 +26,6 @@ export const apiService = {
       throw error;
     }
   },
-  getUser: (user: string) =>
-    fetchWithAuth(`/users/${user}`, {
-      credentials: "include",
-    }),
   createUser: (data: any) =>
     fetchWithAuth(`/users`, {
       method: "POST",
@@ -129,15 +125,20 @@ export const apiService = {
       throw error;
     }
   },
-
-  updateUserProfile: (
-    userId: string,
-    data: { dob?: string; phone?: string; password?: string }
-  ) =>
-    fetchWithAuth(`/users/${userId}`, {
+  getUser: async (userId: string) => {
+    const response = await fetchWithAuth(`/users/${userId}`);
+    if (!response.ok) throw new Error("Error al obtener usuario");
+    console.log("Respuesta de getUser:", response);
+    return response;
+  },
+  updateUserProfile: async (userId: string, data: any) => {
+    const response = await fetchWithAuth(`/users/${userId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    }),
+    });
+    if (!response.ok) throw new Error("Error al actualizar perfil");
+    return response;
+  },
 
   // Accounts
   createAccount: async (formData: AccountProps) => {
