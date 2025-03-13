@@ -27,6 +27,7 @@ import { getAuthToken } from "@/services/auth.service";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { useAuth } from "@/hooks/useAuth";
 import apiService from "@/services/api.service";
+import { AccountProps } from "@/utils/types";
 
 interface GastosFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
@@ -261,12 +262,18 @@ const GastosForm: React.FC<GastosFormProps> = ({
 
       const data = await response.data;
 
+      const activeAccounts = data.filter(
+        (account: AccountProps) => account.account_status === "active"
+      );
+
       setLocalOptions((prev) => ({
         ...prev,
-        accounts: data.map((account: { name: string; id: string }) => ({
-          label: account.name,
-          value: account.id,
-        })),
+        accounts: activeAccounts.map(
+          (account: { name: string; id: string }) => ({
+            label: account.name,
+            value: account.id,
+          })
+        ),
       }));
     } catch (error) {
       toast.error(

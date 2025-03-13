@@ -6,7 +6,12 @@ import { motion, AnimatePresence } from "motion/react";
 import { useCallback, useEffect } from "react";
 import Input from "../Input";
 import Select from "../Select";
-import { LoadingState, OptionsState, NormalFormData } from "@/utils/types";
+import {
+  LoadingState,
+  OptionsState,
+  NormalFormData,
+  AccountProps,
+} from "@/utils/types";
 import Datalist from "../Datalist";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
@@ -95,12 +100,18 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
       const data = await response.data;
 
+      const activeAccounts = data.filter(
+        (account: AccountProps) => account.account_status === "active"
+      );
+
       setLocalOptions((prev) => ({
         ...prev,
-        accounts: data.map((account: { name: string; id: string }) => ({
-          label: account.name,
-          value: account.id,
-        })),
+        accounts: activeAccounts.map(
+          (account: { name: string; id: string }) => ({
+            label: account.name,
+            value: account.id,
+          })
+        ),
       }));
     } catch (error) {
       toast.error(
