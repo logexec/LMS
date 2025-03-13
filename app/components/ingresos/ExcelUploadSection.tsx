@@ -50,7 +50,9 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
       toast.success(result.message);
     } catch (error) {
       toast.error(
-        "Se produjo un error al importar el archivo. Por favor, revisa la consola o contacta a soporte."
+        error instanceof Error
+          ? error.message
+          : `Se produjo un error desconocido al importar el archivo. Por favor ponte en contacto con soporte.`
       );
       console.error("Error al importar:", error);
     } finally {
