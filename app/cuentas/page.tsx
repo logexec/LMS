@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Table,
@@ -16,6 +16,23 @@ import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddAccountComponent from "../components/cuentas/dialogs/AddAccount";
 import { AccountProps } from "@/utils/types";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CuentasPage = () => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
@@ -27,6 +44,8 @@ const CuentasPage = () => {
   const [editedValues, setEditedValues] = useState<{
     [key: string]: Partial<AccountProps>;
   }>({});
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -44,87 +63,265 @@ const CuentasPage = () => {
     fetchAccounts();
   }, []);
 
-  const handleStatusToggle = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "inactive" : "active";
-    try {
-      await apiService.updateAccount(id, { account_status: newStatus });
+  const handleDoubleClick = useCallback(
+    (id: string, field: keyof AccountProps) => {
+      setEditingField({ id, field });
+      setEditedValues((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          [field]: accounts.find((acc) => acc.id === id)?.[field],
+        },
+      }));
+    },
+    [accounts]
+  );
 
-      setAccounts((prev) =>
-        prev.map((acc) =>
-          acc.id === id ? { ...acc, account_status: newStatus } : acc
-        )
-      );
+  const handleInputChange = useCallback(
+    (id: string, field: keyof AccountProps, value: string) => {
+      setEditedValues((prev) => ({
+        ...prev,
+        [id]: { ...prev[id], [field]: value },
+      }));
+    },
+    []
+  );
 
-      toast.success(
-        `Cuenta ${
-          newStatus === "active" ? "activada" : "desactivada"
-        } exitosamente.`
-      );
-    } catch (error) {
-      toast.error("No se pudo actualizar el estado");
-      console.error(error);
-    }
-  };
+  const handleSave = useCallback(
+    async (id: string) => {
+      const updatedData = editedValues[id];
+      if (!updatedData) return;
 
-  const handleDoubleClick = (id: string, field: keyof AccountProps) => {
-    setEditingField({ id, field });
-    setEditedValues((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        [field]: accounts.find((acc) => acc.id === id)?.[field],
-      },
-    }));
-  };
+      try {
+        const updatedAccount = await apiService.updateAccount(id, updatedData);
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === updatedAccount.id ? { ...acc, ...updatedAccount } : acc
+          )
+        );
+        toast.success("Cuenta actualizada");
+      } catch (error) {
+        toast.error("No se pudo actualizar la cuenta");
+        console.error(error);
+      } finally {
+        setEditingField(null);
+        setEditedValues((prev) => {
+          const newValues = { ...prev };
+          delete newValues[id];
+          return newValues;
+        });
+      }
+    },
+    [editedValues]
+  );
 
-  const handleInputChange = (
-    id: string,
-    field: keyof AccountProps,
-    value: string
-  ) => {
-    setEditedValues((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], [field]: value },
-    }));
-  };
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>, id: string) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSave(id);
+      }
+    },
+    [handleSave]
+  );
 
-  const handleSave = async (id: string) => {
-    setEditedValues((prev) => {
-      const updatedData = prev[id];
-      if (!updatedData) return prev;
+  const handleStatusToggle = useCallback(
+    async (id: string, currentStatus: string) => {
+      const newStatus = currentStatus === "active" ? "inactive" : "active";
+      try {
+        const updatedAccount = await apiService.updateAccount(id, {
+          account_status: newStatus,
+        });
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === updatedAccount.id ? { ...acc, ...updatedAccount } : acc
+          )
+        );
+        toast.success(
+          `Cuenta ${
+            newStatus === "active" ? "activada" : "desactivada"
+          } exitosamente.`
+        );
+      } catch (error) {
+        toast.error("No se pudo actualizar el estado");
+        console.error(error);
+      }
+    },
+    []
+  );
 
-      // Enviar datos actualizados al backend
-      apiService
-        .updateAccount(id, updatedData)
-        .then(() => {
-          setAccounts((prevAccounts) =>
-            prevAccounts.map((acc) =>
-              acc.id === id ? { ...acc, ...updatedData } : acc
-            )
+  const columns = useMemo<ColumnDef<AccountProps>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "Nombre",
+        cell: ({ row }) => {
+          const id = row.original.id!.toString();
+          return editingField?.id === id && editingField.field === "name" ? (
+            <Input
+              type="text"
+              value={editedValues[id]?.name || row.getValue("name")}
+              onChange={(e) => handleInputChange(id, "name", e.target.value)}
+              onBlur={() => handleSave(id)}
+              onKeyDown={(e) => handleKeyDown(e, id)}
+              autoFocus
+              className="border px-2 py-1 rounded w-full"
+            />
+          ) : (
+            <div onDoubleClick={() => handleDoubleClick(id, "name")}>
+              {row.getValue("name")}
+            </div>
           );
-          toast.success("Cuenta actualizada");
-        })
-        .catch(() => toast.error("No se pudo actualizar la cuenta"))
-        .finally(() => setEditingField(null));
+        },
+      },
+      {
+        accessorKey: "account_number",
+        header: "Identificador",
+        cell: ({ row }) => {
+          const id = row.original.id!.toString();
+          return editingField?.id === id &&
+            editingField.field === "account_number" ? (
+            <Input
+              type="text"
+              value={
+                editedValues[id]?.account_number ||
+                row.getValue("account_number")
+              }
+              onChange={(e) =>
+                handleInputChange(id, "account_number", e.target.value)
+              }
+              onBlur={() => handleSave(id)}
+              onKeyDown={(e) => handleKeyDown(e, id)}
+              autoFocus
+              className="border px-2 py-1 rounded w-full"
+            />
+          ) : (
+            <div onDoubleClick={() => handleDoubleClick(id, "account_number")}>
+              {row.getValue("account_number")}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "account_type",
+        header: "Tipo",
+        cell: ({ row }) => {
+          const id = row.original.id!.toString();
+          return editingField?.id === id &&
+            editingField.field === "account_type" ? (
+            <Select
+              value={
+                editedValues[id]?.account_type || row.getValue("account_type")
+              }
+              onValueChange={(value) => {
+                handleInputChange(id, "account_type", value);
+                handleSave(id);
+              }}
+            >
+              <SelectTrigger className="border px-2 py-1 rounded w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nomina">Nómina</SelectItem>
+                <SelectItem value="transportista">Transportista</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div onDoubleClick={() => handleDoubleClick(id, "account_type")}>
+              {row.getValue<string>("account_type") === "nomina"
+                ? "Nómina"
+                : "Transportista"}
+            </div>
+          );
+        },
+        filterFn: "equals",
+      },
+      {
+        accessorKey: "account_affects",
+        header: "Corresponde a",
+        cell: ({ row }) => {
+          const id = row.original.id!.toString();
+          return editingField?.id === id &&
+            editingField.field === "account_affects" ? (
+            <Select
+              value={
+                editedValues[id]?.account_affects ||
+                row.getValue("account_affects")
+              }
+              onValueChange={(value) => {
+                handleInputChange(id, "account_affects", value);
+                handleSave(id);
+              }}
+            >
+              <SelectTrigger className="border px-2 py-1 rounded w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="discount">Descuentos</SelectItem>
+                <SelectItem value="expense">Gastos</SelectItem>
+                <SelectItem value="both">Ambos</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div onDoubleClick={() => handleDoubleClick(id, "account_affects")}>
+              <p className="capitalize">
+                {row.getValue<string>("account_affects") === "discount"
+                  ? "Descuentos"
+                  : row.getValue<string>("account_affects") === "expense"
+                  ? "Gastos"
+                  : "Ambos"}
+              </p>
+            </div>
+          );
+        },
+        filterFn: "equals",
+      },
+      {
+        accessorKey: "account_status",
+        header: () => <div className="text-right">Estado</div>,
+        cell: ({ row }) => (
+          <div className="text-right">
+            <CustomSwitch
+              checked={row.getValue("account_status") === "active"}
+              onCheckedChange={() =>
+                handleStatusToggle(
+                  row.original.id!.toString(),
+                  row.getValue("account_status")
+                )
+              }
+            />
+          </div>
+        ),
+        filterFn: "equals",
+      },
+    ],
+    [
+      editingField,
+      editedValues,
+      handleDoubleClick,
+      handleKeyDown,
+      handleInputChange,
+      handleSave,
+      handleStatusToggle,
+    ]
+  );
 
-      // Limpiar valores editados
-      const newValues = { ...prev };
-      delete newValues[id];
-      return newValues;
-    });
-  };
-
-  const handleKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>,
-    id: string
-  ) => {
-    if (event.key === "Enter") {
-      event.preventDefault(); // Evita que el enter haga un submit inesperado
-      handleSave(id);
-    }
-  };
-
-  const [isVisible, setIsVisible] = useState(true);
+  const table = useReactTable({
+    data: accounts,
+    columns,
+    state: {
+      globalFilter,
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
 
   return (
     <div>
@@ -134,7 +331,6 @@ const CuentasPage = () => {
         </h3>
         <AddAccountComponent setAccounts={setAccounts} />
       </div>
-      {/* Banner */}
       {isVisible && (
         <div className="bg-sky-100 text-indigo-600 border border-sky-600 px-4 py-3 md:py-2 mb-8 rounded max-w-2xl mx-auto">
           <div className="flex gap-2 md:items-center">
@@ -145,7 +341,7 @@ const CuentasPage = () => {
                   campo que desees editar. Da click afuera o presiona la tecla{" "}
                   <span className="text-sm text-muted-foreground">
                     <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                      <span className="text-xs">&#x21A9;</span>Enter
+                      <span className="text-xs">↩</span>Enter
                     </kbd>
                   </span>{" "}
                   .
@@ -167,17 +363,90 @@ const CuentasPage = () => {
           </div>
         </div>
       )}
-      {/* /Banner */}
+      <div className="mb-4 flex gap-4">
+        <Input
+          placeholder="Buscar en todas las cuentas..."
+          value={globalFilter ?? ""}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select
+          onValueChange={(value) =>
+            table
+              .getColumn("account_type")
+              ?.setFilterValue(value === "all" ? undefined : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filtrar por tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="nomina">Nómina</SelectItem>
+            <SelectItem value="transportista">Transportista</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          onValueChange={(value) =>
+            table
+              .getColumn("account_affects")
+              ?.setFilterValue(value === "all" ? undefined : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filtrar por corresponde a" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="discount">Descuentos</SelectItem>
+            <SelectItem value="expense">Gastos</SelectItem>
+            <SelectItem value="both">Ambos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          onValueChange={(value) =>
+            table
+              .getColumn("account_status")
+              ?.setFilterValue(value === "all" ? undefined : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filtrar por estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="active">Activa</SelectItem>
+            <SelectItem value="inactive">Inactiva</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="bg-background overflow-hidden rounded border">
         <Table>
           <TableHeader className="bg-background/90 sticky top-0 z-10 backdrop-blur-xs bg-slate-100">
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Identificador</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Corresponde a</TableHead>
-              <TableHead className="text-right">Estado</TableHead>
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    className={
+                      header.column.getCanSort()
+                        ? "cursor-pointer select-none"
+                        : ""
+                    }
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                    {{
+                      asc: " 🔼",
+                      desc: " 🔽",
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
             {loading
@@ -202,166 +471,64 @@ const CuentasPage = () => {
                       </TableCell>
                     </TableRow>
                   ))
-              : accounts.map((item) => (
+              : table.getRowModel().rows.map((row) => (
                   <TableRow
-                    key={item.id}
+                    key={row.id}
                     className={
-                      item.account_status === "inactive" ? "opacity-50" : ""
+                      row.original.account_status === "inactive"
+                        ? "opacity-50"
+                        : ""
                     }
                   >
-                    <TableCell
-                      onDoubleClick={() =>
-                        handleDoubleClick(item.id!.toString(), "name")
-                      }
-                      className="w-max min-w-16 max-w-48"
-                    >
-                      {editingField?.id === item.id!.toString() &&
-                      editingField.field === "name" ? (
-                        <input
-                          type="text"
-                          value={
-                            editedValues[item.id!.toString()]?.name || item.name
-                          }
-                          onChange={(e) =>
-                            handleInputChange(
-                              item.id!.toString(),
-                              "name",
-                              e.target.value
-                            )
-                          }
-                          onBlur={() => handleSave(item.id!.toString())}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, item.id!.toString())
-                          }
-                          autoFocus
-                          className="border px-2 py-1 rounded"
-                        />
-                      ) : (
-                        item.name
-                      )}
-                    </TableCell>
-                    <TableCell
-                      onDoubleClick={() =>
-                        handleDoubleClick(item.id!.toString(), "account_number")
-                      }
-                    >
-                      {editingField?.id === item.id!.toString() &&
-                      editingField.field === "account_number" ? (
-                        <input
-                          type="text"
-                          value={
-                            editedValues[item.id!.toString()]?.account_number ||
-                            item.account_number
-                          }
-                          onChange={(e) =>
-                            handleInputChange(
-                              item.id!.toString(),
-                              "account_number",
-                              e.target.value
-                            )
-                          }
-                          onBlur={() => handleSave(item.id!.toString())}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, item.id!.toString())
-                          }
-                          autoFocus
-                          className="border px-2 py-1 rounded"
-                        />
-                      ) : (
-                        item.account_number
-                      )}
-                    </TableCell>
-                    <TableCell
-                      onDoubleClick={() =>
-                        handleDoubleClick(item.id!.toString(), "account_type")
-                      }
-                    >
-                      {editingField?.id === item.id!.toString() &&
-                      editingField.field === "account_type" ? (
-                        <select
-                          value={
-                            editedValues[item.id!.toString()]?.account_type ||
-                            item.account_type
-                          }
-                          onChange={(e) => {
-                            handleInputChange(
-                              item.id!.toString(),
-                              "account_type",
-                              e.target.value
-                            );
-                            handleSave(item.id!.toString());
-                          }}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, item.id!.toString())
-                          }
-                          className="border px-2 py-1 rounded"
-                        >
-                          <option value="nomina">Nómina</option>
-                          <option value="transportista">Transportista</option>
-                        </select>
-                      ) : item.account_type === "nomina" ? (
-                        "Nómina"
-                      ) : (
-                        "Transportista"
-                      )}
-                    </TableCell>
-                    <TableCell
-                      onDoubleClick={() =>
-                        handleDoubleClick(
-                          item.id!.toString(),
-                          "account_affects"
-                        )
-                      }
-                    >
-                      {editingField?.id === item.id!.toString() &&
-                      editingField.field === "account_affects" ? (
-                        <select
-                          value={
-                            editedValues[item.id!.toString()]
-                              ?.account_affects || item.account_affects
-                          }
-                          onChange={(e) => {
-                            handleInputChange(
-                              item.id!.toString(),
-                              "account_affects",
-                              e.target.value
-                            );
-                            handleSave(item.id!.toString());
-                          }}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, item.id!.toString())
-                          }
-                          className="border px-2 py-1 rounded"
-                        >
-                          <option value="discount">Descuentos</option>
-                          <option value="expense">Gastos</option>
-                          <option value="both">Ambos</option>
-                        </select>
-                      ) : (
-                        <p className="capitalize">
-                          {item.account_affects === "discount"
-                            ? "Descuentos"
-                            : item.account_affects === "expense"
-                            ? "Gastos"
-                            : "Ambos"}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right w-8">
-                      <CustomSwitch
-                        checked={item.account_status === "active"}
-                        onCheckedChange={() =>
-                          handleStatusToggle(
-                            item.id!.toString(),
-                            item.account_status
-                          )
-                        }
-                      />
-                    </TableCell>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            variant="outline"
+          >
+            Anterior
+          </Button>
+          <Button
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            variant="outline"
+          >
+            Siguiente
+          </Button>
+          <span>
+            Página {table.getState().pagination.pageIndex + 1} de{" "}
+            {table.getPageCount()}
+          </span>
+        </div>
+        <Select
+          value={table.getState().pagination.pageSize.toString()}
+          onValueChange={(value) => table.setPageSize(Number(value))}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filas por página" />
+          </SelectTrigger>
+          <SelectContent>
+            {[5, 10, 20, 50].map((size) => (
+              <SelectItem key={size} value={size.toString()}>
+                {size} filas por página
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

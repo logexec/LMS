@@ -46,18 +46,21 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
   const handleSubmit = async () => {
     try {
       const newAccount = await apiService.createAccount(formData);
+      if (!newAccount || !newAccount.id)
+        throw new Error("Error al crear la cuenta");
 
-      if (!newAccount || !newAccount.id) {
-        throw new Error("La API no devolvió la cuenta creada");
-      }
-
+      setAccounts((prev) => [newAccount, ...prev]);
       toast.success("Cuenta creada exitosamente");
-
-      // Agregar la cuenta al estado sin recargar la página
-      setAccounts((prev) => [...prev, newAccount]);
+      setFormData({
+        name: "",
+        account_number: "",
+        account_type: "nomina",
+        account_status: "active",
+        account_affects: "discount",
+      });
     } catch (error) {
-      console.error("Error:", error);
       toast.error("Error al crear la cuenta");
+      console.error(error);
     }
   };
 
