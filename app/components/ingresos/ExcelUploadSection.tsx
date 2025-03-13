@@ -67,7 +67,9 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
       toast.success(result.message);
     } catch (error) {
       toast.error(
-        "Se produjo un error al descargar la plantilla. Por favor, revisa la consola o contacta a soporte."
+        error instanceof Error
+          ? error.message
+          : "Se produjo un error desconocido al tratar de descargar la plantilla. Por favor, contacta a soporte."
       );
       console.error("Error al descargar:", error);
     } finally {
