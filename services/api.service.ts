@@ -173,6 +173,14 @@ export const apiService = {
       body: JSON.stringify(data),
     }),
 
+  deleteAccount: async (id: string) => {
+    const response = await fetchWithAuth(`/accounts/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Error al eliminar cuenta");
+    return response;
+  },
+
   //Sistema_onix
   getPersonnel: () => {
     return fetchWithAuth(`/responsibles?fields=id,nombre_completo`, {

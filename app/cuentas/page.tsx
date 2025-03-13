@@ -12,7 +12,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import CustomSwitch from "@/components/custom-switch";
 import apiService from "@/services/api.service";
-import { XIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, Trash2, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddAccountComponent from "../components/cuentas/dialogs/AddAccount";
 import { AccountProps } from "@/utils/types";
@@ -33,6 +33,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const CuentasPage = () => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
@@ -115,6 +126,17 @@ const CuentasPage = () => {
     [editedValues]
   );
 
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      await apiService.deleteAccount(id);
+      setAccounts((prev) => prev.filter((acc) => acc.id !== id));
+      toast.success("Cuenta eliminada exitosamente");
+    } catch (error) {
+      toast.error("No se pudo eliminar la cuenta");
+      console.error("Error al eliminar cuenta:", error);
+    }
+  }, []);
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>, id: string) => {
       if (event.key === "Enter") {
@@ -152,6 +174,39 @@ const CuentasPage = () => {
 
   const columns = useMemo<ColumnDef<AccountProps>[]>(
     () => [
+      {
+        accessorKey: "action",
+        header: () => <div className="w-2" />,
+        cell: ({ row }) => (
+          <AlertDialog>
+            <AlertDialogTrigger className="max-w-4">
+              <Button variant="default" className="h-9 w-10">
+                <Trash2 />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  ¿Seguro deseas eliminar la cuenta {row.original.name}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete(row.original.id!.toString())}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold"
+                >
+                  Eliminar Cuenta
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ),
+        filterFn: "equals",
+      },
       {
         accessorKey: "name",
         header: "Nombre",
@@ -302,6 +357,7 @@ const CuentasPage = () => {
       handleKeyDown,
       handleInputChange,
       handleSave,
+      handleDelete,
       handleStatusToggle,
     ]
   );
@@ -443,8 +499,12 @@ const CuentasPage = () => {
                       header.getContext()
                     )}
                     {{
-                      asc: " 🔼",
-                      desc: " 🔽",
+                      asc: (
+                        <ArrowDown className="inline-flex pl-2 self-center" />
+                      ),
+                      desc: (
+                        <ArrowUp className="inline-flex pl-2 self-center" />
+                      ),
                     }[header.column.getIsSorted() as string] ?? null}
                   </TableHead>
                 ))}
