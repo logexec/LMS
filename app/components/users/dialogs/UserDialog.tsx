@@ -24,13 +24,13 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/api.service";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const permissionMap: { [key: string]: { id: string; label: string } } = {
   manage_users: { id: "1", label: "Administrar Usuarios" },
@@ -65,10 +65,8 @@ const getPermissionId = (permission: string): string => {
   return permissionMap[permission]?.id || permission;
 };
 
-// Array con todas las opciones disponibles (códigos internos)
 const permissionOptions = Object.keys(permissionMap);
 
-// Permisos por defecto según el rol. Las keys deben ser el nombre del rol en minúsculas.
 const roleDefaultPermissions: { [roleName: string]: string[] } = {
   admin: [
     "manage_users",
@@ -147,7 +145,7 @@ interface User {
 interface UserFormData {
   name: string;
   email: string;
-  password?: string; // Opcional porque no se usa en modo edición
+  password?: string;
   role_id: string;
   dob?: string | undefined;
   permissions: string[];
@@ -160,8 +158,8 @@ interface UserDialogProps {
   onSubmit: (data: UserFormData) => void;
   roles: Role[] | Record<string, Role> | undefined;
   isLoading: boolean;
-  mode: "create" | "edit"; // Modo del diálogo
-  user?: User | null; // Usuario para edición (opcional)
+  mode: "create" | "edit";
+  user?: User | null;
 }
 
 const DEFAULT_PASSWORD = "L0g3X2025*";
@@ -188,15 +186,10 @@ export const UserDialog = ({
     permissions: [],
     projectIds: [],
   });
-
-  // Estado para validación
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Estado para el input del datalist de permisos
   const [permissionInput, setPermissionInput] = useState<string>("");
   const [projectSearchTerm, setProjectSearchTerm] = useState<string>("");
 
-  // Procesar roles para garantizar que sea un array
   const processedRoles = Array.isArray(roles)
     ? roles
     : roles && typeof roles === "object"
@@ -205,16 +198,12 @@ export const UserDialog = ({
         .map(([_, value]) => value as Role)
     : [];
 
-  // Fetch projects from the API
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
       try {
         const response = await apiService.getProjects();
-        // Usar la misma lógica simple del componente original
         const projectsData = Array.isArray(response) ? response : [];
-
-        // Mapear para asegurar que tengan la propiedad code
         return projectsData.map((project: Project) => ({
           ...project,
           name:
@@ -228,13 +217,11 @@ export const UserDialog = ({
       }
     },
     enabled: isOpen && activeTab === "projects",
-    staleTime: 1000 * 10, // 10 segundos
+    staleTime: 1000 * 10,
   });
 
-  // Inicializar o resetear el formulario basado en el modo y si el diálogo está abierto
   useEffect(() => {
     if (!isOpen) {
-      // Resetear el formulario cuando se cierra
       setFormData({
         name: "",
         email: "",
@@ -251,28 +238,17 @@ export const UserDialog = ({
       setErrors({});
       setIsCalendarOpen(false);
     } else if (mode === "edit" && user) {
-      // En modo edición, cargar datos del usuario seleccionado
       const permissionIds = user.permissions?.map((p) => p.id.toString()) || [];
       const projectIds = user.projects?.map((p) => p.id.toString()) || [];
-
       setFormData({
         name: user.name || "",
         email: user.email || "",
-        // No incluimos password en modo edición
         role_id: user.role_id?.toString() || "",
         dob: user.dob || "",
         permissions: permissionIds,
         projectIds: projectIds,
       });
-
-      // Establecer fecha si existe
-      if (user.dob) {
-        setSelectedDate(new Date(user.dob));
-      } else {
-        setSelectedDate(undefined);
-      }
-
-      // Resetear errores y otros estados
+      setSelectedDate(user.dob ? new Date(user.dob) : undefined);
       setErrors({});
       setPermissionInput("");
       setProjectSearchTerm("");
@@ -280,27 +256,19 @@ export const UserDialog = ({
     }
   }, [isOpen, mode, user]);
 
-  // Efecto para manejar cambios en el rol seleccionado (solo en modo creación)
   useEffect(() => {
     if (
       mode === "create" &&
       formData.role_id &&
       Array.isArray(processedRoles)
     ) {
-      // Buscamos en el array de roles el objeto correspondiente
       const selectedRole = processedRoles.find(
         (role) => role.id.toString() === formData.role_id.toString()
       );
-      // Utilizamos el nombre del rol en minúsculas para obtener los permisos predeterminados
       const defaults = selectedRole
         ? roleDefaultPermissions[selectedRole.name.toLowerCase()] || []
         : [];
-
-      // Convertir los nombres de permisos a IDs
-      const defaultPermissionIds = defaults.map((permission) => {
-        return getPermissionId(permission);
-      });
-
+      const defaultPermissionIds = defaults.map(getPermissionId);
       setFormData((prev) => ({
         ...prev,
         permissions: defaultPermissionIds,
@@ -309,108 +277,64 @@ export const UserDialog = ({
   }, [formData.role_id, processedRoles, mode]);
 
   const handleCloseDialog = () => {
-    // Asegurarnos de cerrar el calendario si está abierto
     setIsCalendarOpen(false);
-
-    // Esperar un poco antes de cerrar el diálogo
-    setTimeout(() => {
-      onClose();
-    }, 50);
+    setTimeout(() => onClose(), 50);
   };
 
-  // Validación de campos
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    // Validar campos básicos
-    if (!formData.name.trim()) {
-      newErrors.name = "El nombre es requerido";
-    }
-
+    if (!formData.name.trim()) newErrors.name = "El nombre es requerido";
     if (!formData.email.trim()) {
       newErrors.email = "El correo electrónico es requerido";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "El correo electrónico no es válido";
     }
-
-    if (!formData.role_id) {
-      newErrors.role_id = "El rol es requerido";
-    }
-
+    if (!formData.role_id) newErrors.role_id = "El rol es requerido";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Cerrar el calendario si está abierto
     setIsCalendarOpen(false);
-
-    // Validar el formulario antes de enviar
     if (validateForm()) {
       onSubmit(formData);
     } else {
-      // Mostrar mensaje de error y cambiar a la pestaña con errores
       toast.error("Por favor, completa todos los campos requeridos");
-      setActiveTab("basic"); // Volver a la pestaña básica donde están los campos requeridos
+      setActiveTab("basic");
     }
   };
 
-  // Prevenir envío del formulario al presionar Enter
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
-      // Prevenir envío del formulario solo si no es un textarea
-      if (e.target.type !== "textarea") {
-        e.preventDefault();
-      }
+      if (e.target.type !== "textarea") e.preventDefault();
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Limpiar error al cambiar el valor
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleRoleChange = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      role_id: value,
-    }));
-
-    // Limpiar error
-    if (errors.role_id) {
-      setErrors((prev) => ({ ...prev, role_id: "" }));
-    }
+    setFormData((prev) => ({ ...prev, role_id: value }));
+    if (errors.role_id) setErrors((prev) => ({ ...prev, role_id: "" }));
   };
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    if (date) {
-      setFormData((prev) => ({
-        ...prev,
-        dob: format(date, "yyyy-MM-dd"),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        dob: "",
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      dob: date ? format(date, "yyyy-MM-dd") : "",
+    }));
     setIsCalendarOpen(false);
   };
 
-  // Toggle para el calendario (enfoque directo sin popover)
   const handleToggleCalendar = () => {
     setIsCalendarOpen(!isCalendarOpen);
   };
 
-  // Permisos - Permite agregar el permiso al hacer click o autocompletar
   const handlePermissionInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -435,15 +359,12 @@ export const UserDialog = ({
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Enter") {
-      e.preventDefault(); // Prevenir envío del formulario
+      e.preventDefault();
       const trimmed = permissionInput.trim();
       if (trimmed === "*") {
         const allPermissionIds =
           Object.keys(permissionMap).map(getPermissionId);
-        setFormData((prev) => ({
-          ...prev,
-          permissions: allPermissionIds,
-        }));
+        setFormData((prev) => ({ ...prev, permissions: allPermissionIds }));
       } else {
         const permKey = Object.keys(permissionMap).find(
           (key) => permissionMap[key].label === trimmed
@@ -469,7 +390,6 @@ export const UserDialog = ({
     }));
   };
 
-  // Proyectos
   const handleProjectToggle = (projectId: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -479,7 +399,35 @@ export const UserDialog = ({
     }));
   };
 
-  // Filtrar proyectos basados en término de búsqueda
+  const handleProjectSearchChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setProjectSearchTerm(e.target.value);
+  };
+
+  const handleProjectKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const trimmed = projectSearchTerm.trim();
+      if (trimmed === "*") {
+        const allProjectIds = projects.map((p: Project) => p.id);
+        setFormData((prev) => ({ ...prev, projectIds: allProjectIds }));
+      } else {
+        const project = projects.find(
+          (p: Project) =>
+            p.name.toLowerCase() === trimmed.toLowerCase() || p.id === trimmed
+        );
+        if (project && !formData.projectIds.includes(project.id)) {
+          setFormData((prev) => ({
+            ...prev,
+            projectIds: [...prev.projectIds, project.id],
+          }));
+        }
+      }
+      setProjectSearchTerm("");
+    }
+  };
+
   const filteredProjects = Array.isArray(projects)
     ? projects.filter(
         (project: Project) =>
@@ -492,14 +440,12 @@ export const UserDialog = ({
       )
     : [];
 
-  // Determinar títulos y textos basados en el modo
   const dialogTitle =
     mode === "create" ? "Crear nuevo usuario" : "Editar usuario";
   const dialogDescription =
     mode === "create"
       ? "Ingresa la información del nuevo usuario."
       : `Actualiza la información de ${user?.name || ""}`;
-
   const submitButtonText =
     mode === "create"
       ? isLoading
@@ -568,9 +514,7 @@ export const UserDialog = ({
                 <div className="grid gap-2">
                   <Select
                     value={formData.role_id}
-                    onValueChange={(value) => {
-                      handleRoleChange(value);
-                    }}
+                    onValueChange={handleRoleChange}
                     required
                   >
                     <SelectTrigger
@@ -601,7 +545,6 @@ export const UserDialog = ({
                   )}
                 </div>
                 <div className="grid gap-2">
-                  {/* Reemplazo de Popover por un enfoque más directo */}
                   <Button
                     type="button"
                     variant="outline"
@@ -616,7 +559,6 @@ export const UserDialog = ({
                       ? format(selectedDate, "PPP")
                       : "Fecha de nacimiento"}
                   </Button>
-
                   {isCalendarOpen && (
                     <Calendar
                       mode="single"
@@ -631,8 +573,6 @@ export const UserDialog = ({
                     />
                   )}
                 </div>
-
-                {/* Mostrar información de contraseña solo en modo creación */}
                 {mode === "create" && (
                   <Card>
                     <CardContent className="pt-4">
@@ -648,12 +588,11 @@ export const UserDialog = ({
 
             <TabsContent value="permissions" className="space-y-4">
               <div className="grid gap-4 py-2">
-                {/* Datalist para permisos */}
                 <div className="grid gap-2">
                   <Input
                     id="permissions"
                     name="permissions"
-                    placeholder="Agregar permiso     (Escribe * y presiona Enter para seleccionar todos)"
+                    placeholder="Agregar permiso (Escribe * y presiona Enter para todos)"
                     list="permissions-options"
                     value={permissionInput}
                     onChange={handlePermissionInputChange}
@@ -674,7 +613,6 @@ export const UserDialog = ({
                         />
                       ))}
                   </datalist>
-                  {/* Mostrar permisos seleccionados como píldoras */}
                   <div className="flex flex-wrap gap-2">
                     {formData.permissions.map((permId) => {
                       const permKey = Object.keys(permissionMap).find(
@@ -702,13 +640,13 @@ export const UserDialog = ({
                 <div className="relative mb-4">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar proyectos..."
+                    placeholder="Buscar proyectos... (* para todos)"
                     className="pl-8"
                     value={projectSearchTerm}
-                    onChange={(e) => setProjectSearchTerm(e.target.value)}
+                    onChange={handleProjectSearchChange}
+                    onKeyDown={handleProjectKeyDown}
                   />
                 </div>
-
                 {isLoadingProjects ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -751,7 +689,6 @@ export const UserDialog = ({
                     </div>
                   </ScrollArea>
                 )}
-
                 <div className="mt-2">
                   <p className="text-sm text-muted-foreground">
                     {formData.projectIds.length} proyectos seleccionados
