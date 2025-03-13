@@ -60,7 +60,6 @@ interface ErrorResponse {
 const fetchUsers = async () => {
   try {
     const response = await apiService.getUsers();
-    console.log("Fetched users:", response);
     return Array.isArray(response) ? response : [];
   } catch (error) {
     console.error("❌ Error fetching users:", error);
