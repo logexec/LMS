@@ -5,11 +5,26 @@ import { AccountProps } from "@/utils/types";
 
 export const apiService = {
   // Users
-  getUsers: (page = 1, pageSize = 10) => {
-    const queryParams = new URLSearchParams();
-    queryParams.append("page", page.toString());
-    queryParams.append("per_page", pageSize.toString());
-    return fetchWithAuth(`/users?${queryParams.toString()}`);
+  getUsers: async () => {
+    try {
+      const response = await fetchWithAuth(`/users`);
+      // Si la respuesta es un objeto con claves numéricas, lo convertimos a arreglo
+      if (
+        response &&
+        typeof response === "object" &&
+        !Array.isArray(response)
+      ) {
+        const usersArray = Object.keys(response)
+          .filter((key) => !isNaN(parseInt(key))) // Solo claves numéricas
+          .map((key) => response[key]);
+        return usersArray;
+      }
+      // Si ya es un arreglo, lo devolvemos directamente
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error("❌ Error in getUsers:", error);
+      throw error;
+    }
   },
   getUser: (user: string) =>
     fetchWithAuth(`/users/${user}`, {

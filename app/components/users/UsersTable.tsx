@@ -7,11 +7,11 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
   flexRender,
-  Row,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -40,7 +40,6 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Pencil, Trash2 } from "lucide-react";
 import { RiUserAddLine } from "react-icons/ri";
 import { toast } from "sonner";
-import debounce from "lodash/debounce";
 import { TableSkeleton } from "./TableSkeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type User, type Role } from "@/types/dialogs";
@@ -60,8 +59,9 @@ interface ErrorResponse {
 
 const fetchUsers = async () => {
   try {
-    const response = await apiService.getUsers(); // Traemos todos los usuarios
-    return Array.isArray(response) ? response : response.data || [];
+    const response = await apiService.getUsers();
+    console.log("Fetched users:", response);
+    return Array.isArray(response) ? response : [];
   } catch (error) {
     console.error("❌ Error fetching users:", error);
     toast.error(
@@ -97,7 +97,7 @@ export const UsersTable = () => {
   // Carga de roles
   const { data: roles = [] } = useRoles();
 
-  // Mutaciones
+  // Mutaciones con invalidación del cache
   const createUserMutation = useMutation({
     mutationFn: async (data: {
       name: string;
@@ -109,7 +109,7 @@ export const UsersTable = () => {
       projectIds: string[];
     }) => {
       const response = await apiService.createUser(data);
-      return response.data;
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -137,6 +137,7 @@ export const UsersTable = () => {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario actualizado exitosamente");
       setIsEditOpen(false);
       setSelectedUser(null);
@@ -162,6 +163,7 @@ export const UsersTable = () => {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Permisos actualizados exitosamente");
     },
     onError: (error: ErrorResponse) => {
@@ -185,6 +187,7 @@ export const UsersTable = () => {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Proyectos actualizados exitosamente");
     },
     onError: (error: ErrorResponse) => {
@@ -202,6 +205,7 @@ export const UsersTable = () => {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario eliminado exitosamente");
       setIsDeleteOpen(false);
       setSelectedUser(null);
@@ -224,18 +228,13 @@ export const UsersTable = () => {
     }
   };
 
-  // Búsqueda global con debounce
-  const debouncedSetGlobalFilter = useMemo(
-    () => debounce((value: string) => setGlobalFilter(value), 300),
-    []
-  );
-
-  const columns = useMemo(
+  // Definimos las columnas con tipado explícito
+  const columns: ColumnDef<User>[] = useMemo(
     () => [
       {
         accessorKey: "name",
         header: "Usuario",
-        cell: ({ row }: { row: Row<User> }) => {
+        cell: ({ row }) => {
           const hasPhone = row.original.phone;
           return hasPhone ? (
             <div className="flex items-center space-x-4">
@@ -300,7 +299,7 @@ export const UsersTable = () => {
       {
         accessorKey: "role_id",
         header: "Rol",
-        cell: ({ row }: { row: Row<User> }) => {
+        cell: ({ row }) => {
           const role = Array.isArray(roles)
             ? roles.find(
                 (r: Role) =>
@@ -324,7 +323,7 @@ export const UsersTable = () => {
       {
         accessorKey: "permissions",
         header: "Permisos",
-        cell: ({ row }: { row: Row<User> }) => (
+        cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
             {Array.isArray(row.original.permissions) &&
             row.original.permissions.length > 0 ? (
@@ -372,7 +371,7 @@ export const UsersTable = () => {
       {
         accessorKey: "projects",
         header: "Proyectos",
-        cell: ({ row }: { row: Row<User> }) => (
+        cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
             {row.original.projects && row.original.projects.length > 0 ? (
               row.original.projects.slice(0, 3).map((project) => (
@@ -430,7 +429,7 @@ export const UsersTable = () => {
       },
       {
         id: "actions",
-        cell: ({ row }: { row: Row<User> }) => (
+        cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -499,18 +498,43 @@ export const UsersTable = () => {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Buscar usuarios..."
-              onChange={(e) => debouncedSetGlobalFilter(e.target.value)}
-              className="pl-9"
-            />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar usuarios..."
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={
+                (table.getColumn("role_id")?.getFilterValue() as string) ??
+                "all"
+              }
+              onValueChange={(value) =>
+                table
+                  .getColumn("role_id")
+                  ?.setFilterValue(value === "all" ? undefined : value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por rol" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los roles</SelectItem>
+                {roles.map((role: Role) => (
+                  <SelectItem key={role.id} value={role.id.toString()}>
+                    {role.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button
             onClick={() => setIsCreateOpen(true)}
-            className="ml-4 bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700"
           >
             <RiUserAddLine className="h-4 w-4 mr-2" />
             Nuevo Usuario
