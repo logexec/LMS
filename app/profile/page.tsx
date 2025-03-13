@@ -22,8 +22,6 @@ const UserPage = () => {
       }
     : undefined;
 
-  console.log("Datos iniciales desde useAuth:", initialUserData);
-
   const {
     data: userData = initialUserData,
     isLoading,
@@ -35,8 +33,6 @@ const UserPage = () => {
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000,
   });
-
-  console.log("Datos obtenidos tras fetch:", userData);
 
   if (!user || !currentUser) {
     return <p>No estás autenticado. Por favor, inicia sesión.</p>;

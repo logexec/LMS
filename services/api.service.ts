@@ -128,7 +128,6 @@ export const apiService = {
   getUser: async (userId: string) => {
     const response = await fetchWithAuth(`/users/${userId}`);
     if (!response.ok) throw new Error("Error al obtener usuario");
-    console.log("Respuesta de getUser:", response);
     return response;
   },
   updateUserProfile: async (userId: string, data: any) => {
