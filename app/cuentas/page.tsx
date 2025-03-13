@@ -278,7 +278,7 @@ const CuentasPage = () => {
       },
       {
         accessorKey: "account_status",
-        header: () => <div className="text-right">Estado</div>,
+        header: () => <div>Estado</div>,
         cell: ({ row }) => (
           <div className="text-right">
             <CustomSwitch
