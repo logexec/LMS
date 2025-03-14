@@ -237,19 +237,25 @@ export const apiService = {
     formData.append("context", context);
 
     try {
-      const response = await fetchWithAuth("/requests/import", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      // Usamos fetch nativo para evitar problemas con fetchWithAuth
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/requests/import`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al importar el archivo");
+        const errorText = await response.text(); // Obtener texto crudo para depurar
+        throw new Error(
+          `Error al importar el archivo: ${errorText || response.statusText}`
+        );
       }
 
       const result = await response.json();
-      return result;
+      return result; // { message: 'Importación exitosa' }
     } catch (error) {
       console.error(`Error importando datos (${context}):`, error);
       throw error;
