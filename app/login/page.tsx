@@ -68,14 +68,6 @@ const LoginPage = () => {
             alt="LogeX Logo"
             className="mb-8 dark:invert"
           />
-          <motion.h2
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className="text-4xl font-bold text-white dark:text-black mb-6"
-          >
-            Supply chain management
-          </motion.h2>
           <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
