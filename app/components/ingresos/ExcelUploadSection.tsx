@@ -49,11 +49,17 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
       const result = await apiService.importExcelData(file, context);
       toast.success(result.message);
     } catch (error) {
-      toast.error(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : `Se produjo un error desconocido al importar el archivo. Por favor ponte en contacto con soporte.`
-      );
+          : "Se produjo un error desconocido al tratar de cargar el archivo";
+      let errors = [];
+      try {
+        errors = JSON.parse(errorMessage);
+      } catch {
+        errors = [errorMessage]; // Si no es JSON, tratar como mensaje único
+      }
+      errors.forEach((err: string) => toast.error(err)); // Mostrar un toast por cada error
       console.error("Error al importar:", error);
     } finally {
       setIsUploading(false);

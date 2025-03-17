@@ -202,13 +202,19 @@ export const apiService = {
           method: "GET",
           credentials: "include", // Incluye cookies para autenticación
           headers: {
-            // Añade headers de autenticación si fetchWithAuth los usa
-            // Ejemplo: "Authorization": `Bearer ${token}`,
+            // Añade headers si es necesario
           },
         }
       );
 
-      if (!response.ok) throw new Error("Error al descargar la plantilla");
+      if (!response.ok) {
+        // Leer el cuerpo de la respuesta como JSON en caso de error
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`
+        );
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -226,10 +232,9 @@ export const apiService = {
       return { success: true, message: "Plantilla descargada correctamente" };
     } catch (error) {
       console.error(`Error descargando plantilla (${context}):`, error);
-      throw error;
+      throw error; // Relanzar el error para que handleDownloadTemplate lo capture
     }
   },
-
   // Importar plantilla
   importExcelData: async (file: File, context: "discounts" | "expenses") => {
     const formData = new FormData();
@@ -237,7 +242,6 @@ export const apiService = {
     formData.append("context", context);
 
     try {
-      // Usamos fetch nativo para evitar problemas con fetchWithAuth
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests/import`,
         {
@@ -248,14 +252,15 @@ export const apiService = {
       );
 
       if (!response.ok) {
-        const errorText = await response.text(); // Obtener texto crudo para depurar
-        throw new Error(
-          `Error al importar el archivo: ${errorText || response.statusText}`
-        );
+        const errorData = await response.json();
+        if (errorData.errors) {
+          throw new Error(JSON.stringify(errorData.errors)); // Pasar lista de errores
+        }
+        throw new Error(errorData.message || "Error desconocido");
       }
 
       const result = await response.json();
-      return result; // { message: 'Importación exitosa' }
+      return result;
     } catch (error) {
       console.error(`Error importando datos (${context}):`, error);
       throw error;
