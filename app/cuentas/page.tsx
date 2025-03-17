@@ -382,7 +382,7 @@ const CuentasPage = () => {
   return (
     <div>
       {isVisible && (
-        <div className="bg-sky-100 text-indigo-600 border border-sky-600 px-4 py-3 md:py-2 mb-8 rounded max-w-5xl mx-auto">
+        <div className="bg-sky-100/70 text-sky-600 border border-sky-300 px-4 py-3 md:py-2 mb-8 rounded max-w-5xl mx-auto shadow-md">
           <div className="flex gap-2 md:items-center">
             <div className="flex grow gap-3 md:items-center md:justify-center">
               <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -390,11 +390,11 @@ const CuentasPage = () => {
                   Para realizar un cambio en la cuenta, dale doble clic en el
                   campo que desees editar. Da click afuera o presiona la tecla{" "}
                   <span className="text-sm text-muted-foreground">
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 shadow">
                       <span className="text-xs">↩</span>Enter
                     </kbd>
                   </span>{" "}
-                  .
+                  para guardar los cambios.
                 </p>
               </div>
             </div>
