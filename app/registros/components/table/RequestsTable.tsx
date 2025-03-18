@@ -92,7 +92,7 @@ const TableSkeleton = () => (
   <>
     {[...Array(5)].map((_, i) => (
       <TableRow key={i} className="animate-pulse">
-        {[...Array(8)].map((_, j) => (
+        {[...Array(10)].map((_, j) => (
           <TableCell key={j}>
             <Skeleton className="h-8 w-full" />
           </TableCell>
@@ -125,7 +125,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
     vehicleMap: {} as Record<string, string>,
-    projectMap: {} as Record<string, string>, // Añadimos projectMap
+    projectMap: {} as Record<string, string>,
   });
 
   // Fetch de proyectos
@@ -149,7 +149,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         : [];
       return projects.reduce(
         (acc: Record<string, string>, project: Project) => {
-          acc[project.id] = project.name || project.id; // Asumimos que tienen id y name
+          acc[project.id] = project.name || project.id;
           return acc;
         },
         {}
