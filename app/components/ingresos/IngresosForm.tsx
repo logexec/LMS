@@ -76,8 +76,6 @@ const IngresosForm = () => {
           accountsRes.json(),
         ]);
 
-        console.log("AccountsData", accountsData);
-
         setOptions((prev) => ({
           ...prev,
           accounts: accountsData.data.map(
@@ -97,8 +95,6 @@ const IngresosForm = () => {
             value: area.id,
           })),
         }));
-
-        console.log("Accounts", options.accounts);
       } catch (error) {
         toast.error("Error al cargar datos iniciales");
         console.error("Error al cargar datos iniciales:", error);

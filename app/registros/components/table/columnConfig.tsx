@@ -18,6 +18,7 @@ interface ColumnHelpers {
   accountMap: Record<string, string>;
   responsibleMap: Record<string, string>;
   vehicleMap: Record<string, string>;
+  projectMap: Record<string, string>; // Añadimos projectMap
   onStatusChange?: (id: number, status: Status) => Promise<void>;
 }
 
@@ -26,6 +27,7 @@ export const getRequestColumns = ({
   accountMap,
   responsibleMap,
   vehicleMap,
+  projectMap,
 }: ColumnHelpers): ColumnDef<RequestProps>[] => [
   {
     id: "select",
@@ -81,7 +83,16 @@ export const getRequestColumns = ({
       </p>
     ),
   },
-  { accessorKey: "project", header: "Proyecto" },
+  {
+    accessorKey: "project",
+    header: "Proyecto",
+    cell: ({ row }) => (
+      <p className="px-1 w-max">
+        {projectMap[row.getValue<string>("project")] ||
+          "No se pudo obtener el nombre del proyecto"}
+      </p>
+    ),
+  },
   {
     accessorKey: "responsible_id",
     header: "Responsable",
@@ -118,7 +129,9 @@ export const getRequestColumns = ({
 ];
 
 // Columnas para ReposicionProps
-export const getReposicionColumns = (): ColumnDef<ReposicionProps>[] => [
+export const getReposicionColumns = (
+  projectMap: Record<string, string>
+): ColumnDef<ReposicionProps>[] => [
   {
     accessorKey: "unique_id",
     header: "ID",
@@ -206,7 +219,8 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps>[] => [
           "opacity-50"
         }`}
       >
-        {row.getValue("project")}
+        {projectMap[row.getValue<string>("project")] ||
+          row.getValue<string>("project")}
       </p>
     ),
   },
@@ -309,5 +323,5 @@ export function getColumns<T extends RequestProps | ReposicionProps>(
   if (mode === "requests" && helpers) {
     return getRequestColumns(helpers) as ColumnDef<T>[];
   }
-  return getReposicionColumns() as ColumnDef<T>[];
+  return getReposicionColumns(helpers?.projectMap || {}) as ColumnDef<T>[];
 }

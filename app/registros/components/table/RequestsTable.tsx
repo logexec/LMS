@@ -43,7 +43,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
 import debounce from "lodash/debounce";
-import { DataTableProps, ReposicionProps, RequestProps } from "@/utils/types";
+import {
+  DataTableProps,
+  Project,
+  ReposicionProps,
+  RequestProps,
+} from "@/utils/types";
 import {
   TooltipProvider,
   TooltipTrigger,
@@ -120,7 +125,41 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
     vehicleMap: {} as Record<string, string>,
+    projectMap: {} as Record<string, string>, // Añadimos projectMap
   });
+
+  // Fetch de proyectos
+  const fetchProjects = async (): Promise<Record<string, string>> => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
+        {
+          headers: { Authorization: `Bearer ${getAuthToken()}` },
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Error al cargar proyectos");
+      }
+      const data = await response.json();
+      const projects = Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data)
+        ? data
+        : [];
+      return projects.reduce(
+        (acc: Record<string, string>, project: Project) => {
+          acc[project.id] = project.name || project.id; // Asumimos que tienen id y name
+          return acc;
+        },
+        {}
+      );
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      toast.error("Error al cargar proyectos");
+      return {};
+    }
+  };
 
   useEffect(() => {
     const loadDataMaps = async () => {
@@ -128,11 +167,13 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         const accountsPromise = fetchAccounts();
         const responsiblesPromise = fetchResponsibles();
         const vehiclesPromise = fetchVehicles();
+        const projectsPromise = fetchProjects();
 
-        const [accounts, responsibles, vehicles] = await Promise.all([
+        const [accounts, responsibles, vehicles, projects] = await Promise.all([
           accountsPromise,
           responsiblesPromise,
           vehiclesPromise,
+          projectsPromise,
         ]);
 
         const safeAccounts = Array.isArray(accounts) ? accounts : [];
@@ -154,16 +195,31 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
             acc[vehicle.id || ""] = vehicle.name || "";
             return acc;
           }, {} as Record<string, string>),
+          projectMap: projects,
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
         toast.error("Error al cargar los datos de referencia");
-        setDataMaps({ accountMap: {}, responsibleMap: {}, vehicleMap: {} });
+        setDataMaps({
+          accountMap: {},
+          responsibleMap: {},
+          vehicleMap: {},
+          projectMap: {},
+        });
       }
     };
 
     loadDataMaps();
   }, []);
+
+  const columns = useMemo(
+    () =>
+      getColumns<TData>(mode, {
+        ...dataMaps,
+        onStatusChange,
+      }),
+    [mode, dataMaps, onStatusChange]
+  );
 
   const buildQueryUrl = useCallback(
     (state: TableState) => {
@@ -254,11 +310,6 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     return () => debouncedFetch.cancel();
   }, [tableState, debouncedFetch]);
 
-  const columns = useMemo(
-    () => getColumns<TData>(mode, { ...dataMaps, onStatusChange }),
-    [mode, dataMaps, onStatusChange]
-  );
-
   const handleUpdateData = useCallback(
     ({
       rowIndex,
@@ -321,7 +372,6 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         return;
       }
 
-      // Verifica si onCreateReposicion está definido
       if (!onCreateReposicion) {
         toast.error(
           "Error en la configuración: onCreateReposicion no está definido. Contacta a soporte."
@@ -330,8 +380,12 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
       }
 
       await onCreateReposicion(requestIds, attachment);
+      setData((prevData) =>
+        prevData.filter(
+          (item) => !requestIds.includes((item as RequestProps).unique_id)
+        )
+      );
       setRowSelection({});
-      await fetchData(tableState);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al crear la reposición"
