@@ -417,18 +417,12 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         updateData: ReposicionUpdateData,
         prevStatus: Status
       ): Promise<void> => {
-        try {
-          // Llama a la función original de actualización sin mostrar toast aquí
-          if (onUpdateReposicion) {
-            await onUpdateReposicion(id, updateData, prevStatus);
-          }
-          // Actualiza el estado local solo cuando se confirma desde onAutoClose
-          handleRowUpdate(id, updateData as Partial<TData>);
-        } catch (error) {
-          // Mostrar error solo si falla el backend
-          toast.error("Error al actualizar el estado en el servidor");
-          console.error(error);
+        // Llama a la función original de actualización
+        if (onUpdateReposicion) {
+          await onUpdateReposicion(id, updateData, prevStatus);
         }
+        // Actualiza el estado local solo cuando se confirma (desde onAutoClose)
+        handleRowUpdate(id, updateData as Partial<TData>);
       }}
     >
       <motion.div
