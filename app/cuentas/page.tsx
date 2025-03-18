@@ -180,9 +180,7 @@ const CuentasPage = () => {
         cell: ({ row }) => (
           <AlertDialog>
             <AlertDialogTrigger className="max-w-4">
-              <Button variant="default" className="h-9 w-10">
-                <Trash2 />
-              </Button>
+              <Trash2 className="size-[1.6rem] bg-red-600 hover:bg-red-700 text-white p-1 rounded" />
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -209,7 +207,7 @@ const CuentasPage = () => {
       },
       {
         accessorKey: "name",
-        header: "Nombre",
+        header: () => <div className="w-[56ch]">Nombre</div>,
         cell: ({ row }) => {
           const id = row.original.id!.toString();
           return editingField?.id === id && editingField.field === "name" ? (
@@ -231,7 +229,7 @@ const CuentasPage = () => {
       },
       {
         accessorKey: "account_number",
-        header: "Identificador",
+        header: () => <div className="w-[13ch]">Identificador</div>,
         cell: ({ row }) => {
           const id = row.original.id!.toString();
           return editingField?.id === id &&
@@ -259,7 +257,7 @@ const CuentasPage = () => {
       },
       {
         accessorKey: "account_type",
-        header: "Tipo",
+        header: () => <div className="w-[13ch]">Tipo</div>,
         cell: ({ row }) => {
           const id = row.original.id!.toString();
           return editingField?.id === id &&
