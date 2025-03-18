@@ -34,6 +34,7 @@ import apiService from "@/services/api.service";
 interface RequestDetailsTableProps {
   requests: RequestProps[];
   repositionId?: number | string;
+  projectMap: Record<string, string>;
 }
 
 export const fetchAccounts = async (): Promise<AccountProps[]> => {
@@ -147,6 +148,7 @@ const StatusBadge = ({ status }: { status: string }): JSX.Element => {
 const RequestDetailsTableComponent = ({
   requests,
   repositionId,
+  projectMap,
 }: RequestDetailsTableProps) => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
@@ -445,7 +447,9 @@ const RequestDetailsTableComponent = ({
                     <td className="px-4 py-3 font-semibold text-red-700">
                       ${new Intl.NumberFormat("es-ES").format(request.amount)}
                     </td>
-                    <td className="px-4 py-3">{request.project}</td>
+                    <td className="px-4 py-3">
+                      {projectMap[request.project] || request.project}
+                    </td>
                     {filteredRequests.some((r) => r.responsible_id) && (
                       <td className="px-4 py-3">
                         {request.responsible_id &&

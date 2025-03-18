@@ -151,7 +151,9 @@ export const getRequestColumns = ({
   },
 ];
 
-export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
+export const getReposicionColumns = (
+  projectMap: Record<string, string>
+): ColumnDef<ReposicionProps, any>[] => [
   {
     accessorKey: "id",
     header: "ID",
@@ -370,6 +372,7 @@ export const getReposicionColumns = (): ColumnDef<ReposicionProps, any>[] => [
             <RequestDetailsTable
               repositionId={row.original.id}
               requests={row.original.requests || []}
+              projectMap={projectMap}
             />
           </DialogContent>
         </Dialog>

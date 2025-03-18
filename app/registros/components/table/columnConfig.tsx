@@ -303,7 +303,11 @@ export const getReposicionColumns = (
                 {projectMap[row.original.project] || row.original.project}
               </DialogDescription>
             </DialogHeader>
-            <RequestDetailsTable requests={requests} repositionId={id} />
+            <RequestDetailsTable
+              requests={requests}
+              repositionId={id}
+              projectMap={projectMap}
+            />
           </DialogContent>
         </Dialog>
       );
