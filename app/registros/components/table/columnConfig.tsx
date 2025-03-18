@@ -13,6 +13,12 @@ import {
 import RequestDetailsTable from "./RequestDetailsTable";
 import { ActionButtons } from "./ActionButtons";
 import Checkbox from "@/app/components/Checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ColumnHelpers {
   accountMap: Record<string, string>;
@@ -37,7 +43,7 @@ export const getRequestColumns = ({
         name="selectAll"
         checked={table.getIsAllPageRowsSelected()}
         onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
-        className="translate-y-[2px]"
+        className="w-[3ch]"
         hideLabel
       />
     ),
@@ -47,27 +53,35 @@ export const getRequestColumns = ({
         name={`select-${row.id}`}
         checked={row.getIsSelected()}
         onChange={(e) => row.toggleSelected(!!e.target.checked)}
-        className="translate-y-[2px]"
+        className="-ml-[7px]"
         hideLabel
       />
     ),
     enableSorting: false,
     enableHiding: false,
   },
-  { accessorKey: "unique_id", header: "ID" },
+  {
+    accessorKey: "unique_id",
+    header: () => <div className="w-[10ch] text-center">ID</div>,
+  },
   {
     accessorKey: "updated_at",
-    header: "Fecha",
+    header: () => <div className="text-center w-[10ch]">Fecha</div>,
     cell: ({ row }) => (
-      <p className="text-slate-500 font-medium w-max px-1">
+      <p className="text-slate-500 font-medium w-full text-start">
         {(row.getValue("updated_at") as string).split("T")[0]}
       </p>
     ),
   },
-  { accessorKey: "invoice_number", header: "Factura o Vale" },
+  {
+    accessorKey: "invoice_number",
+    header: () => <div className="w-[25ch] text-center">Factura</div>,
+  },
   {
     accessorKey: "account_id",
-    header: "Cuenta",
+    header: () => (
+      <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
+    ),
     cell: ({ row }) => (
       <p className="capitalize px-1">
         {accountMap[row.getValue("account_id") as number]}
@@ -76,18 +90,18 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "amount",
-    header: "Valor",
+    header: () => <div className="w-[7ch] text-center">Valor</div>,
     cell: ({ row }) => (
-      <p className="font-medium text-slate-900 w-max px-1">
+      <p className="font-medium text-slate-900 text-start">
         ${parseFloat(row.getValue("amount") as string).toFixed(2)}
       </p>
     ),
   },
   {
     accessorKey: "project",
-    header: "Proyecto",
+    header: () => <div className="w-[7ch] tet-center">Proyecto</div>,
     cell: ({ row }) => (
-      <p className="px-1 w-max">
+      <p className="px-1 text-center">
         {projectMap[row.getValue<string>("project")] ||
           "No se pudo obtener el nombre del proyecto"}
       </p>
@@ -95,7 +109,9 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "responsible_id",
-    header: "Responsable",
+    header: () => (
+      <div className="min-w-64 max-w-sm text-center">Responsable</div>
+    ),
     cell: ({ row }) => {
       const id = row.getValue("responsible_id") as string;
       return id ? responsibleMap[id] || "No encontrado" : "No aplica";
@@ -103,26 +119,37 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "transport_id",
-    header: "Placa",
+    header: () => <div className="w-[12ch] text-center">Placa</div>,
     cell: ({ row }) => {
       const id = row.getValue("transport_id") as string;
       return id ? (
-        <p className="px-1 w-max">
+        <p className="text-center w-[12ch]">
           {vehicleMap[id]
             ? `${vehicleMap[id].slice(0, 3)}-${vehicleMap[id].slice(3, 7)}`
             : "No encontrado"}
         </p>
       ) : (
-        <p className="w-max px-1">No aplica</p>
+        <p className="text-center">No aplica</p>
       );
     },
   },
   {
     accessorKey: "note",
-    header: "Observación",
+    header: () => <div className="min-w-[40ch] text-center">Observación</div>,
     cell: ({ row }) => (
-      <p className="text-pretty">
-        {(row.getValue("note") as string) || "Sin observaciones."}
+      <p className="text-pretty text-justify overflow-ellipsis">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-default">
+                {(row.getValue("note") as string) || "Sin observaciones."}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {(row.getValue("note") as string) || "Sin observaciones."}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </p>
     ),
   },
@@ -134,10 +161,10 @@ export const getReposicionColumns = (
 ): ColumnDef<ReposicionProps>[] => [
   {
     accessorKey: "unique_id",
-    header: "ID",
+    header: () => <div className="max-w-[5ch] text-center">ID</div>,
     cell: ({ row }) => (
       <p
-        className={`text-slate-500 font-medium w-max px-1 ${
+        className={`text-slate-500 font-medium text-center ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-70"
@@ -149,7 +176,7 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "fecha_reposicion",
-    header: "Fecha",
+    header: () => <div className="text-center w-[10ch]">Fecha</div>,
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
@@ -164,7 +191,7 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "total_reposicion",
-    header: "Total",
+    header: () => <div className="w-[7ch] text-center">Total</div>,
     cell: ({ row }) => (
       <p
         className={`font-medium text-slate-900 w-max px-1 ${
@@ -182,19 +209,19 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "status",
-    header: "Estado",
+    header: () => <div className="w-[12ch] text-center">Estado</div>,
     cell: ({ row }) => {
       const status = row.getValue("status") as Status;
       return (
         <p
-          className={`font-semibold rounded-full text-center ${
+          className={`font-semibold rounded-lg text-center ${
             status === "pending"
-              ? "text-orange-700 border border-orange-700 bg-orange-50"
+              ? "text-orange-700 bg-orange-100 px-1.5"
               : status === "rejected"
-              ? "text-red-700 border border-red-700 bg-red-50 opacity-50"
+              ? "text-red-700 bg-red-100 px-1.5 opacity-50"
               : status === "review"
-              ? "text-indigo-700 border border-indigo-700 bg-indigo-50"
-              : "text-emerald-700 border border-emerald-700 bg-emerald-50 opacity-50"
+              ? "text-indigo-700 bg-indigo-100 px-1.5"
+              : "text-emerald-700 bg-emerald-100 px-1.5 opacity-50"
           }`}
         >
           {status === "pending"
@@ -210,7 +237,7 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "project",
-    header: "Proyecto",
+    header: () => <div className="w-[7ch] text-center">Proyecto</div>,
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
@@ -226,7 +253,7 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "month",
-    header: "Mes",
+    header: () => <div className="w-[15ch] text-center">Mes</div>,
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
@@ -246,10 +273,10 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "when",
-    header: "Descontar en",
+    header: () => <div className="w-[15ch] text-center">Descontar en</div>,
     cell: ({ row }) => (
       <p
-        className={`${
+        className={`capitalize ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-50"
@@ -266,32 +293,45 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "note",
-    header: "Observación",
+    header: () => <div className="min-w-[40ch] text-center">Observación</div>,
     cell: ({ row }) => (
-      <p
-        className={`text-pretty ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-50"
-        }`}
-      >
-        {row.getValue("note") !== null && row.getValue("note") !== ""
-          ? row.getValue("note")
-          : "Sin observaciones"}
+      <p className="text-pretty text-justify overflow-ellipsis">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className={`text-pretty cursor-default ${
+                  (row.original.status === "rejected" ||
+                    row.original.status === "paid") &&
+                  "opacity-50"
+                }`}
+              >
+                {row.getValue("note") !== null && row.getValue("note") !== ""
+                  ? row.getValue("note")
+                  : "Sin observaciones"}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {row.getValue("note") !== null && row.getValue("note") !== ""
+                ? row.getValue("note")
+                : "Sin observaciones"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </p>
     ),
   },
   {
     accessorKey: "details",
-    header: "Detalles",
+    header: () => <div className="w-[10ch] text-center">Detalles</div>,
     cell: ({ row }) => {
       const requests = row.original.requests || [];
       const id = row.original.id;
       return (
         <Dialog>
-          <DialogTrigger asChild>
+          <DialogTrigger asChild className="-ml-3">
             <Button variant="outline" size="sm">
-              <FileText className="h-4 w-4 mr-1" />
+              <FileText className="h-4 w-4" />
               Detalle
             </Button>
           </DialogTrigger>
@@ -315,7 +355,7 @@ export const getReposicionColumns = (
   },
   {
     id: "actions",
-    header: "Acciones",
+    header: () => <div className="w-[356px] text-center">Acciones</div>,
     cell: ({ row }) => <ActionButtons row={row.original} />,
   },
 ];
