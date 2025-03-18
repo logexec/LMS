@@ -47,7 +47,9 @@ import {
   DataTableProps,
   Project,
   ReposicionProps,
+  ReposicionUpdateData,
   RequestProps,
+  Status,
 } from "@/utils/types";
 import {
   TooltipProvider,
@@ -396,8 +398,39 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
 
   const handleRefresh = () => fetchData(tableState);
 
+  // Función para actualizar una fila específica en el estado local
+  const handleRowUpdate = useCallback(
+    (id: number, updatedData: Partial<TData>) => {
+      setData((prevData) =>
+        prevData.map((item) =>
+          "id" in item && item.id === id ? { ...item, ...updatedData } : item
+        )
+      );
+    },
+    []
+  );
+
   return (
-    <ReposicionProvider onUpdateReposicion={onUpdateReposicion}>
+    <ReposicionProvider
+      onUpdateReposicion={async (
+        id: number,
+        updateData: ReposicionUpdateData,
+        prevStatus: Status
+      ): Promise<void> => {
+        try {
+          // Llama a la función original de actualización sin mostrar toast aquí
+          if (onUpdateReposicion) {
+            await onUpdateReposicion(id, updateData, prevStatus);
+          }
+          // Actualiza el estado local solo cuando se confirma desde onAutoClose
+          handleRowUpdate(id, updateData as Partial<TData>);
+        } catch (error) {
+          // Mostrar error solo si falla el backend
+          toast.error("Error al actualizar el estado en el servidor");
+          console.error(error);
+        }
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

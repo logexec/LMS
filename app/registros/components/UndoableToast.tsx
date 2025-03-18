@@ -7,7 +7,7 @@ import { Status } from "@/utils/types";
 
 interface UndoableToastProps {
   message: string;
-  duration?: number;
+  duration: number;
   onUndo: () => void;
   status: Status;
 }
@@ -45,7 +45,7 @@ const getStatusConfig = (status: Status) => {
 
 const UndoableToast = ({
   message,
-  duration = 5000,
+  duration,
   onUndo,
   status,
 }: UndoableToastProps) => {
@@ -74,7 +74,7 @@ const UndoableToast = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 shadow-md border border-slate-200 relative">
+    <div className="w-96 bg-white rounded-lg p-4 shadow-md border border-slate-200 relative">
       <div className="flex items-center gap-3 mb-2">
         <div className={`p-2 rounded-full ${config.bgColor}`}>
           <StatusIcon className={`h-4 w-4 ${config.color}`} />

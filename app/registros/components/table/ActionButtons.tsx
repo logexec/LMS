@@ -92,12 +92,14 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
           updateData = { status: newStatus };
       }
 
+      // Mostrar el toast sin actualizar inmediatamente
       toast.custom(
         (t) => (
           <UndoableToast
             message={getStatusMessages(newStatus).toast}
             status={newStatus}
             onUndo={() => {
+              // Deshacer: restaurar el estado anterior en el backend
               onUpdateReposicion?.(
                 row.id,
                 { status: currentStatus },
@@ -105,11 +107,13 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
               );
               toast.dismiss(t);
             }}
+            duration={4000}
           />
         ),
         {
-          duration: 5000,
+          duration: 4000, // Tiempo para que el toast se cierre automáticamente
           onAutoClose: () => {
+            // Actualizar el backend y el estado local solo al cerrar el toast
             onUpdateReposicion?.(row.id, updateData, currentStatus);
           },
         }
@@ -264,7 +268,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ row }) => {
                       ? "opacity-50 cursor-not-allowed"
                       : ""
                   }`}
-                  disabled={row.status === "rejected" || row.status === "paid"}
+                  disabled={
+                    row.status === "rejected" ||
+                    row.status === "paid" ||
+                    row.status === "review"
+                  }
                 >
                   <ScanSearch className="h-4 w-4" />
                   <span className="hidden sm:inline">Revisar</span>
