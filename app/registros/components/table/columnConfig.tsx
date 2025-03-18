@@ -299,7 +299,8 @@ export const getReposicionColumns = (
             <DialogHeader>
               <DialogTitle>Solicitudes de la Reposición</DialogTitle>
               <DialogDescription>
-                Proyecto {row.original.project}
+                Proyecto{" "}
+                {projectMap[row.original.project] || row.original.project}
               </DialogDescription>
             </DialogHeader>
             <RequestDetailsTable requests={requests} repositionId={id} />
