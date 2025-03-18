@@ -13,7 +13,6 @@ export function useRoles() {
     queryKey: ["roles"],
     queryFn: async () => {
       try {
-        console.log("🔍 Fetching roles...");
         const response = await apiService.getRoles();
 
         // Verificar si la respuesta es directamente un array
