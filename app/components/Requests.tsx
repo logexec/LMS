@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import Loader from "../Loader";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
-import { getAuthToken } from "@/services/auth.service";
+import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { toast } from "sonner";
-import { Status } from "@/utils/types";
+// import { Status } from "@/utils/types";
 
 const currentMonth = new Date().getMonth() + 1;
 
@@ -170,12 +171,40 @@ export const InRepositionRequests = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchRequests(Status.in_reposition);
-        setInRepositionRequests(data);
+        // Obtenemos todos los datos y hacemos el conteo localmente
+        const response = await fetchWithAuth(`/requests?status=in_reposition`);
+
+        if (!response.ok) {
+          throw new Error(response.message || "Failed to fetch data");
+        }
+
+        let requests = [];
+        if (Array.isArray(response)) {
+          requests = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          requests = response.data;
+        } else {
+          requests = Object.values(response).filter(
+            (item) => item !== null && typeof item === "object"
+          );
+        }
+
+        // Filtramos por mes actual y contamos
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
+
+        const count = requests.filter((req: any) => {
+          const reqDate = new Date(req.created_at || req.updated_at);
+          return (
+            reqDate.getMonth() + 1 === currentMonth &&
+            reqDate.getFullYear() === currentYear
+          );
+        }).length;
+
+        setInRepositionRequests(count);
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Error desconocido"
-        );
+        console.error("Error fetching counts:", error);
       } finally {
         setIsLoading(false);
       }
