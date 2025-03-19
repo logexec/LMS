@@ -292,6 +292,37 @@ export const getReposicionColumns = (
     ),
   },
   {
+    id: "type",
+    header: () => <div className="w-[12ch] text-center">Tipo</div>,
+    cell: ({ row }) => {
+      const requests = row.original.requests || [];
+
+      if (!requests.length) {
+        return <p className="text-center opacity-50">No especificado</p>;
+      }
+
+      const firstRequestId = requests[0].unique_id;
+
+      const type = firstRequestId.startsWith("G")
+        ? "Gasto"
+        : firstRequestId.startsWith("D")
+        ? "Descuento"
+        : "Desconocido";
+
+      return (
+        <p
+          className={`text-start font-medium ${
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-50"
+          }`}
+        >
+          {type}
+        </p>
+      );
+    },
+  },
+  {
     accessorKey: "note",
     header: () => <div className="min-w-[40ch] text-center">Observación</div>,
     cell: ({ row }) => (
