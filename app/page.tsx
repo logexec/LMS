@@ -155,7 +155,7 @@ const Home = () => {
       >
         <motion.div variants={fadeInUp}>
           <Card className="h-52 p-4 md:p-5">
-            <Link href="/gestion/solicitudes" className="block ">
+            <Link href="/registros/reposiciones" className="block ">
               <h3 className="text-slate-500 dark:text-slate-400 font-semibold text-base md:text-lg">
                 Solicitudes
               </h3>
@@ -164,28 +164,16 @@ const Home = () => {
               </p>
               <Hr variant="red" />
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-                <motion.span
-                  className="text-2xl md:text-3xl font-semibold"
-                  whileHover={{ scale: 1.05 }}
-                >
+                <motion.span className="text-2xl md:text-3xl font-semibold">
                   <PendingRequests />
                 </motion.span>
-                <motion.span
-                  className="text-2xl md:text-3xl font-semibold"
-                  whileHover={{ scale: 1.05 }}
-                >
+                <motion.span className="text-2xl md:text-3xl font-semibold">
                   <PaidRequests />
                 </motion.span>
-                <motion.span
-                  className="text-2xl md:text-3xl font-semibold"
-                  whileHover={{ scale: 1.05 }}
-                >
+                <motion.span className="text-2xl md:text-3xl font-semibold">
                   <RejectedRequests />
                 </motion.span>
-                <motion.span
-                  className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500 flex flex-row items-center justify-center"
-                  whileHover={{ scale: 1.05 }}
-                >
+                <motion.span className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500 flex flex-row items-center justify-center">
                   <InRepositionRequests />
                   <span className="text-xs font-normal ml-2 flex flex-row">
                     En reposición
