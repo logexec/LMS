@@ -48,12 +48,15 @@ const DescuentosForm = () => {
               credentials: "include",
             }
           ),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/areas`, {
-            headers: {
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }),
+          fetch(
+            `${
+              process.env.NEXT_PUBLIC_API_URL
+            }/areas?projects=${assignedProjectIds.join(",")}`,
+            {
+              headers: { Authorization: `Bearer ${getAuthToken()}` },
+              credentials: "include",
+            }
+          ),
         ]);
 
         if (!projectsRes.ok) throw new Error("Error al cargar proyectos");
@@ -105,8 +108,6 @@ const DescuentosForm = () => {
       if (!response.ok) {
         throw new Error(data.message || "Error al crear el descuento");
       }
-
-      toast.success("Descuento registrado con éxito");
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -120,6 +121,7 @@ const DescuentosForm = () => {
 
   const handleMassSubmit = async (data: RequestData | FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
+    toast.warning("Registrando descuentos...");
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/requests`,
@@ -133,11 +135,9 @@ const DescuentosForm = () => {
               : { "Content-Type": "application/json" },
         }
       );
-
       if (!response.ok) {
         throw new Error("Error al crear los descuentos masivos");
       }
-      toast.success("Descuento registrado con éxito");
     } catch (error) {
       toast.error("Error al procesar el descuento");
       console.error("Error al procesar el descuento:", error);

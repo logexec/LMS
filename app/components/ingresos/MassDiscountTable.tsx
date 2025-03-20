@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { ChangeEvent, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Table,
@@ -32,8 +32,8 @@ interface MassDiscountTableProps {
   totalAmount: number;
   onSelectionChange: (employeeId: string) => void;
   isLoading: boolean;
-  onSelectAll?: () => void;
-  onDeselectAll?: () => void;
+  onSelectAll?: (e: React.MouseEvent<HTMLButtonElement>) => void; // Actualizamos el tipo
+  onDeselectAll?: (e: React.MouseEvent<HTMLButtonElement>) => void; // Actualizamos el tipo
 }
 
 export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
@@ -49,6 +49,8 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
 
   const selectedCount = filteredEmployees.filter((emp) => emp.selected).length;
   const amountPerPerson = selectedCount > 0 ? totalAmount / selectedCount : 0;
+
+  console.log("employees:", employees);
 
   // Debounced search function
   const debouncedSearch = useMemo(
@@ -109,6 +111,7 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
         </div>
         <div className="flex gap-2">
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={onSelectAll}
@@ -117,6 +120,7 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
             Seleccionar todos
           </Button>
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={onDeselectAll}
@@ -139,11 +143,16 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
                     filteredEmployees.length > 0 &&
                     filteredEmployees.every((emp) => emp.selected)
                   }
-                  onChange={() => {
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    // Creamos un evento sintético compatible con MouseEvent
+                    const syntheticEvent = {
+                      preventDefault: e.preventDefault,
+                    } as React.MouseEvent<HTMLButtonElement>;
+
                     if (filteredEmployees.every((emp) => emp.selected)) {
-                      onDeselectAll?.();
+                      onDeselectAll?.(syntheticEvent);
                     } else {
-                      onSelectAll?.();
+                      onSelectAll?.(syntheticEvent);
                     }
                   }}
                   hideLabel

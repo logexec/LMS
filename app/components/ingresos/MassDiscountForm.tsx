@@ -25,12 +25,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
 import Datalist from "../Datalist";
-import { getAuthToken } from "@/services/auth.service";
+import { fetchWithAuth } from "@/services/auth.service";
 
 export interface MassDiscountFormProps {
   options: OptionsState;
   loading: LoadingState;
   onSubmit: (data: RequestData | FormData) => Promise<void>;
+}
+
+interface EmployeeResponse {
+  id: string;
+  nombre_completo: string;
+  area: string;
+  proyecto: string;
 }
 
 const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
@@ -54,6 +61,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [selectedEmployees, setSelectedEmployees] = useState(0);
 
   const localOptions: OptionsState = {
     accounts: [
@@ -75,46 +83,57 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   const fetchEmployees = useMemo(
     () =>
       debounce(async (proyecto: string, area: string) => {
-        if (!proyecto || !area) return;
+        if (!proyecto) {
+          toast.error("Debes seleccionar un proyecto");
+          console.log("No fetch: proyecto vacío", { proyecto });
+          return;
+        }
+        if (!area) {
+          toast.error("Debes seleccionar un área");
+          console.log("No fetch: área vacía", { area });
+          return;
+        }
 
         setIsLoading(true);
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`,
-            {
-              headers: {
-                Authorization: `Bearer ${getAuthToken()}`,
-              },
-              credentials: "include",
-            }
+          const url = `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`;
+          console.log("Fetching from:", url);
+
+          const response = await fetchWithAuth(
+            url.replace(process.env.NEXT_PUBLIC_API_URL || "", "")
+          );
+          console.log("Response data:", response);
+
+          // Convertir el objeto en un arreglo, excluyendo 'ok'
+          const employeesArray: EmployeeResponse[] = Object.values(
+            response
+          ).filter(
+            (item): item is EmployeeResponse =>
+              item !== null &&
+              typeof item === "object" &&
+              "id" in item &&
+              "nombre_completo" in item
           );
 
-          if (!response.ok) throw new Error("Error al cargar empleados");
+          if (employeesArray.length === 0) {
+            toast.warning(
+              "No se encontraron responsables para este proyecto y área."
+            );
+          }
 
-          const data = await response.json();
-          setEmployees(
-            data.map(
-              (emp: {
-                id: string;
-                nombre_completo: string;
-                area: string;
-                proyecto: string;
-              }) => ({
-                id: emp.id,
-                name: emp.nombre_completo,
-                area: emp.area,
-                project: emp.proyecto,
-                selected: false,
-              })
-            )
-          );
+          const mappedEmployees: Employee[] = employeesArray.map((emp) => ({
+            id: emp.id,
+            name: emp.nombre_completo,
+            area: emp.area,
+            project: emp.proyecto,
+            selected: false,
+          }));
+
+          setEmployees(mappedEmployees);
+          console.log("Employees to be sent:", mappedEmployees);
         } catch (error) {
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : "Error al cargar los empleados"
-          );
           console.error("Error fetching employees:", error);
+          toast.error("Error al cargar los empleados");
         } finally {
           setIsLoading(false);
         }
@@ -123,6 +142,10 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   );
 
   useEffect(() => {
+    console.log("useEffect triggered with:", {
+      proyecto: massFormData.proyecto,
+      area: massFormData.area,
+    });
     if (massFormData.proyecto && massFormData.area) {
       fetchEmployees(massFormData.proyecto, massFormData.area);
     }
@@ -176,19 +199,42 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   };
 
   const handleSelectionChange = (employeeId: string) => {
-    setEmployees((prev) =>
-      prev.map((emp) =>
+    setEmployees((prev) => {
+      const newEmployees = prev.map((emp) =>
         emp.id === employeeId ? { ...emp, selected: !emp.selected } : emp
-      )
-    );
+      );
+      const newSelectedCount = newEmployees.filter(
+        (emp) => emp.selected
+      ).length;
+      setSelectedEmployees(newSelectedCount);
+      return newEmployees;
+    });
   };
 
-  const handleSelectAll = () => {
-    setEmployees((prev) => prev.map((emp) => ({ ...emp, selected: true })));
+  const handleSelectAll = (
+    e?:
+      | React.MouseEvent<HTMLButtonElement>
+      | React.ChangeEvent<HTMLInputElement>
+  ) => {
+    e?.preventDefault();
+    setEmployees((prev) => {
+      const newEmployees = prev.map((emp) => ({ ...emp, selected: true }));
+      setSelectedEmployees(newEmployees.length);
+      return newEmployees;
+    });
   };
 
-  const handleDeselectAll = () => {
-    setEmployees((prev) => prev.map((emp) => ({ ...emp, selected: false })));
+  const handleDeselectAll = (
+    e?:
+      | React.MouseEvent<HTMLButtonElement>
+      | React.ChangeEvent<HTMLInputElement>
+  ) => {
+    e?.preventDefault();
+    setEmployees((prev) => {
+      const newEmployees = prev.map((emp) => ({ ...emp, selected: false }));
+      setSelectedEmployees(0);
+      return newEmployees;
+    });
   };
 
   const resetForm = () => {
@@ -205,6 +251,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       observacion: "",
     });
     setEmployees([]);
+    setSelectedEmployees(0);
     setFormErrors({});
   };
 
@@ -256,9 +303,11 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   };
 
   const isFormValid =
-    Object.keys(formErrors).length === 0 &&
-    massFormData.valor &&
-    massFormData.factura;
+    Object.values(formErrors).every((error) => error === "") &&
+    massFormData.valor !== "" &&
+    parseFloat(massFormData.valor) > 0 &&
+    massFormData.factura !== "" &&
+    massFormData.factura.length >= 3;
 
   return (
     <motion.div
@@ -403,11 +452,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                   </Button>
                   <Button
                     type="submit"
-                    disabled={
-                      loading.submit ||
-                      !isFormValid ||
-                      employees.filter((e) => e.selected).length === 0
-                    }
+                    disabled={!isFormValid || selectedEmployees === 0}
                     className="bg-red-600 hover:bg-red-700"
                   >
                     {loading.submit ? (
