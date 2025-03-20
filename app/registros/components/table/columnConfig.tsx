@@ -24,7 +24,7 @@ interface ColumnHelpers {
   accountMap: Record<string, string>;
   responsibleMap: Record<string, string>;
   vehicleMap: Record<string, string>;
-  projectMap: Record<string, string>; // Añadimos projectMap
+  projectMap: Record<string, string>;
   onStatusChange?: (id: number, status: Status) => Promise<void>;
 }
 
@@ -63,6 +63,8 @@ export const getRequestColumns = ({
   {
     accessorKey: "unique_id",
     header: () => <div className="w-[10ch] text-center">ID</div>,
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
   {
     accessorKey: "updated_at",
@@ -72,10 +74,14 @@ export const getRequestColumns = ({
         {(row.getValue("updated_at") as string).split("T")[0]}
       </p>
     ),
+    sortingFn: "datetime",
+    enableSorting: true,
   },
   {
     accessorKey: "invoice_number",
     header: () => <div className="w-[25ch] text-center">Factura</div>,
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
   {
     accessorKey: "account_id",
@@ -84,9 +90,20 @@ export const getRequestColumns = ({
     ),
     cell: ({ row }) => (
       <p className="capitalize px-1">
-        {accountMap[row.getValue("account_id") as number]}
+        {accountMap[row.getValue("account_id") as string] ||
+          row.getValue("account_id")}
       </p>
     ),
+    sortingFn: (rowA, rowB) => {
+      const a =
+        accountMap[rowA.getValue("account_id") as string] ||
+        rowA.getValue("account_id");
+      const b =
+        accountMap[rowB.getValue("account_id") as string] ||
+        rowB.getValue("account_id");
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "amount",
@@ -96,16 +113,32 @@ export const getRequestColumns = ({
         ${parseFloat(row.getValue("amount") as string).toFixed(2)}
       </p>
     ),
+    sortingFn: (rowA, rowB) => {
+      const a = parseFloat(rowA.getValue("amount") as string);
+      const b = parseFloat(rowB.getValue("amount") as string);
+      return a - b; // Ordenamiento numérico
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "project",
-    header: () => <div className="w-[7ch] tet-center">Proyecto</div>,
+    header: () => <div className="w-[7ch] text-center">Proyecto</div>,
     cell: ({ row }) => (
       <p className="px-1 text-center">
         {projectMap[row.getValue<string>("project")] ||
-          "No se pudo obtener el nombre del proyecto"}
+          row.getValue<string>("project")}
       </p>
     ),
+    sortingFn: (rowA, rowB) => {
+      const a =
+        projectMap[rowA.getValue<string>("project")] ||
+        rowA.getValue<string>("project");
+      const b =
+        projectMap[rowB.getValue<string>("project")] ||
+        rowB.getValue<string>("project");
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "responsible_id",
@@ -116,6 +149,14 @@ export const getRequestColumns = ({
       const id = row.getValue("responsible_id") as string;
       return id ? responsibleMap[id] || "No encontrado" : "No aplica";
     },
+    sortingFn: (rowA, rowB) => {
+      const aId = rowA.getValue("responsible_id") as string;
+      const bId = rowB.getValue("responsible_id") as string;
+      const a = aId ? responsibleMap[aId] || "No encontrado" : "No aplica";
+      const b = bId ? responsibleMap[bId] || "No encontrado" : "No aplica";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "transport_id",
@@ -132,6 +173,22 @@ export const getRequestColumns = ({
         <p className="text-center">No aplica</p>
       );
     },
+    sortingFn: (rowA, rowB) => {
+      const aId = rowA.getValue("transport_id") as string;
+      const bId = rowB.getValue("transport_id") as string;
+      const a = aId
+        ? vehicleMap[aId]
+          ? `${vehicleMap[aId].slice(0, 3)}-${vehicleMap[aId].slice(3, 7)}`
+          : "No encontrado"
+        : "No aplica";
+      const b = bId
+        ? vehicleMap[bId]
+          ? `${vehicleMap[bId].slice(0, 3)}-${vehicleMap[bId].slice(3, 7)}`
+          : "No encontrado"
+        : "No aplica";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "note",
@@ -152,6 +209,8 @@ export const getRequestColumns = ({
         </TooltipProvider>
       </p>
     ),
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
 ];
 
@@ -173,6 +232,8 @@ export const getReposicionColumns = (
         {row.original.id}
       </p>
     ),
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
   {
     accessorKey: "fecha_reposicion",
@@ -188,6 +249,8 @@ export const getReposicionColumns = (
         {row.getValue<string>("fecha_reposicion").split("T")[0]}
       </p>
     ),
+    sortingFn: "datetime",
+    enableSorting: true,
   },
   {
     accessorKey: "total_reposicion",
@@ -206,6 +269,12 @@ export const getReposicionColumns = (
         )}
       </p>
     ),
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.getValue<number>("total_reposicion");
+      const b = rowB.getValue<number>("total_reposicion");
+      return a - b; // Ordenamiento numérico
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "status",
@@ -234,6 +303,8 @@ export const getReposicionColumns = (
         </p>
       );
     },
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
   {
     accessorKey: "project",
@@ -250,6 +321,16 @@ export const getReposicionColumns = (
           row.getValue<string>("project")}
       </p>
     ),
+    sortingFn: (rowA, rowB) => {
+      const a =
+        projectMap[rowA.getValue<string>("project")] ||
+        rowA.getValue<string>("project");
+      const b =
+        projectMap[rowB.getValue<string>("project")] ||
+        rowB.getValue<string>("project");
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "month",
@@ -270,6 +351,8 @@ export const getReposicionColumns = (
           : row.getValue("month")}
       </p>
     ),
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
   {
     accessorKey: "when",
@@ -290,25 +373,23 @@ export const getReposicionColumns = (
           : row.getValue("when")}
       </p>
     ),
+    sortingFn: "alphanumeric",
+    enableSorting: true,
   },
   {
     id: "type",
     header: () => <div className="w-[12ch] text-center">Tipo</div>,
     cell: ({ row }) => {
       const requests = row.original.requests || [];
-
       if (!requests.length) {
         return <p className="text-center opacity-50">No especificado</p>;
       }
-
       const firstRequestId = requests[0].unique_id;
-
       const type = firstRequestId.startsWith("G")
         ? "Gasto"
         : firstRequestId.startsWith("D")
         ? "Descuento"
         : "Desconocido";
-
       return (
         <p
           className={`text-start font-medium ${
@@ -321,6 +402,21 @@ export const getReposicionColumns = (
         </p>
       );
     },
+    sortingFn: (rowA, rowB) => {
+      const getType = (requests: RequestProps[]) => {
+        if (!requests.length) return "No especificado";
+        const id = requests[0].unique_id;
+        return id.startsWith("G")
+          ? "Gasto"
+          : id.startsWith("D")
+          ? "Descuento"
+          : "Desconocido";
+      };
+      const a = getType(rowA.original.requests || []);
+      const b = getType(rowB.original.requests || []);
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "note",
@@ -351,6 +447,8 @@ export const getReposicionColumns = (
         </TooltipProvider>
       </p>
     ),
+    sortingFn: "alphanumeric",
+    enableSorting: false,
   },
   {
     accessorKey: "details",
@@ -383,11 +481,13 @@ export const getReposicionColumns = (
         </Dialog>
       );
     },
+    enableSorting: false,
   },
   {
     id: "actions",
     header: () => <div className="w-[356px] text-center">Acciones</div>,
     cell: ({ row }) => <ActionButtons row={row.original} />,
+    enableSorting: false,
   },
 ];
 

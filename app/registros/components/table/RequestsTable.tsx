@@ -36,6 +36,8 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  SortAscIcon,
+  SortDescIcon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -607,9 +609,12 @@ export function RequestsTable<
                           )}
                           {header.column.getCanSort() && (
                             <span>
-                              {{ asc: " 🔼", desc: " 🔽" }[
-                                header.column.getIsSorted() as string
-                              ] ?? " ▼▲"}
+                              {
+                                {
+                                  asc: <SortAscIcon size={18} />,
+                                  desc: <SortDescIcon size={18} />,
+                                }[header.column.getIsSorted() as string]
+                              }
                             </span>
                           )}
                         </div>
