@@ -1,6 +1,6 @@
 "use client";
 
-import React, { JSX, useCallback, useEffect, useState } from "react";
+import React, { JSX, useCallback, useEffect, useState, useMemo } from "react";
 import { Download, Paperclip, RefreshCw, Search } from "lucide-react";
 import {
   AccountProps,
@@ -222,34 +222,133 @@ const RequestDetailsTableComponent = ({
     }
   }, [loadData, hasLoaded]);
 
-  useEffect(() => {
-    const filtered = requests.filter((request) =>
-      Object.values(request).some(
-        (value) =>
-          value &&
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-    setFilteredRequests(filtered);
-  }, [searchTerm, requests]);
-
-  const accountMap = accounts.reduce<Record<string, string>>((acc, account) => {
-    acc[account.id || ""] = account.name;
-    return acc;
-  }, {});
-
-  const responsibleMap = responsibles.reduce<Record<string, string>>(
-    (acc, responsible) => {
-      acc[responsible.id || ""] = responsible.nombre_completo;
-      return acc;
-    },
-    {}
+  // Mapas para traducir IDs a nombres
+  const accountMap = useMemo(
+    () =>
+      accounts.reduce<Record<string, string>>((acc, account) => {
+        acc[account.id || ""] = account.name;
+        return acc;
+      }, {}),
+    [accounts]
   );
 
-  const vehicleMap = vehicles.reduce<Record<string, string>>((acc, vehicle) => {
-    acc[vehicle.id || ""] = vehicle.name;
-    return acc;
-  }, {});
+  const responsibleMap = useMemo(
+    () =>
+      responsibles.reduce<Record<string, string>>((acc, responsible) => {
+        acc[responsible.id || ""] = responsible.nombre_completo;
+        return acc;
+      }, {}),
+    [responsibles]
+  );
+
+  const vehicleMap = useMemo(
+    () =>
+      vehicles.reduce<Record<string, string>>((acc, vehicle) => {
+        acc[vehicle.id || ""] = vehicle.name;
+        return acc;
+      }, {}),
+    [vehicles]
+  );
+
+  // Función de filtrado personalizada
+  const filterRequests = useCallback(
+    (requests: RequestProps[], search: string) => {
+      const searchLower = search.toLowerCase();
+      return requests.filter((request) => {
+        const valuesToSearch: string[] = [];
+
+        // ID único
+        if (request.unique_id) valuesToSearch.push(request.unique_id);
+
+        // Tipo
+        if (request.type) {
+          valuesToSearch.push(
+            request.type === "discount" ? "Descuento" : "Gasto"
+          );
+        }
+
+        // Área
+        if (request.personnel_type) {
+          valuesToSearch.push(
+            request.personnel_type === "nomina" ? "Nómina" : "Transporte"
+          );
+        }
+
+        // Fecha
+        if (request.request_date) {
+          valuesToSearch.push(
+            new Date(request.request_date).toLocaleDateString("es-ES", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })
+          );
+        }
+
+        // Estado
+        if (request.status) {
+          const statusText =
+            {
+              paid: "Pagado",
+              pending: "Pendiente",
+              rejected: "Rechazado",
+              review: "Revisar",
+              in_reposition: "En Reposición",
+            }[request.status] || request.status;
+          valuesToSearch.push(statusText);
+        }
+
+        // Factura
+        if (request.invoice_number) valuesToSearch.push(request.invoice_number);
+
+        // Cuenta
+        if ("account" in request && request.account) {
+          const accountId = String(request.account);
+          const accountName: string = accountMap[accountId] || accountId;
+          valuesToSearch.push(accountName);
+        }
+
+        // Monto
+        if (request.amount) {
+          valuesToSearch.push(
+            `$${new Intl.NumberFormat("es-ES").format(request.amount)}`
+          );
+        }
+
+        // Proyecto
+        if (request.project) {
+          const projectName = projectMap[request.project] || request.project;
+          valuesToSearch.push(projectName);
+        }
+
+        // Responsable
+        if (request.responsible_id) {
+          const responsibleName =
+            responsibleMap[request.responsible_id] || request.responsible_id;
+          valuesToSearch.push(responsibleName);
+        }
+
+        // Transporte
+        if (request.transport_id) {
+          const vehicleName =
+            vehicleMap[request.transport_id] || request.transport_id;
+          valuesToSearch.push(vehicleName);
+        }
+
+        // Observación
+        if (request.note) valuesToSearch.push(request.note);
+
+        return valuesToSearch.some((value) =>
+          value.toLowerCase().includes(searchLower)
+        );
+      });
+    },
+    [accountMap, responsibleMap, vehicleMap, projectMap]
+  );
+
+  useEffect(() => {
+    setFilteredRequests(filterRequests(requests, searchTerm));
+  }, [searchTerm, requests, filterRequests]);
 
   return (
     <motion.div

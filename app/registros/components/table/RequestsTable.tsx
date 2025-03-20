@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   SortingState,
   VisibilityState,
   RowSelectionState,
-  PaginationState,
   flexRender,
-  TableOptions,
+  Row,
+  PaginationState,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -42,10 +43,8 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
-import debounce from "lodash/debounce";
 import {
   DataTableProps,
-  Project,
   ReposicionProps,
   ReposicionUpdateData,
   RequestProps,
@@ -62,32 +61,25 @@ import {
   fetchResponsibles,
   fetchVehicles,
 } from "./RequestDetailsTable";
-import { getAuthToken } from "@/services/auth.service";
+import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
+import { Switch } from "@/components/ui/switch";
 
-interface PaginationMeta {
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  has_more: boolean;
+interface MappableData {
+  project?: string | number;
+  project_name?: string;
+  account?: { id: string | number; name: string } | string | number; // Puede ser objeto o ID
+  responsible?:
+    | { id: string | number; nombre_completo: string }
+    | string
+    | number; // Puede ser objeto o ID
+  vehicle?: string | number;
 }
 
 interface TableState {
-  pagination: PaginationState;
   sorting: SortingState;
   globalFilter: string;
-}
-
-interface TableOptionsWithMeta<TData>
-  extends Omit<TableOptions<TData>, "meta"> {
-  meta: {
-    updateData: (args: {
-      rowIndex: number;
-      columnId: string;
-      value: unknown;
-    }) => void;
-  };
+  pagination: PaginationState;
 }
 
 const TableSkeleton = () => (
@@ -104,7 +96,9 @@ const TableSkeleton = () => (
   </>
 );
 
-export function RequestsTable<TData extends RequestProps | ReposicionProps>({
+export function RequestsTable<
+  TData extends (RequestProps | ReposicionProps) & MappableData
+>({
   mode,
   type,
   onStatusChange,
@@ -113,24 +107,25 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
 }: DataTableProps<TData>) {
   const [data, setData] = useState<TData[]>([]);
   const [tableState, setTableState] = useState<TableState>({
-    pagination: { pageIndex: 0, pageSize: 10 },
     sorting: [],
     globalFilter: "",
+    pagination: { pageIndex: 0, pageSize: 10 },
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadAllData, setLoadAllData] = useState(false);
 
   const [dataMaps, setDataMaps] = useState({
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
     vehicleMap: {} as Record<string, string>,
-    projectMap: {} as Record<string, string>,
+    projectMap: {} as Record<string, string>, // Mantenemos por si se necesita en otro lugar
   });
 
-  // Fetch de proyectos
+  const hasFetchedRef = useRef(false);
+
   const fetchProjects = async (): Promise<Record<string, string>> => {
     try {
       const response = await fetch(
@@ -140,9 +135,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
           credentials: "include",
         }
       );
-      if (!response.ok) {
-        throw new Error("Error al cargar proyectos");
-      }
+      if (!response.ok) throw new Error("Error al cargar proyectos");
       const data = await response.json();
       const projects = Array.isArray(data.data)
         ? data.data
@@ -150,7 +143,10 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         ? data
         : [];
       return projects.reduce(
-        (acc: Record<string, string>, project: Project) => {
+        (
+          acc: Record<string, string>,
+          project: { id: string; name: string }
+        ) => {
           acc[project.id] = project.name || project.id;
           return acc;
         },
@@ -166,16 +162,11 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   useEffect(() => {
     const loadDataMaps = async () => {
       try {
-        const accountsPromise = fetchAccounts();
-        const responsiblesPromise = fetchResponsibles();
-        const vehiclesPromise = fetchVehicles();
-        const projectsPromise = fetchProjects();
-
         const [accounts, responsibles, vehicles, projects] = await Promise.all([
-          accountsPromise,
-          responsiblesPromise,
-          vehiclesPromise,
-          projectsPromise,
+          fetchAccounts(),
+          fetchResponsibles(),
+          fetchVehicles(),
+          fetchProjects(),
         ]);
 
         const safeAccounts = Array.isArray(accounts) ? accounts : [];
@@ -215,102 +206,92 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
   }, []);
 
   const columns = useMemo(
-    () =>
-      getColumns<TData>(mode, {
-        ...dataMaps,
-        onStatusChange,
-      }),
+    () => getColumns<TData>(mode, { ...dataMaps, onStatusChange }),
     [mode, dataMaps, onStatusChange]
   );
 
   const buildQueryUrl = useCallback(
-    (state: TableState) => {
-      const params = new URLSearchParams({
-        page: (state.pagination.pageIndex + 1).toString(),
-        per_page: state.pagination.pageSize.toString(),
-        search: state.globalFilter,
-      });
-
-      if (state.sorting.length > 0) {
-        params.append("sort_by", state.sorting[0].id);
-        params.append("sort_order", state.sorting[0].desc ? "desc" : "asc");
-      }
-
-      if (type && mode === "requests") {
-        params.append("type", type);
-      }
-
-      return mode === "requests"
-        ? `${
-            process.env.NEXT_PUBLIC_API_URL
-          }/${mode}?status=pending&&${params.toString()}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/${mode}?${params.toString()}`;
+    (period: "last_3_months" | "all") => {
+      const params = new URLSearchParams({ period });
+      if (type && mode === "requests") params.append("type", type);
+      return `/${mode}?${params.toString()}`;
     },
     [mode, type]
   );
 
   const fetchData = useCallback(
-    async (tableState: TableState) => {
+    async (period: "last_3_months" | "all") => {
       try {
         setIsRefreshing(true);
-        const response = await fetch(buildQueryUrl(tableState), {
-          headers: { Authorization: `Bearer ${getAuthToken()}` },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error("Error al cargar los datos");
+        const response = await fetchWithAuth(buildQueryUrl(period));
+        if (response && response.ok === true && typeof response === "object") {
+          delete response.ok;
         }
 
-        const result = await response.json();
+        let fetchedData: TData[] = [];
+        if (Array.isArray(response)) {
+          fetchedData = response;
+        } else if (
+          response &&
+          typeof response === "object" &&
+          response.data &&
+          Array.isArray(response.data)
+        ) {
+          fetchedData = response.data;
+        } else if (response && typeof response === "object") {
+          if (response.message && response.error) {
+            console.error(
+              "Server returned an error:",
+              response.message,
+              response.error
+            );
+            throw new Error(response.message || "Error del servidor");
+          }
+          const numericKeys = Object.keys(response).filter(
+            (k) => !isNaN(Number(k))
+          );
+          if (numericKeys.length > 0) {
+            fetchedData = numericKeys.map((key) => response[key] as TData);
+          } else {
+            const values = Object.values(response);
+            fetchedData = values.filter(
+              (val) =>
+                val &&
+                typeof val === "object" &&
+                !Array.isArray(val) &&
+                ((mode === "requests" && "unique_id" in val) ||
+                  (mode === "reposiciones" && "fecha_reposicion" in val))
+            ) as TData[];
+          }
+        }
 
-        const normalizedData = {
-          data: Array.isArray(result.data)
-            ? result.data
-            : Array.isArray(result)
-            ? result
-            : [],
-          meta: result.meta || {
-            current_page: 1,
-            last_page: 1,
-            per_page: 10,
-            total: Array.isArray(result) ? result.length : 0,
-            has_more: false,
-          },
-        };
+        if (fetchedData.length === 0)
+          console.warn("No data found in response!");
 
-        setData(normalizedData.data);
-        setMeta(normalizedData.meta);
+        setData(fetchedData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error(
           error instanceof Error ? error.message : "Error al cargar los datos"
         );
         setData([]);
-        setMeta({
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: 0,
-          has_more: false,
-        });
       } finally {
         setIsRefreshing(false);
         setIsLoading(false);
       }
     },
-    [buildQueryUrl]
-  );
-
-  const debouncedFetch = useMemo(
-    () => debounce((state: TableState) => fetchData(state), 300),
-    [fetchData]
+    [buildQueryUrl, mode]
   );
 
   useEffect(() => {
-    debouncedFetch(tableState);
-    return () => debouncedFetch.cancel();
-  }, [tableState, debouncedFetch]);
+    const period = loadAllData ? "all" : "last_3_months";
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchData(period);
+    } else {
+      fetchData(period);
+    }
+  }, [fetchData, loadAllData]);
 
   const handleUpdateData = useCallback(
     ({
@@ -331,38 +312,118 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     []
   );
 
+  const customGlobalFilterFn = useCallback(
+    (row: Row<TData>, columnId: string, filterValue: string): boolean => {
+      const search = filterValue.toLowerCase();
+      const actionColumns = ["acciones", "actions"];
+
+      const rowData = row.original;
+      const mappedValues: string[] = [];
+
+      // Proyecto
+      if ("project_name" in rowData && rowData.project_name) {
+        mappedValues.push(String(rowData.project_name));
+      } else if ("project" in rowData && rowData.project) {
+        mappedValues.push(
+          dataMaps.projectMap[String(rowData.project)] ||
+            String(rowData.project)
+        );
+      }
+
+      // Cuenta
+      if ("account" in rowData && rowData.account) {
+        if (typeof rowData.account === "object" && "name" in rowData.account) {
+          mappedValues.push(String(rowData.account.name)); // Usar el nombre si es un objeto
+        } else {
+          const accountId = String(rowData.account);
+          const accountName = dataMaps.accountMap[accountId] || accountId;
+          mappedValues.push(accountName); // Traducir ID a nombre si es necesario
+        }
+      }
+
+      // Responsable
+      if ("responsible" in rowData && rowData.responsible) {
+        if (
+          typeof rowData.responsible === "object" &&
+          "nombre_completo" in rowData.responsible
+        ) {
+          mappedValues.push(String(rowData.responsible.nombre_completo));
+        } else {
+          const responsibleId = String(rowData.responsible);
+          const responsibleName =
+            dataMaps.responsibleMap[responsibleId] || responsibleId;
+          mappedValues.push(responsibleName); // Filtramos por nombre, no por ID
+        }
+      }
+
+      // Vehículo
+      if ("vehicle" in rowData && rowData.vehicle) {
+        const vehicleId = String(rowData.vehicle);
+        mappedValues.push(dataMaps.vehicleMap[vehicleId] || vehicleId);
+      }
+
+      // Valores renderizados de las columnas
+      const searchableColumns = row
+        .getAllCells()
+        .filter((cell) => !actionColumns.includes(cell.column.id))
+        .map((cell) => {
+          const value = cell.getValue();
+          const renderedValue = flexRender(
+            cell.column.columnDef.cell,
+            cell.getContext()
+          );
+          return String(value ?? renderedValue ?? "").toLowerCase();
+        });
+
+      const allValues = [
+        ...searchableColumns,
+        ...mappedValues.map((val) => val.toLowerCase()),
+      ];
+
+      return allValues.some((value) => value.includes(search));
+    },
+    [dataMaps]
+  );
+
   const table = useReactTable<TData>({
     data,
     columns,
     state: {
       sorting: tableState.sorting,
-      pagination: tableState.pagination,
       columnVisibility,
       rowSelection,
       globalFilter: tableState.globalFilter,
+      pagination: tableState.pagination,
     },
     meta: { updateData: handleUpdateData },
-    onSortingChange: (sorting) =>
-      setTableState((prev) => ({ ...prev, sorting: sorting as SortingState })),
-    onPaginationChange: (pagination) =>
+    onSortingChange: (updater) =>
       setTableState((prev) => ({
         ...prev,
-        pagination: pagination as PaginationState,
+        sorting:
+          typeof updater === "function" ? updater(prev.sorting) : updater,
       })),
     onGlobalFilterChange: (globalFilter) =>
       setTableState((prev) => ({
         ...prev,
         globalFilter: globalFilter as string,
       })),
+    onPaginationChange: (updater) =>
+      setTableState((prev) => ({
+        ...prev,
+        pagination:
+          typeof updater === "function" ? updater(prev.pagination) : updater,
+      })),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    manualPagination: true,
-    manualSorting: true,
-    manualFiltering: true,
-  } as TableOptionsWithMeta<TData>);
+    getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: customGlobalFilterFn,
+    manualPagination: false,
+    manualSorting: false,
+    manualFiltering: false,
+  });
 
   const handleSendRequests = async (
     requestIds: string[],
@@ -373,14 +434,12 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         toast.error("Selecciona al menos una solicitud");
         return;
       }
-
       if (!onCreateReposicion) {
         toast.error(
           "Error en la configuración: onCreateReposicion no está definido. Contacta a soporte."
         );
         return;
       }
-
       await onCreateReposicion(requestIds, attachment);
       setData((prevData) =>
         prevData.filter(
@@ -396,9 +455,12 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
     }
   };
 
-  const handleRefresh = () => fetchData(tableState);
+  const handleRefresh = () => {
+    setIsLoading(true);
+    hasFetchedRef.current = false;
+    fetchData(loadAllData ? "all" : "last_3_months");
+  };
 
-  // Función para actualizar una fila específica en el estado local
   const handleRowUpdate = useCallback(
     (id: number, updatedData: Partial<TData>) => {
       setData((prevData) =>
@@ -417,11 +479,8 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
         updateData: ReposicionUpdateData,
         prevStatus: Status
       ): Promise<void> => {
-        // Llama a la función original de actualización
-        if (onUpdateReposicion) {
+        if (onUpdateReposicion)
           await onUpdateReposicion(id, updateData, prevStatus);
-        }
-        // Actualiza el estado local solo cuando se confirma (desde onAutoClose)
         handleRowUpdate(id, updateData as Partial<TData>);
       }}
     >
@@ -446,6 +505,16 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                 }
                 className="pl-9 pr-4"
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={loadAllData}
+                onCheckedChange={(checked) => setLoadAllData(checked)}
+                disabled={isLoading || isRefreshing}
+              />
+              <span className="text-sm text-slate-600">
+                {loadAllData ? "Todas las solicitudes" : "Últimos 3 meses"}
+              </span>
             </div>
             <TooltipProvider>
               <Tooltip>
@@ -528,10 +597,20 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                       className="font-semibold text-slate-600"
                     >
                       {!header.isPlaceholder && (
-                        <div className="flex items-center gap-2">
+                        <div
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
                           {flexRender(
                             header.column.columnDef.header,
                             header.getContext()
+                          )}
+                          {header.column.getCanSort() && (
+                            <span>
+                              {{ asc: " 🔼", desc: " 🔽" }[
+                                header.column.getIsSorted() as string
+                              ] ?? " ▼▲"}
+                            </span>
                           )}
                         </div>
                       )}
@@ -544,7 +623,7 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
               <AnimatePresence mode="sync">
                 {isLoading ? (
                   <TableSkeleton />
-                ) : data && data.length > 0 ? (
+                ) : table.getRowModel().rows.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
                     <motion.tr
                       key={row.id}
@@ -579,19 +658,16 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                 )}
               </AnimatePresence>
             </TableBody>
-            {meta && data && data.length > 0 && (
+            {table.getRowModel().rows.length > 0 && (
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={table.getAllColumns().length}>
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2">
                       <div className="text-sm text-slate-600 dark:text-slate-400">
-                        Mostrando {meta.per_page * (meta.current_page - 1) + 1}{" "}
-                        a{" "}
-                        {Math.min(
-                          meta.per_page * meta.current_page,
-                          meta.total
-                        )}{" "}
-                        de {meta.total} resultados
+                        Mostrando {table.getRowModel().rows.length} de{" "}
+                        {table.getFilteredRowModel().rows.length} resultados
+                        {table.getFilteredRowModel().rows.length !==
+                          data.length && ` (Total: ${data.length})`}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -607,7 +683,8 @@ export function RequestsTable<TData extends RequestProps | ReposicionProps>({
                           </span>
                         </Button>
                         <span className="text-sm text-slate-600">
-                          Página {meta.current_page} de {meta.last_page}
+                          Página {table.getState().pagination.pageIndex + 1} de{" "}
+                          {table.getPageCount()}
                         </span>
                         <Button
                           variant="outline"

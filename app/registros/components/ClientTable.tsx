@@ -10,6 +10,8 @@ import {
 } from "@/utils/types";
 import { toast } from "sonner";
 import React from "react";
+// import TableDebugger from "./table/TableDebugger";
+// import SimpleTable from "./table/SimpleTable";
 
 interface ClientTableProps {
   mode: "requests" | "reposiciones";
@@ -135,6 +137,13 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
 
   return (
     <div className="container mx-auto">
+      {/* <section>
+        <h1>Debugging!</h1>
+        <TableDebugger mode="requests" type="expense" />
+
+        <h2>Debugging simple!</h2>
+        <SimpleTable mode="requests" type="expense" />
+      </section> */}
       <h1 className="text-2xl font-bold mb-5">{title}</h1>
       {mode === "requests" ? (
         <RequestsTable<RequestProps>
