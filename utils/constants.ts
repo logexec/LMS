@@ -1,12 +1,5 @@
 import { LuUsers } from "react-icons/lu";
-import {
-  SquarePlus,
-  LayoutDashboard,
-  Landmark,
-  Wallet,
-  PiggyBank,
-  Banknote,
-} from "lucide-react";
+import { SquarePlus, Landmark, Wallet, PiggyBank, Receipt } from "lucide-react";
 import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
 import { VscRequestChanges } from "react-icons/vsc";
@@ -45,12 +38,12 @@ export const sidenavLinks: NavLink[] = [
         icon: PiggyBank,
         requiredPermissions: ["manage_users", "view_users"],
       },
-      // {
-      //   label: "Roles",
-      //   url: "/roles",
-      //   icon: Shield,
-      //   requiredPermissions: ["manage_users", "view_users"],
-      // },
+      {
+        label: "Órdenes de Compra",
+        url: "/ordenes-compra",
+        icon: Receipt,
+        requiredPermissions: ["manage_users", "view_users"],
+      },
     ],
   },
   {

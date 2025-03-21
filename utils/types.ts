@@ -386,3 +386,39 @@ export interface NormalRequestData {
   transport_id: string | null;
   note: string;
 }
+
+// Ordenes de Compra
+
+export interface PurchaseOrder {
+  id: string;
+  orderNumber: string;
+  ruc?: string;
+  proyecto?: string;
+  mesDeServicio?: string;
+  accountCode?: string;
+  vendor: string;
+  items: OrderItem[];
+  total: number;
+  status: "solicitado" | "aprobado" | "rechazado" | "cancelado";
+  createdAt: Date;
+  dueDate: Date;
+  documents?: Document[];
+}
+
+export interface Document {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+}
+
+export interface OrderItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+// Fin Ordenes de Compra
