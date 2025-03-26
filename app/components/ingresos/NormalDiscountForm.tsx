@@ -244,6 +244,8 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         newErrors[name] =
           typeof value === "string" && value.length < 3
             ? "El número de factura debe tener al menos 3 caracteres"
+            : typeof value === "string" && value.length > 10
+            ? "El número de factura no puede tener más de 10 caracteres"
             : "";
         break;
       case "proyecto":
@@ -545,7 +547,8 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                         id="factura"
                         name="factura"
                         label="Número de Factura"
-                        type="text"
+                        type="number"
+                        maxLength={10}
                         value={normalFormData.factura}
                         onChange={handleInputChange}
                         error={formErrors.factura}
