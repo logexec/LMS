@@ -70,7 +70,7 @@ export const PendingRequests = () => {
   return (
     <div className="flex flex-row flex-wrap text-orange-500 items-center">
       <motion.pre>{rounded}</motion.pre>
-      <span className="text-xs font-normal ml-2">Pendientes</span>
+      {/* <span className="text-xs font-normal ml-2">Pendientes</span> */}
     </div>
   );
 };
@@ -113,7 +113,7 @@ export const PaidRequests = () => {
   return (
     <div className="flex flex-row flex-wrap text-green-500 items-center">
       <motion.pre>{rounded}</motion.pre>
-      <span className="text-xs font-normal ml-2">Pagadas</span>
+      {/* <span className="text-xs font-normal ml-2">Pagadas</span> */}
     </div>
   );
 };
@@ -156,7 +156,7 @@ export const RejectedRequests = () => {
   return (
     <div className="flex flex-row flex-wrap text-red-500 items-center">
       <motion.pre>{rounded}</motion.pre>
-      <span className="text-xs font-normal ml-2">Rechazadas</span>
+      {/* <span className="text-xs font-normal ml-2">Rechazadas</span> */}
     </div>
   );
 };

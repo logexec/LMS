@@ -155,29 +155,47 @@ const Home = () => {
       >
         <motion.div variants={fadeInUp}>
           <Card className="h-52 p-4 md:p-5">
-            <Link href="/registros/reposiciones" className="block ">
+            <Link href="/registros/reposiciones" className="flex flex-col">
               <h3 className="text-slate-500 dark:text-slate-400 font-semibold text-base md:text-lg">
-                Solicitudes
+                Registros
               </h3>
               <p className="text-slate-400 dark:text-slate-600 text-xs md:text-sm font-normal">
                 (Los números se inicializan mensualmente)
               </p>
               <Hr variant="red" />
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-                <motion.span className="text-2xl md:text-3xl font-semibold">
-                  <PendingRequests />
+
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <motion.span className="text-2xl md:text-3xl font-semibold place-self-center text-orange-500 flex flex-row items-center justify-center">
+                  <div className="flex flex-row gap-2 items-center">
+                    <PendingRequests />
+                    <span className="text-xs font-normal">
+                      solicitudes pendientes
+                    </span>
+                  </div>
                 </motion.span>
-                <motion.span className="text-2xl md:text-3xl font-semibold">
-                  <PaidRequests />
+                <motion.span className="text-2xl md:text-3xl font-semibold place-self-center text-green-500 flex flex-row items-center justify-center">
+                  <div className="flex flex-row gap-2 items-center">
+                    <PaidRequests />
+                    <span className="text-xs font-normal ml-2 flex flex-row">
+                      solicitudes pagadas
+                    </span>
+                  </div>
                 </motion.span>
-                <motion.span className="text-2xl md:text-3xl font-semibold">
-                  <RejectedRequests />
+                <motion.span className="text-2xl md:text-3xl font-semibold place-self-center text-red-500 flex flex-row items-center justify-center">
+                  <div className="flex flex-row gap-2 items-center">
+                    <RejectedRequests />
+                    <span className="text-xs font-normal ml-2 flex flex-row">
+                      solicitudes rechazadas
+                    </span>
+                  </div>
                 </motion.span>
-                <motion.span className="text-2xl md:text-3xl font-semibold col-span-2 lg:col-span-3 place-self-center text-indigo-500 flex flex-row items-center justify-center">
-                  <InRepositionRequests />
-                  <span className="text-xs font-normal ml-2 flex flex-row">
-                    En reposición
-                  </span>
+                <motion.span className="text-2xl md:text-3xl font-semibold place-self-center text-indigo-500 flex flex-row items-center justify-center">
+                  <div className="flex flex-row gap-2 items-center">
+                    <InRepositionRequests />
+                    <span className="text-xs font-normal ml-2 flex flex-row">
+                      solicitudes en reposición
+                    </span>
+                  </div>
                 </motion.span>
               </div>
             </Link>
