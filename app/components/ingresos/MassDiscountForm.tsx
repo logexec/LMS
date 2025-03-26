@@ -399,7 +399,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     name="factura"
                     value={massFormData.factura}
                     onChange={handleInputChange}
-                    label="No. Factura o Vale"
+                    label="Número de Factura"
                     error={formErrors.factura}
                   />
 

@@ -186,9 +186,11 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
               onChange={(e) => handleInputChange("when", e.target.value)}
               className="w-full border rounded-md p-2"
             >
-              <option value="rol">Rol</option>
               <option value="decimo_cuarto">Décimo Cuarto</option>
               <option value="decimo_tercero">Décimo Tercero</option>
+              <option value="liquidación">Liquidación</option>
+              <option value="rol">Rol</option>
+              <option value="utilidades">Utilidades</option>
             </select>
           </div>
         )}

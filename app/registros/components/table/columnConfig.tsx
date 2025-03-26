@@ -334,7 +334,7 @@ export const getReposicionColumns = (
   },
   {
     accessorKey: "month",
-    header: () => <div className="w-[15ch] text-center">Mes</div>,
+    header: () => <div className="w-[15ch] text-center">Mes/Rol</div>,
     cell: ({ row }) => (
       <p
         className={`text-slate-500 font-medium w-max px-1 ${
@@ -370,7 +370,9 @@ export const getReposicionColumns = (
         row.getValue("when") === undefined ||
         (row.original.status === "rejected" && row.getValue("when") === null)
           ? "No especificado"
-          : row.getValue("when")}
+          : row.original.when.split("_")[0] +
+            " " +
+            row.original.when.split("_")[1]}
       </p>
     ),
     sortingFn: "alphanumeric",
