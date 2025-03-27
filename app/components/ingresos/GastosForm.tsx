@@ -257,7 +257,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
   const fetchAccounts = useCallback(async () => {
     setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
-      const response = await apiService.getAccounts("nomina");
+      const response = await apiService.getAccounts("nomina", "expense");
       if (!response.ok) throw new Error("Error al cargar las cuentas");
 
       const data = await response.data;
