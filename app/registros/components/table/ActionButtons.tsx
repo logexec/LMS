@@ -77,6 +77,38 @@ const getStatusMessages = (status: Status) => {
   return messages[status as keyof typeof messages];
 };
 
+// Función para determinar el tipo de reposición
+const determineReposicionType = (row: ReposicionProps): string => {
+  // Si tiene tipo explícito, usarlo
+  if (row.type) {
+    return row.type;
+  }
+
+  // Determinar por las solicitudes asociadas
+  const requests = row.requests || [];
+  if (requests.length > 0) {
+    const firstRequestId = requests[0].unique_id;
+    if (firstRequestId && typeof firstRequestId === "string") {
+      if (firstRequestId.startsWith("G")) return "expense";
+      if (firstRequestId.startsWith("D")) return "discount";
+      if (firstRequestId.startsWith("P")) return "loan";
+    }
+  }
+
+  // Determinar por el array de detail
+  const detail = row.detail || [];
+  if (Array.isArray(detail) && detail.length > 0) {
+    const firstDetailId = detail[0];
+    if (firstDetailId && typeof firstDetailId === "string") {
+      if (firstDetailId.startsWith("G")) return "expense";
+      if (firstDetailId.startsWith("D")) return "discount";
+      if (firstDetailId.startsWith("P")) return "loan";
+    }
+  }
+
+  return "unknown";
+};
+
 export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
   const { onUpdateReposicion } = useContext(ReposicionContext);
   const [editData, setEditData] = useState({
@@ -84,6 +116,9 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
     when: row.when || "rol",
     note: row.note || "",
   });
+
+  // Determinar el tipo de reposición
+  const reposicionType = determineReposicionType(row);
 
   const handleInputChange = useCallback((field: string, value: string) => {
     setEditData((prev) => ({ ...prev, [field]: value }));
@@ -173,7 +208,7 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
             {getStatusMessages(status).description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {status === Status.paid && (
+        {status === Status.paid && reposicionType !== "expense" && (
           <div className="space-y-3">
             <input
               type="month"

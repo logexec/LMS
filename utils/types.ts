@@ -64,6 +64,7 @@ export interface ReposicionProps {
   total_reposicion: number;
   status: Status;
   project: string;
+  type?: "expense" | "discount";
   detail: any[];
   month: string;
   when:
