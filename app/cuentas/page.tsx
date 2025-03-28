@@ -228,7 +228,7 @@ const CuentasPage = () => {
     () => [
       {
         accessorKey: "action",
-        header: () => <div className="w-2" />,
+        header: () => <div className="w-1" />,
         cell: ({ row }) => (
           <AlertDialog>
             <AlertDialogTrigger className="max-w-4">
@@ -496,7 +496,7 @@ const CuentasPage = () => {
 
       <div className="mb-4 flex gap-4">
         <Input
-          placeholder="Buscar en todas las cuentas..."
+          placeholder={`Buscar en todas las cuentas... (${accounts.length})`}
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
