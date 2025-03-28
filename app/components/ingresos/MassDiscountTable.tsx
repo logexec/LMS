@@ -50,9 +50,6 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
   const selectedCount = filteredEmployees.filter((emp) => emp.selected).length;
   const amountPerPerson = selectedCount > 0 ? totalAmount / selectedCount : 0;
 
-  console.log("employees:", employees);
-
-  // Debounced search function
   const debouncedSearch = useMemo(
     () =>
       debounce((term: string) => {
