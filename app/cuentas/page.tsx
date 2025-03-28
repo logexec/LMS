@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
@@ -182,7 +183,7 @@ const CuentasPage = () => {
         console.error(error);
       }
     },
-    []
+    [accounts] //Dependencia necesaria para que no se cambien el orden las cuentas al actualizar
   );
 
   const handleIncomeToggle = useCallback(
@@ -220,7 +221,7 @@ const CuentasPage = () => {
         console.error(error);
       }
     },
-    [accounts]
+    []
   );
 
   const columns = useMemo<ColumnDef<AccountProps>[]>(
