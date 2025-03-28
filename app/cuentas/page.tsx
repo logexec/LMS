@@ -500,6 +500,7 @@ const CuentasPage = () => {
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
+          type="search"
         />
         <Select
           onValueChange={(value) =>
