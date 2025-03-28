@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const CuentasPage = () => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
@@ -150,6 +151,12 @@ const CuentasPage = () => {
   const handleStatusToggle = useCallback(
     async (id: string, currentStatus: string) => {
       const newStatus = currentStatus === "active" ? "inactive" : "active";
+      // Optimistic update
+      setAccounts((prev) =>
+        prev.map((acc) =>
+          acc.id === id ? { ...acc, account_status: newStatus } : acc
+        )
+      );
       try {
         const updatedAccount = await apiService.updateAccount(id, {
           account_status: newStatus,
@@ -165,7 +172,50 @@ const CuentasPage = () => {
           } exitosamente.`
         );
       } catch (error) {
+        // Revertir si falla
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === id ? { ...acc, account_status: currentStatus } : acc
+          )
+        );
         toast.error("No se pudo actualizar el estado");
+        console.error(error);
+      }
+    },
+    []
+  );
+
+  const handleIncomeToggle = useCallback(
+    async (id: string, currentIncome: boolean) => {
+      const newIncome = !currentIncome;
+      // Optimistic update
+      setAccounts((prev) =>
+        prev.map((acc) =>
+          acc.id === id ? { ...acc, generates_income: newIncome } : acc
+        )
+      );
+      try {
+        const updatedAccount = await apiService.updateAccount(id, {
+          generates_income: newIncome,
+        });
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === updatedAccount.id ? { ...acc, ...updatedAccount } : acc
+          )
+        );
+        toast.success(
+          `La cuenta ${
+            newIncome ? "generará" : "ya no generará"
+          } registros de ingresos.`
+        );
+      } catch (error) {
+        // Revertir si falla
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === id ? { ...acc, generates_income: currentIncome } : acc
+          )
+        );
+        toast.error("No se pudo actualizar la propiedad de esta cuenta.");
         console.error(error);
       }
     },
@@ -347,6 +397,26 @@ const CuentasPage = () => {
         ),
         filterFn: "equals",
       },
+      {
+        accessorKey: "generates_income",
+        header: () => (
+          <div className="max-w-28 text-center mx-auto">Genera Ingreso</div>
+        ),
+        cell: ({ row }) => (
+          <div className="w-min mx-auto">
+            <Checkbox
+              checked={!!row.getValue("generates_income")} // Convertir a booleano
+              onCheckedChange={() =>
+                handleIncomeToggle(
+                  row.original.id!.toString(),
+                  !!row.getValue("generates_income") // Convertir a booleano
+                )
+              }
+            />
+          </div>
+        ),
+        filterFn: "equals",
+      },
     ],
     [
       editingField,
@@ -357,6 +427,7 @@ const CuentasPage = () => {
       handleSave,
       handleDelete,
       handleStatusToggle,
+      handleIncomeToggle,
     ]
   );
 
@@ -525,6 +596,9 @@ const CuentasPage = () => {
                         <Skeleton className="h-4 w-[150px]" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-4 w-[150px]" />
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Skeleton className="h-4 w-[150px]" />
                       </TableCell>
                       <TableCell className="text-right">

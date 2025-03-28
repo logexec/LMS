@@ -20,6 +20,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import apiService from "@/services/api.service";
 import { toast } from "sonner";
 import { AccountProps } from "@/utils/types";
@@ -32,15 +33,25 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
   const [formData, setFormData] = useState({
     name: "",
     account_number: "",
-    account_type: "nomina",
-    account_status: "active",
-    account_affects: "discount",
+    account_type: "nomina" as const,
+    account_status: "active" as const,
+    account_affects: "discount" as const,
+    generates_income: false,
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSelectChange = (
+    field: "account_type" | "account_status" | "account_affects",
+    value: string
+  ) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData({ ...formData, generates_income: checked });
   };
 
   const handleSubmit = async () => {
@@ -57,6 +68,7 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
         account_type: "nomina",
         account_status: "active",
         account_affects: "discount",
+        generates_income: false,
       });
     } catch (error) {
       toast.error("Error al crear la cuenta");
@@ -84,17 +96,19 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
             <Input
               name="name"
               placeholder="Nombre de la cuenta"
+              value={formData.name}
               onChange={handleChange}
             />
             <Input
               name="account_number"
               placeholder="Número de cuenta"
+              value={formData.account_number}
               onChange={handleChange}
             />
             <Select
-              name="account_type"
+              value={formData.account_type}
               onValueChange={(value) =>
-                setFormData({ ...formData, account_type: value })
+                handleSelectChange("account_type", value)
               }
             >
               <SelectTrigger>
@@ -106,9 +120,9 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
               </SelectContent>
             </Select>
             <Select
-              name="account_status"
+              value={formData.account_status}
               onValueChange={(value) =>
-                setFormData({ ...formData, account_status: value })
+                handleSelectChange("account_status", value)
               }
             >
               <SelectTrigger>
@@ -120,9 +134,9 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
               </SelectContent>
             </Select>
             <Select
-              name="account_affects"
+              value={formData.account_affects}
               onValueChange={(value) =>
-                setFormData({ ...formData, account_affects: value })
+                handleSelectChange("account_affects", value)
               }
             >
               <SelectTrigger>
@@ -134,6 +148,14 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
                 <SelectItem value="both">Ambos</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="generates_income"
+                checked={formData.generates_income}
+                onCheckedChange={handleCheckboxChange}
+              />
+              <label htmlFor="generates_income">Genera Ingreso</label>
+            </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>

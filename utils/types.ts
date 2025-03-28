@@ -45,6 +45,7 @@ export interface AccountProps extends BaseEntity {
   account_type: string;
   account_status: string;
   account_affects: string;
+  generates_income: boolean;
 }
 
 export interface ResponsibleProps {

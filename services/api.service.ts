@@ -166,7 +166,12 @@ export const apiService = {
 
   updateAccount: (
     accountId: string,
-    data: { name?: string; type?: string; account_status?: string }
+    data: {
+      name?: string;
+      type?: string;
+      account_status?: string;
+      generates_income?: boolean;
+    }
   ) =>
     fetchWithAuth(`/accounts/${accountId}`, {
       method: "PUT",
