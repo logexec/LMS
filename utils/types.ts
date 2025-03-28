@@ -35,6 +35,8 @@ export interface RequestProps extends BaseEntity {
   attachment_path: string | null;
   personnel_type?: string;
   request_date?: string;
+  when?: string;
+  month?: string;
 }
 
 export interface AccountProps extends BaseEntity {
@@ -46,12 +48,12 @@ export interface AccountProps extends BaseEntity {
 }
 
 export interface ResponsibleProps {
-  id: string;
+  id: string | number;
   nombre_completo: string;
 }
 
 export interface TransportProps {
-  id: string;
+  id: string | number;
   name: string;
 }
 
@@ -163,6 +165,7 @@ export interface OptionsState {
   transports: Array<{ label: string; value: string }>;
   accounts: Array<{ label: string; value: string }>;
   areas: Array<{ label: string; value: string }>;
+  vehicles?: Array<{ label: string; value: string }>;
 }
 
 export interface NormalFormData {
@@ -344,6 +347,7 @@ export interface LoadingState {
   transports: boolean;
   accounts: boolean;
   areas: boolean;
+  vehicles?: boolean;
 }
 
 export interface SelectOption {
@@ -357,6 +361,7 @@ export interface OptionsState {
   transports: SelectOption[];
   accounts: SelectOption[];
   areas: SelectOption[];
+  vehicles?: SelectOption[];
 }
 
 export interface RequestData {
@@ -422,3 +427,39 @@ export interface OrderItem {
 }
 
 // Fin Ordenes de Compra
+
+// Préstamos
+
+export interface Option {
+  label: string;
+  value: string;
+}
+
+export interface OptionsState {
+  projects: Option[];
+  responsibles: Option[];
+  transports: Option[];
+  accounts: Option[];
+  areas: Option[];
+  vehicles?: Option[];
+}
+
+export interface LoanFormData {
+  type: "nomina" | "proveedor";
+  account_id: string;
+  amount: string;
+  project: string;
+  invoice_number: string;
+  installments: string;
+  responsible_id?: string;
+  vehicle_id?: string;
+  note: string;
+  installment_dates: string[]; // Formato Y-m (ej. "2025-04")
+}
+
+export interface Installment {
+  date: string; // Formato Y-m
+  amount: number;
+}
+
+// Fin Préstamos

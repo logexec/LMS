@@ -65,43 +65,81 @@ export const fetchWithAuth = async (
       throw new Error("No autorizado");
     }
 
-    // Verificar si la respuesta tiene contenido antes de intentar parsearlo
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
-      try {
-        const data = await response.json();
-
-        if (
-          data.message?.toLowerCase().includes("token") &&
-          data.message?.toLowerCase().includes("expired")
-        ) {
-          handleSessionExpired();
-          throw new Error("Sesión expirada");
-        }
-
-        // Añadir la propiedad ok para consistencia
-        return { ...data, ok: response.ok };
-      } catch (error) {
-        console.error("Error al parsear JSON:", error);
-        // Si falla al parsear JSON pero la respuesta fue exitosa
-        if (response.ok) {
-          return { ok: true, message: "Operación exitosa" };
-        }
-        throw new Error("Error al procesar la respuesta");
+      const data = await response.json();
+      if (
+        data.message?.toLowerCase().includes("token") &&
+        data.message?.toLowerCase().includes("expired")
+      ) {
+        handleSessionExpired();
+        throw new Error("Sesión expirada");
       }
-    } else {
-      // Para respuestas no-JSON
-      return {
-        ok: response.ok,
-        status: response.status,
-        message: response.ok ? "Operación exitosa" : "Error en la operación",
-      };
+      return { ...data, ok: response.ok };
     }
+    return {
+      ok: response.ok,
+      status: response.status,
+      message: response.ok ? "Operación exitosa" : "Error en la operación",
+    };
   } catch (error) {
     if (error instanceof Error && error.message.includes("expired")) {
       handleSessionExpired();
     }
-    // Mejorar el objeto de error para React Query
+    throw {
+      message: error instanceof Error ? error.message : "Error desconocido",
+      isAuthError:
+        error instanceof Error && error.message.includes("autorizado"),
+    };
+  }
+};
+
+export const fetchWithAuthFormData = async (
+  endpoint: string,
+  options: RequestInit = {}
+) => {
+  const token = getAuthToken();
+  if (!token) {
+    handleSessionExpired();
+    throw new Error("No token found");
+  }
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (options.headers) {
+    Object.entries(options.headers).forEach(([key, value]) => {
+      if (typeof value === "string") {
+        headers[key] = value;
+      }
+    });
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
+      {
+        method: options.method || "GET",
+        body: options.body,
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      }
+    );
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      throw new Error("No autorizado");
+    }
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("expired")) {
+      handleSessionExpired();
+    }
     throw {
       message: error instanceof Error ? error.message : "Error desconocido",
       isAuthError:
@@ -115,8 +153,6 @@ const handleSessionExpired = () => {
   Cookies.remove("lms_session");
   localStorage.removeItem("user");
   toast.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
-
-  // Usar replace en lugar de push para evitar que quede en el historial
   window.location.replace("/login");
 };
 

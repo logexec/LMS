@@ -432,6 +432,7 @@ export function RequestsTable<
     attachment: File
   ): Promise<void> => {
     try {
+      setIsLoading(true);
       if (!requestIds.length) {
         toast.error("Selecciona al menos una solicitud");
         return;
@@ -454,6 +455,8 @@ export function RequestsTable<
         error instanceof Error ? error.message : "Error al crear la reposición"
       );
       console.error("Error in handleSendRequests:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -581,6 +584,7 @@ export function RequestsTable<
                 .getSelectedRowModel()
                 .rows.map((row) => row.original.unique_id)
                 .filter((id): id is string => id !== undefined)}
+              isLoading={isLoading}
             />
           )}
         </div>

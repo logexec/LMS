@@ -364,8 +364,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       formData.append("personnel_type", normalFormData.tipo);
 
       await onSubmit(formData);
-      toast.success("Descuento registrado exitosamente");
-      resetForm();
     } catch (error) {
       toast.error(
         error instanceof Error

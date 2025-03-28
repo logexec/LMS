@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { fetchWithAuth } from "@/services/auth.service";
+import { fetchWithAuth, fetchWithAuthFormData } from "@/services/auth.service";
 import { AccountProps } from "@/utils/types";
 
 export const apiService = {
@@ -264,6 +264,37 @@ export const apiService = {
     } catch (error) {
       console.error(`Error importando datos (${context}):`, error);
       throw error;
+    }
+  },
+
+  // Préstamos
+  createLoan: async (formData: FormData) => {
+    try {
+      const response = await fetchWithAuthFormData("/loans", {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log("createLoan response status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log("Error response from backend:", errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || "Error desconocido" };
+        }
+        throw errorData; // Lanzar el objeto parseado o texto plano
+      }
+
+      return response;
+    } catch (error) {
+      console.error(
+        error instanceof Error ? `❌ Error in createLoan: ${error}` : error
+      );
+      throw error; // Propagamos el error como objeto o string
     }
   },
 };

@@ -11,17 +11,26 @@ import {
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { SendHorizontal } from "lucide-react";
+import { Loader2, SendHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SubmitFileProps {
-  onCreateReposicion: (requestIds: string[], attachment: File) => Promise<void>;
+  customText?: string;
+  showBadge?: boolean;
+  isLoading: boolean;
+  onCreateReposicion: (
+    requestIds: string[],
+    attachment: File
+  ) => Promise<Response | null>;
   selectedRequests: string[];
 }
 
 export function SubmitFile({
   onCreateReposicion,
   selectedRequests,
+  isLoading = false,
+  customText,
+  showBadge = true,
 }: SubmitFileProps) {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -44,15 +53,17 @@ export function SubmitFile({
     }
 
     try {
-      await onCreateReposicion(selectedRequests, selectedFile);
-      toast.success("Solicitud enviada con éxito");
-      setIsDialogOpen(false);
-      setSelectedFile(null);
+      const response = await onCreateReposicion(selectedRequests, selectedFile);
+      if (response?.status === 201) {
+        // Usamos optional chaining para manejar null
+        toast.success("Solicitud enviada con éxito");
+        setSelectedFile(null);
+      }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al enviar la solicitud"
-      );
-      console.error(error);
+      console.error("Error in handleConfirmSend:", error);
+      // Los errores ya se manejan en handleCreateLoan, no añadimos toast aquí
+    } finally {
+      setIsDialogOpen(false);
     }
   };
 
@@ -62,10 +73,12 @@ export function SubmitFile({
         <AlertDialogTrigger asChild>
           <Button onClick={() => setIsDialogOpen(true)}>
             <SendHorizontal className="mr-2 h-4 w-4" />
-            Enviar solicitud
-            <Badge variant="secondary" className="ml-2">
-              {Object.keys(selectedRequests).length}
-            </Badge>
+            {customText ? customText : "Enviar solicitud"}
+            {showBadge && (
+              <Badge variant="secondary" className="ml-2">
+                {Object.keys(selectedRequests).length}
+              </Badge>
+            )}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -90,8 +103,17 @@ export function SubmitFile({
             <Button onClick={() => setIsDialogOpen(false)} variant="outline">
               Cancelar
             </Button>
-            <Button onClick={handleConfirmSend} disabled={!selectedFile}>
-              Confirmar Envío
+            <Button
+              onClick={handleConfirmSend}
+              disabled={!selectedFile || isLoading}
+            >
+              {!isLoading ? (
+                "Confirmar Envío"
+              ) : (
+                <span className="flex flex-row">
+                  <Loader2 className="animate-spin" /> Procesando...
+                </span>
+              )}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

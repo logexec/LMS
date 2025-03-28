@@ -464,6 +464,9 @@ const RequestDetailsTableComponent = ({
                 Fecha
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                Mes/Rol
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
                 Estado
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
@@ -535,6 +538,13 @@ const RequestDetailsTableComponent = ({
                             year: "numeric",
                           }
                         )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {request.month
+                        ? request.month
+                        : request.status === "in_reposition"
+                        ? "Sin asignar"
+                        : "No aplica"}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={request.status} />

@@ -370,9 +370,7 @@ export const getReposicionColumns = (
         row.getValue("when") === undefined ||
         (row.original.status === "rejected" && row.getValue("when") === null)
           ? "No especificado"
-          : row.original.when.split("_")[0] +
-            " " +
-            row.original.when.split("_")[1]}
+          : row.original.when}
       </p>
     ),
     sortingFn: "alphanumeric",
@@ -391,6 +389,8 @@ export const getReposicionColumns = (
         ? "Gasto"
         : firstRequestId.startsWith("D")
         ? "Descuento"
+        : firstRequestId.startsWith("P")
+        ? "Préstamo"
         : "Desconocido";
       return (
         <p

@@ -42,7 +42,7 @@ const whenOptions = {
   rol: "Rol",
   decimo_cuarto: "Décimo Cuarto",
   decimo_tercero: "Décimo Tercero",
-  liquidacion: "Liquidación",
+  liquidación: "Liquidación",
   utilidades: "Utilidades",
 } as const;
 
