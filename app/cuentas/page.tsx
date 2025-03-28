@@ -549,6 +549,22 @@ const CuentasPage = () => {
             <SelectItem value="inactive">Inactiva</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select
+          value={table.getState().pagination.pageSize.toString()}
+          onValueChange={(value) => table.setPageSize(Number(value))}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filas por página" />
+          </SelectTrigger>
+          <SelectContent>
+            {[5, 10, 20, 50].map((size) => (
+              <SelectItem key={size} value={size.toString()}>
+                {size} filas por página
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="bg-background overflow-hidden rounded border">
         <Table>
@@ -651,21 +667,6 @@ const CuentasPage = () => {
             {table.getPageCount()}
           </span>
         </div>
-        <Select
-          value={table.getState().pagination.pageSize.toString()}
-          onValueChange={(value) => table.setPageSize(Number(value))}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filas por página" />
-          </SelectTrigger>
-          <SelectContent>
-            {[5, 10, 20, 50].map((size) => (
-              <SelectItem key={size} value={size.toString()}>
-                {size} filas por página
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
     </div>
   );
