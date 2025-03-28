@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import Input from "../Input";
 import Select from "../Select";
@@ -56,10 +57,92 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [responsibles, setResponsibles] = useState();
-  const [vehicles, setVehicles] = useState();
-  const [accounts, setAccounts] = useState();
+  const [responsibles, setResponsibles] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [vehicles, setVehicles] = useState<{ value: string; label: string }[]>(
+    []
+  );
+  const [accounts, setAccounts] = useState<{ value: string; label: string }[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Resetear responsible_id cuando cambia project
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, responsible_id: "" }));
+  }, [formData.project]);
+
+  // Memoizar validateField
+  const validateField = useCallback(
+    (
+      name: keyof Omit<LoanFormData, "installment_dates">,
+      value: string
+    ): boolean => {
+      const errors: Record<string, string> = {};
+
+      switch (name) {
+        case "type":
+          errors[name] = !value ? "El tipo es obligatorio" : "";
+          break;
+        case "account_id":
+          errors[name] = !value ? "La cuenta es obligatoria" : "";
+          break;
+        case "amount":
+          errors[name] =
+            !value || parseFloat(value) <= 0
+              ? "El monto debe ser mayor a 0"
+              : "";
+          break;
+        case "project":
+          errors[name] = !value ? "El proyecto es obligatorio" : "";
+          break;
+        case "invoice_number":
+          errors[name] =
+            !value || value.length < 3
+              ? "El número de factura debe tener al menos 3 caracteres"
+              : "";
+          break;
+        case "installments":
+          const num = parseInt(value);
+          errors[name] =
+            !value || num <= 0 || num > 36
+              ? "El número de cuotas debe estar entre 1 y 36"
+              : "";
+          break;
+        case "note":
+          errors[name] = !value ? "La observación es obligatoria" : "";
+          break;
+        case "responsible_id":
+          errors[name] =
+            formData.type === "nomina" && !value
+              ? "El responsable es obligatorio para nómina"
+              : "";
+          break;
+        case "vehicle_id":
+          errors[name] =
+            formData.type === "proveedor" && !value
+              ? "El vehículo es obligatorio para proveedor"
+              : "";
+          break;
+      }
+
+      setFormErrors((prev) => ({ ...prev, [name]: errors[name] }));
+      return !errors[name];
+    },
+    [formData.type] // Dependencia necesaria porque se usa en la lógica
+  );
+
+  // Revalidar responsible_id y vehicle_id cuando cambia type
+  useEffect(() => {
+    validateField("responsible_id", formData.responsible_id ?? "");
+    validateField("vehicle_id", formData.vehicle_id ?? "");
+  }, [
+    formData.type,
+    formData.responsible_id,
+    formData.vehicle_id,
+    validateField,
+  ]);
 
   useEffect(() => {
     const amount = parseFloat(formData.amount);
@@ -84,42 +167,40 @@ const LoanForm: React.FC<LoanFormProps> = ({
     }
   }, [formData.amount, formData.installments, formData.installment_dates]);
 
-  // Fetch de responsables cuando cambia el proyecto
-  const fetchResponsibles = useCallback(
-    debounce(async (proyecto: string) => {
-      if (!proyecto) return;
+  const fetchResponsibles = useMemo(
+    () =>
+      debounce(async (proyecto: string) => {
+        if (!proyecto) return;
 
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&fields=id,nombre_completo`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }
-        );
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&fields=id,nombre_completo`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAuthToken()}`,
+              },
+              credentials: "include",
+            }
+          );
 
-        if (!response.ok) throw new Error("Error al cargar responsables");
+          if (!response.ok) throw new Error("Error al cargar responsables");
 
-        const data = await response.json();
-        setResponsibles(
-          data.map((responsible: ResponsibleProps) => {
-            return {
+          const data = await response.json();
+          setResponsibles(
+            data.map((responsible: ResponsibleProps) => ({
               value: responsible.id,
               label: responsible.nombre_completo,
-            };
-          })
-        );
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error al cargar responsables"
-        );
-      }
-    }, 300),
+            }))
+          );
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Error al cargar responsables"
+          );
+        }
+      }, 300),
     []
   );
 
@@ -140,12 +221,10 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
       const data = await response.json();
       setVehicles(
-        data.map((vehicle: TransportProps) => {
-          return {
-            label: vehicle.name,
-            value: vehicle.id,
-          };
-        })
+        data.map((vehicle: TransportProps) => ({
+          label: vehicle.name,
+          value: vehicle.id,
+        }))
       );
     } catch (error) {
       toast.error(
@@ -171,102 +250,38 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
       if (!response.ok) {
         toast.error("Error al cargar las cuentas");
-        console.error(response);
         return;
       }
 
       const data = await response.json();
-      console.log("Accounts data:", data);
       setAccounts(
-        data.data.map((account: AccountProps) => {
-          return {
-            label: account.name,
-            value: account.id,
-          };
-        })
+        data.data.map((account: AccountProps) => ({
+          label: account.name,
+          value: account.id,
+        }))
       );
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Error al cargar los transportes"
+        error instanceof Error ? error.message : "Error al cargar las cuentas"
       );
     }
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (name === "project") {
-      setFormData((prev) => ({ ...prev, responsible_id: "" })); // Resetear responsible_id al cambiar proyecto
-    }
-  };
-
-  // Efecto para actualizar responsables cuando cambia el proyecto
-  useEffect(() => {
-    fetchResponsibles(formData.project);
-  }, [formData.type, formData.project, fetchResponsibles]);
-
   useEffect(() => {
     fetchAccounts();
-  }, []);
+  }, [fetchAccounts]);
 
-  // Efecto para actualizar responsables cuando cambia el proyecto
   useEffect(() => {
-    fetchTransports();
+    if (formData.type === "proveedor") {
+      fetchTransports();
+    }
   }, [formData.type, fetchTransports]);
 
-  const validateField = (
-    name: keyof Omit<LoanFormData, "installment_dates">,
-    value: string
-  ): boolean => {
-    const errors: Record<string, string> = {};
-
-    switch (name) {
-      case "type":
-        if (!value) errors[name] = "El tipo es obligatorio";
-        break;
-      case "account_id":
-        if (!value) errors[name] = "La cuenta es obligatoria";
-        break;
-      case "amount":
-        if (!value || parseFloat(value) <= 0)
-          errors[name] = "El monto debe ser mayor a 0";
-        break;
-      case "project":
-        if (!value) errors[name] = "El proyecto es obligatorio";
-        break;
-      case "invoice_number":
-        if (!value || value.length < 3)
-          errors[name] =
-            "El número de factura debe tener al menos 3 caracteres";
-        break;
-      case "installments":
-        const num = parseInt(value);
-        if (!value || num <= 0 || num > 36)
-          errors[name] = "El número de cuotas debe estar entre 1 y 36";
-        break;
-      case "note":
-        if (!value) errors[name] = "La observación es obligatoria";
-        break;
-      case "responsible_id":
-        if (formData.type === "nomina" && !value)
-          errors[name] = "El responsable es obligatorio para nómina";
-        break;
-      case "vehicle_id":
-        if (formData.type === "proveedor" && !value)
-          errors[name] = "El vehículo es obligatorio para proveedor";
-        break;
+  useEffect(() => {
+    if (formData.project) {
+      fetchResponsibles(formData.project);
     }
-
-    setFormErrors((prev) => ({ ...prev, ...errors }));
-    return !errors[name];
-  };
+  }, [formData.project, fetchResponsibles]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -314,7 +329,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
       ];
 
     const isValid = fieldsToValidate.every((field) =>
-      validateField(field, formData[field] || "")
+      validateField(field, formData[field] ?? "")
     );
 
     if (!isValid) {
@@ -349,19 +364,14 @@ const LoanForm: React.FC<LoanFormProps> = ({
     formDataToSend.append("installments", formData.installments);
     formDataToSend.append("note", formData.note);
     if (formData.type === "nomina") {
-      formDataToSend.append("responsible_id", formData.responsible_id || "");
+      formDataToSend.append("responsible_id", formData.responsible_id ?? "");
     } else {
-      formDataToSend.append("vehicle_id", formData.vehicle_id || "");
+      formDataToSend.append("vehicle_id", formData.vehicle_id ?? "");
     }
     formData.installment_dates.forEach((date, index) => {
       formDataToSend.append(`installment_dates[${index}]`, date);
     });
     formDataToSend.append("attachment", file);
-
-    console.log("FormData to send:");
-    for (const [key, value] of formDataToSend.entries()) {
-      console.log(`${key}: ${value}`);
-    }
 
     try {
       setIsLoading(true);
@@ -370,11 +380,10 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
       if (status === 201) {
         resetForm();
-        return response; // Devolvemos la respuesta para SubmitFile
+        return response;
       }
 
       const errorText = await response.text();
-      console.log("Error response:", errorText);
       let errorData;
       try {
         errorData = JSON.parse(errorText);
@@ -404,24 +413,17 @@ const LoanForm: React.FC<LoanFormProps> = ({
       }));
       return null;
     } catch (error) {
-      console.error("Caught error:", error);
-
-      interface BackendError {
-        message: string;
-        errors?: Record<string, string[]>;
-      }
-
       if (typeof error === "object" && error !== null && "errors" in error) {
-        const backendErrors = (error as BackendError).errors || {};
+        const backendErrors = (error as any).errors || {};
         if (Object.keys(backendErrors).length > 0) {
           Object.entries(backendErrors).forEach(([field, messages]) => {
-            messages.forEach((message) => {
+            (messages as string[]).forEach((message) => {
               toast.error(`${field}: ${message}`);
             });
           });
         } else {
           toast.error(
-            (error as BackendError).message || "Error al procesar el préstamo"
+            (error as any).message || "Error al procesar el préstamo"
           );
         }
 
@@ -430,7 +432,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
           ...Object.fromEntries(
             Object.entries(backendErrors).map(([field, messages]) => [
               field,
-              messages.join(", "),
+              (messages as string[]).join(", "),
             ])
           ),
         }));
@@ -519,7 +521,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     name="account_id"
                     id="account_id"
                     value={formData.account_id}
-                    options={accounts || []}
+                    options={accounts}
                     onChange={handleInputChange}
                     disabled={loading.accounts}
                     error={formErrors.account_id}
@@ -564,9 +566,9 @@ const LoanForm: React.FC<LoanFormProps> = ({
                       label="Responsable"
                       name="responsible_id"
                       id="responsible_id"
-                      value={formData.responsible_id || ""}
-                      options={responsibles ? responsibles : []}
-                      onChange={handleChange}
+                      value={formData.responsible_id ?? ""}
+                      options={responsibles}
+                      onChange={handleInputChange}
                       disabled={loading.responsibles || !formData.project}
                       error={formErrors.responsible_id}
                     />
@@ -575,8 +577,8 @@ const LoanForm: React.FC<LoanFormProps> = ({
                       label="Vehículo"
                       name="vehicle_id"
                       id="vehicle_id"
-                      value={formData.vehicle_id || ""}
-                      options={vehicles ? vehicles : []}
+                      value={formData.vehicle_id ?? ""}
+                      options={vehicles}
                       onChange={handleInputChange}
                       disabled={loading.transports}
                       error={formErrors.vehicle_id}
