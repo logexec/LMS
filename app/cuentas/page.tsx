@@ -453,7 +453,7 @@ const CuentasPage = () => {
   return (
     <div>
       {isVisible && (
-        <div className="bg-sky-100/70 text-sky-600 border border-sky-300 px-4 py-3 md:py-2 mb-8 rounded max-w-5xl mx-auto shadow-md select-none">
+        <div className="bg-sky-100/70 text-sky-600 border border-sky-300 px-4 py-3 md:py-2 mb-8 rounded-lg max-w-5xl mx-auto shadow-md select-none sticky top-16 z-20 backdrop-blur-[1px]">
           <div className="flex gap-2 md:items-center">
             <div className="flex grow gap-3 md:items-center md:justify-center">
               <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
