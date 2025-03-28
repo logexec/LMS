@@ -349,7 +349,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
         ...prev,
         projects: data.map((project: { name: string; id: string }) => ({
           label: project.name,
-          value: project.id,
+          value: project.name,
         })),
       }));
     } catch (error) {
