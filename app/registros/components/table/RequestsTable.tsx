@@ -270,6 +270,13 @@ export function RequestsTable<
         if (fetchedData.length === 0)
           console.warn("No data found in response!");
 
+        // Si estamos en el modo "requests", filtrar para mostrar solo las pendientes
+        if (mode === "requests") {
+          fetchedData = fetchedData.filter(
+            (item) => (item as RequestProps).status === "pending"
+          ) as TData[];
+        }
+
         setData(fetchedData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -430,31 +437,44 @@ export function RequestsTable<
   const handleSendRequests = async (
     requestIds: string[],
     attachment: File
-  ): Promise<void> => {
+  ): Promise<Response | null> => {
     try {
       setIsLoading(true);
       if (!requestIds.length) {
         toast.error("Selecciona al menos una solicitud");
-        return;
+        return null;
       }
       if (!onCreateReposicion) {
         toast.error(
           "Error en la configuración: onCreateReposicion no está definido. Contacta a soporte."
         );
-        return;
+        return null;
       }
+
+      // Llamamos a la función onCreateReposicion que recibimos como prop
       await onCreateReposicion(requestIds, attachment);
-      setData((prevData) =>
-        prevData.filter(
-          (item) => !requestIds.includes((item as RequestProps).unique_id)
-        )
-      );
+
+      // Actualización optimista: eliminar las solicitudes enviadas de la tabla
+      setData((prevData) => {
+        return prevData.filter((item) => {
+          if (!("unique_id" in item)) return true;
+          const id = (item as RequestProps).unique_id;
+          return !requestIds.includes(id);
+        });
+      });
+
+      // Limpiar selección
       setRowSelection({});
+      toast.success("Solicitudes enviadas correctamente");
+
+      // Creamos y devolvemos un objeto Response mock ya que necesitamos devolver Response | null
+      return new Response(null, { status: 201 });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al crear la reposición"
       );
       console.error("Error in handleSendRequests:", error);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -477,6 +497,41 @@ export function RequestsTable<
     []
   );
 
+  const updateRequestsInReposicion = useCallback(
+    (reposicionId: number, requestData: Partial<RequestProps>) => {
+      setData((prevData) => {
+        return prevData.map((item) => {
+          // Si no es una reposición o no es la que buscamos, devolver sin cambios
+          if (
+            mode !== "reposiciones" ||
+            !("id" in item) ||
+            item.id !== reposicionId
+          ) {
+            return item;
+          }
+
+          // Es la reposición que buscamos, actualizar sus solicitudes
+          const reposicion = item as unknown as ReposicionProps;
+          if (!reposicion.requests || !Array.isArray(reposicion.requests)) {
+            return item;
+          }
+
+          // Actualizar todas las solicitudes de la reposición
+          const updatedRequests = reposicion.requests.map((req) => ({
+            ...req,
+            ...requestData,
+          }));
+
+          return {
+            ...item,
+            requests: updatedRequests,
+          };
+        });
+      });
+    },
+    [mode]
+  );
+
   return (
     <ReposicionProvider
       onUpdateReposicion={async (
@@ -484,10 +539,39 @@ export function RequestsTable<
         updateData: ReposicionUpdateData,
         prevStatus: Status
       ): Promise<void> => {
-        if (onUpdateReposicion)
-          await onUpdateReposicion(id, updateData, prevStatus);
-        handleRowUpdate(id, updateData as Partial<TData>);
+        try {
+          if (onUpdateReposicion) {
+            await onUpdateReposicion(id, updateData, prevStatus);
+
+            // Actualización optimista de la reposición
+            handleRowUpdate(id, updateData as Partial<TData>);
+
+            // Si estamos actualizando el estado, también actualizar el estado de las solicitudes
+            if (updateData.status) {
+              // Garantizar que el status sea del tipo correcto Status
+              const requestStatus: Partial<RequestProps> = {
+                status: updateData.status as Status,
+              };
+
+              // Actualizar optimistamente las solicitudes en la reposición
+              updateRequestsInReposicion(id, requestStatus);
+            }
+
+            // Si estamos actualizando el mes o el momento de pago, actualizar eso en las solicitudes
+            if (updateData.month) {
+              updateRequestsInReposicion(id, { month: updateData.month });
+            }
+
+            if (updateData.when) {
+              updateRequestsInReposicion(id, { when: updateData.when });
+            }
+          }
+        } catch (error) {
+          console.error("Error updating reposicion:", error);
+          toast.error("Error al actualizar la reposición");
+        }
       }}
+      updateRequestsInReposicion={updateRequestsInReposicion}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}

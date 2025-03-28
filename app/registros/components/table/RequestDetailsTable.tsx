@@ -496,7 +496,7 @@ const RequestDetailsTableComponent = ({
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="max-h-[90vh] overflow-hidden">
             <AnimatePresence mode="sync">
               {isLoading ? (
                 <tr>
@@ -517,7 +517,7 @@ const RequestDetailsTableComponent = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="border-b hover:bg-slate-50 transition-colors group"
+                    className="border-b hover:bg-slate-50 transition-colors group overflow-auto"
                   >
                     <td className="px-4 py-3">{request.unique_id}</td>
                     <td className="px-4 py-3">

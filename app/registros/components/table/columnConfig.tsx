@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ColumnDef } from "@tanstack/react-table";
 import { ReposicionProps, RequestProps, Status } from "@/utils/types";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useState } from "react";
 
 interface ColumnHelpers {
   accountMap: Record<string, string>;
@@ -213,6 +215,43 @@ export const getRequestColumns = ({
     enableSorting: true,
   },
 ];
+
+// Componente de celda separado:
+const DetailsCell = ({
+  row,
+  projectMap,
+}: {
+  row: any;
+  projectMap: Record<string, string>;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const requests = row.original.requests || [];
+  const id = row.original.id;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild className="-ml-3">
+        <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
+          <FileText className="h-4 w-4" />
+          Detalle
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-[95%]">
+        <DialogHeader>
+          <DialogTitle>Solicitudes de la Reposición</DialogTitle>
+          <DialogDescription>
+            Proyecto {projectMap[row.original.project] || row.original.project}
+          </DialogDescription>
+        </DialogHeader>
+        <RequestDetailsTable
+          requests={requests}
+          repositionId={id}
+          projectMap={projectMap}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 // Columnas para ReposicionProps
 export const getReposicionColumns = (
@@ -455,34 +494,7 @@ export const getReposicionColumns = (
   {
     accessorKey: "details",
     header: () => <div className="w-[10ch] text-center">Detalles</div>,
-    cell: ({ row }) => {
-      const requests = row.original.requests || [];
-      const id = row.original.id;
-      return (
-        <Dialog>
-          <DialogTrigger asChild className="-ml-3">
-            <Button variant="outline" size="sm">
-              <FileText className="h-4 w-4" />
-              Detalle
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[95%]">
-            <DialogHeader>
-              <DialogTitle>Solicitudes de la Reposición</DialogTitle>
-              <DialogDescription>
-                Proyecto{" "}
-                {projectMap[row.original.project] || row.original.project}
-              </DialogDescription>
-            </DialogHeader>
-            <RequestDetailsTable
-              requests={requests}
-              repositionId={id}
-              projectMap={projectMap}
-            />
-          </DialogContent>
-        </Dialog>
-      );
-    },
+    cell: ({ row }) => <DetailsCell row={row} projectMap={projectMap} />,
     enableSorting: false,
   },
   {
