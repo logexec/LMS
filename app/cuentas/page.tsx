@@ -186,9 +186,9 @@ const CuentasPage = () => {
   );
 
   const handleIncomeToggle = useCallback(
-    async (id: string, currentIncome: boolean) => {
+    async (id: string, currentIncome: boolean, name: string) => {
       const newIncome = !currentIncome;
-      // Optimistic update
+
       setAccounts((prev) =>
         prev.map((acc) =>
           acc.id === id ? { ...acc, generates_income: newIncome } : acc
@@ -204,22 +204,23 @@ const CuentasPage = () => {
           )
         );
         toast.success(
-          `La cuenta ${
+          `La cuenta ${name} ${
             newIncome ? "generará" : "ya no generará"
           } registros de ingresos.`
         );
       } catch (error) {
-        // Revertir si falla
         setAccounts((prev) =>
           prev.map((acc) =>
             acc.id === id ? { ...acc, generates_income: currentIncome } : acc
           )
         );
-        toast.error("No se pudo actualizar la propiedad de esta cuenta.");
+        toast.error(
+          `No se pudo actualizar la propiedad de la cuenta de ${name}.`
+        );
         console.error(error);
       }
     },
-    []
+    [accounts]
   );
 
   const columns = useMemo<ColumnDef<AccountProps>[]>(
@@ -409,7 +410,8 @@ const CuentasPage = () => {
               onCheckedChange={() =>
                 handleIncomeToggle(
                   row.original.id!.toString(),
-                  !!row.getValue("generates_income") // Convertir a booleano
+                  !!row.getValue("generates_income"), // Convertir a booleano
+                  row.original.name
                 )
               }
             />
