@@ -1,20 +1,44 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import axios from "axios";
 import { toast } from "sonner";
 import { AccountProps } from "@/utils/types";
 
+export interface Role {
+  id: string | number;
+  name: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role | null;
+  permissions: Permission[];
+  projects: string[]; // UUIDs como strings
+  phone?: string | null;
+}
+
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true, // Para Sanctum
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-// Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -29,35 +53,84 @@ api.interceptors.response.use(
 
 export const apiService = {
   // Users
-  getUsers: async () => {
-    const { data } = await api.get("/users");
-    return Array.isArray(data) ? data : Object.values(data);
+  getUsers: async (): Promise<User[]> => {
+    const { data } = await api.get<{ data: User[] }>("/users");
+    return data.data;
   },
-  createUser: (data: any) => api.post("/users", data),
-  updateUser: (id: string, data: any) => api.put(`/users/${id}`, data),
-  deleteUser: (id: string) => api.delete(`/users/${id}`),
-  updateUserPermissions: (id: string, permissions: string[]) =>
-    api.put(`/users/${id}/permissions`, { permissions }),
-  getUser: (id: string) => api.get(`/users/${id}`),
-  updateUserProfile: (id: string, data: any) => api.patch(`/users/${id}`, data),
+  createUser: async (data: {
+    name: string;
+    email: string;
+    password?: string;
+    role_id: string;
+    dob?: string;
+    permissions: string[];
+    projectIds: string[];
+  }) => {
+    const response = await api.post<User>("/users", data);
+    return response.data;
+  },
+  updateUser: async (
+    id: string,
+    data: { name: string; email: string; role_id: string; dob?: string }
+  ) => {
+    const response = await api.put<User>(`/users/${id}`, data);
+    return response.data;
+  },
+  deleteUser: async (id: string) => {
+    const response = await api.delete(`/users/${id}`);
+    return response.data;
+  },
+  updateUserPermissions: async (id: string, permissions: string[]) => {
+    const response = await api.put(`/users/${id}/permissions`, { permissions });
+    return response.data;
+  },
+  getUser: async (id: string) => {
+    const { data } = await api.get<User>(`/users/${id}`);
+    return data;
+  },
+  getCurrentUser: async () => {
+    const { data } = await api.get<User>("/me");
+    return data;
+  },
+  updateUserProfile: async (id: string, data: Partial<User>) => {
+    const response = await api.patch<User>(`/users/${id}`, data);
+    return response.data;
+  },
 
   // Roles
-  getRoles: () => api.get("/roles"),
+  getRoles: async (): Promise<Role[]> => {
+    const { data } = await api.get<{ data: Role[] }>("/roles");
+    return data.data;
+  },
 
   // Permissions
-  getPermissions: () => api.get("/permissions"),
+  getPermissions: async (): Promise<Permission[]> => {
+    const { data } = await api.get<{ data: Permission[] }>("/permissions");
+    return data.data;
+  },
 
   // Projects
-  getProjects: async (projectIds?: string[]) => {
+  getProjects: async (projectIds?: string[]): Promise<Project[]> => {
     const params = projectIds?.length ? { projects: projectIds.join(",") } : {};
-    const { data } = await api.get("/projects", { params });
-    return Array.isArray(data) ? data : Object.values(data);
+    const { data } = await api.get<{ data: Project[] }>("/projects", {
+      params,
+    });
+    return data.data;
   },
-  getProjectsByUser: (userId: string) => api.get(`/projects?user_id=${userId}`),
-  updateUserProjects: (userId: string, projectIds: string[]) =>
-    api.post(`/users/${userId}/projects`, { projectIds }),
+  getProjectsByUser: async (userId: string): Promise<Project[]> => {
+    const { data } = await api.get<{ data: Project[] }>(
+      `/projects?user_id=${userId}`
+    );
+    return data.data;
+  },
+  updateUserProjects: async (userId: string, projectIds: string[]) => {
+    const response = await api.post(`/users/${userId}/projects`, {
+      projectIds,
+    });
+    return response.data;
+  },
 
-  // Accounts
+  // Accounts (sin cambios por ahora)
   createAccount: (formData: AccountProps) => api.post("/accounts", formData),
   getAccounts: (accountType?: string, accountAffects?: string) => {
     const params = new URLSearchParams();
@@ -76,18 +149,18 @@ export const apiService = {
   ) => api.put(`/accounts/${accountId}`, data),
   deleteAccount: (id: string) => api.delete(`/accounts/${id}`),
 
-  // Sistema Onix
+  // Sistema Onix (sin cambios por ahora)
   getPersonnel: () => api.get("/responsibles?fields=id,nombre_completo"),
   getPersonnelCount: async () => {
     const { data } = await api.get("/responsibles?action=count");
-    return data; // { data: number }
+    return data;
   },
   getVehiclesCount: async () => {
     const { data } = await api.get("/transports?action=count");
-    return data.data; // { data: number }
+    return data.data;
   },
 
-  // Templates
+  // Templates (sin cambios por ahora)
   downloadTemplate: async (context: "discounts" | "expenses") => {
     const endpoint =
       context === "discounts"
@@ -115,13 +188,13 @@ export const apiService = {
     return data;
   },
 
-  // Loans
+  // Loans (sin cambios por ahora)
   createLoan: (formData: FormData) => api.post("/loans", formData),
 
-  // Reposiciones
+  // Reposiciones (sin cambios por ahora)
   getRepositionFile: async (repositionId: string) => {
     const { data } = await api.get(`/reposiciones/${repositionId}/file`);
-    return data.data; // { file_url, file_name }
+    return data.data;
   },
 };
 

@@ -152,18 +152,33 @@ interface UserFormData {
   projectIds: string[];
 }
 
+const DEFAULT_PASSWORD = "L0g3X2025*";
+const today = new Date();
+
 interface UserDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: UserFormData) => void;
-  roles: Role[] | Record<string, Role> | undefined;
+  roles: Role[];
   isLoading: boolean;
   mode: "create" | "edit";
   user?: User | null;
 }
 
-const DEFAULT_PASSWORD = "L0g3X2025*";
-const today = new Date();
+const fetchProjects = async () => {
+  try {
+    const response = await apiService.getProjects();
+    return response.map((project: Project) => ({
+      id: project.id.toString(),
+      name: project.name || `PRJ-${project.id}`,
+      description: project.description,
+    }));
+  } catch (error) {
+    console.error("Error al cargar proyectos:", error);
+    toast.error("Error al cargar los proyectos");
+    return [];
+  }
+};
 
 export const UserDialog = ({
   isOpen,
@@ -227,7 +242,7 @@ export const UserDialog = ({
         email: "",
         password: mode === "create" ? DEFAULT_PASSWORD : undefined,
         role_id: "",
-        dob: "",
+        dob: undefined,
         permissions: [],
         projectIds: [],
       });
@@ -238,21 +253,15 @@ export const UserDialog = ({
       setErrors({});
       setIsCalendarOpen(false);
     } else if (mode === "edit" && user) {
-      const permissionIds = user.permissions?.map((p) => p.id.toString()) || [];
-      const projectIds = user.projects?.map((p) => p.id.toString()) || [];
       setFormData({
         name: user.name || "",
         email: user.email || "",
         role_id: user.role_id?.toString() || "",
         dob: user.dob || "",
-        permissions: permissionIds,
-        projectIds: projectIds,
+        permissions: user.permissions.map((p) => p.id.toString()),
+        projectIds: user.projects.map((p) => p.id.toString()),
       });
       setSelectedDate(user.dob ? new Date(user.dob) : undefined);
-      setErrors({});
-      setPermissionInput("");
-      setProjectSearchTerm("");
-      setIsCalendarOpen(false);
     }
   }, [isOpen, mode, user]);
 

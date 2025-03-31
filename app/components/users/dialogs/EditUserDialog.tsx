@@ -161,12 +161,27 @@ interface UserFormData {
 
 interface EditUserDialogProps {
   user: User | null;
-  roles: Role[] | Record<string, Role>;
+  roles: Role[];
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: UserFormData) => void;
   isLoading: boolean;
 }
+
+const fetchProjects = async () => {
+  try {
+    const response = await apiService.getProjects();
+    return response.map((project: Project) => ({
+      id: project.id.toString(),
+      name: project.name || `PRJ-${project.id}`,
+      description: project.description,
+    }));
+  } catch (error) {
+    console.error("Error al cargar proyectos:", error);
+    toast.error("Error al cargar los proyectos");
+    return [];
+  }
+};
 
 const today = new Date();
 
@@ -235,16 +250,18 @@ export const EditUserDialog = ({
 
   // Inicializar el formulario cuando cambia el usuario o se abre el diálogo
   useEffect(() => {
-    if (!isOpen) {
-      // Asegurarse de que el popover esté cerrado
-      setIsPopoverOpen(false);
-
-      // Restablecer el foco a algo fuera del diálogo
-      setTimeout(() => {
-        document.body.focus();
-      }, 0);
+    if (isOpen && user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        role_id: user.role_id?.toString() || "",
+        dob: user.dob || "",
+        permissions: user.permissions.map((p) => p.id.toString()),
+        projectIds: user.projects.map((p) => p.id.toString()),
+      });
+      setSelectedDate(user.dob ? new Date(user.dob) : undefined);
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   // Validación del formulario
   const validateForm = () => {

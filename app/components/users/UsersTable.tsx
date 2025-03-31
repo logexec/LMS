@@ -60,7 +60,56 @@ interface ErrorResponse {
 const fetchUsers = async () => {
   try {
     const response = await apiService.getUsers();
-    return Array.isArray(response) ? response : [];
+    if (!Array.isArray(response)) {
+      console.error("❌ Response is not an array:", response);
+      toast.error("Formato de datos inesperado al cargar usuarios");
+      return [];
+    }
+
+    // Extraer todos los UUIDs de proyectos asignados
+    const projectIds = response.flatMap((user) =>
+      Array.isArray(user.projects) ? user.projects : []
+    );
+    const uniqueProjectIds = [...new Set(projectIds)]; // Evitar duplicados
+
+    // Obtener detalles de los proyectos desde sistema_onix
+    const projects = uniqueProjectIds.length
+      ? await apiService.getProjects(uniqueProjectIds)
+      : [];
+    const projectMap = new Map(
+      projects.map((p) => [
+        p.id.toString(),
+        {
+          id: p.id.toString(),
+          name: p.name || p.id,
+          description: p.description,
+        },
+      ])
+    );
+
+    // Normalizar usuarios
+    const validUsers = response.map((user) => ({
+      id: user.id.toString(),
+      name: user.name || "Sin nombre",
+      email: user.email || "Sin email",
+      role: user.role || null,
+      role_id: user.role ? user.role.id.toString() : null,
+      permissions: Array.isArray(user.permissions)
+        ? user.permissions.map((p) => ({
+            id: p.id.toString(),
+            name: p.name,
+          }))
+        : [],
+      projects: Array.isArray(user.projects)
+        ? user.projects.map(
+            (id) =>
+              projectMap.get(id.toString()) || { id: id.toString(), name: id }
+          )
+        : [],
+      phone: user.phone || null,
+    }));
+
+    return validUsers;
   } catch (error) {
     console.error("❌ Error fetching users:", error);
     toast.error(

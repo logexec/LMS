@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/api.service";
 import { toast } from "sonner";
 
 export interface Role {
-  id: string;
+  id: string | number;
   name: string;
 }
 
@@ -14,37 +13,28 @@ export function useRoles() {
     queryFn: async () => {
       try {
         const response = await apiService.getRoles();
+        // Normalizar la respuesta
+        const roles = Array.isArray(response)
+          ? response
+          : Array.isArray(response.data)
+          ? response.data
+          : Object.values(response).filter((item): item is Role =>
+              Boolean(
+                item &&
+                  typeof item === "object" &&
+                  "id" in item &&
+                  "name" in item
+              )
+            );
 
-        // Verificar si la respuesta es directamente un array
-        if (Array.isArray(response)) {
-          return response;
-        }
-
-        // Si es un objeto con estructura numerada (como el que mostraste)
-        if (response && typeof response === "object") {
-          // Si tiene la propiedad 'data' que es un array
-          if (Array.isArray(response.data)) {
-            return response.data;
-          }
-
-          // Si es un objeto con índices numéricos
-          const rolesArray = Object.entries(response)
-            .filter(([key]) => !isNaN(Number(key)))
-            .map(([_, value]) => value as Role);
-
-          if (rolesArray.length > 0) {
-            return rolesArray;
-          }
-        }
-
-        console.warn(
-          "⚠️ Unexpected roles response format, defaulting to empty array"
-        );
-        return [];
+        return roles.map((role) => ({
+          id: role.id.toString(), // Normalizar id como string
+          name: role.name || "Sin nombre",
+        }));
       } catch (error) {
         console.error("❌ Error fetching roles:", error);
         toast.error("Error al cargar los roles");
-        return []; // Siempre devolver array vacío en caso de error
+        return [];
       }
     },
     staleTime: 60000, // 1 minuto

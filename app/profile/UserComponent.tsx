@@ -42,7 +42,8 @@ const UserProfileComponent = ({
     queryKey: ["projects", id],
     queryFn: async () => {
       try {
-        const response = await apiService.getProjects();
+        const response = await apiService.getCurrentUser();
+        console.log("Response", response);
         const projectsData = Array.isArray(response) ? response : [];
         return projectsData.map((project: Project) => ({
           ...project,

@@ -116,11 +116,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: { id: number; name: string };
-  permissions: Array<{ id: number; name: string }>;
-  assignedProjects: string[]; // Cambiado de objeto a array de strings
-  dob?: string;
-  phone?: string;
+  role: Role | null;
+  role_id: string | null; // Añadido para la columna
+  permissions: Permission[];
+  projects: string[]; // Array de IDs como strings, no objetos
+  phone?: string | null;
 }
 
 export interface LoginResponse {
