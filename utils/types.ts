@@ -39,12 +39,13 @@ export interface RequestProps extends BaseEntity {
   month?: string;
 }
 
-export interface AccountProps extends BaseEntity {
+export interface AccountProps {
+  id: string;
   name: string;
   account_number: string;
-  account_type: string;
-  account_status: string;
-  account_affects: string;
+  account_type: "nomina" | "transportista";
+  account_status: "active" | "inactive";
+  account_affects: "discount" | "expense" | "both";
   generates_income: boolean;
 }
 
@@ -115,20 +116,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: {
-    id: number;
-    name: string;
-  };
-  permissions: Array<{
-    id: number;
-    name: string;
-  }>;
-  assignedProjects: {
-    id: number;
-    user_id: number;
-    projects: string[];
-  };
-  area?: string;
+  role: { id: number; name: string };
+  permissions: Array<{ id: number; name: string }>;
+  assignedProjects: string[]; // Cambiado de objeto a array de strings
   dob?: string;
   phone?: string;
 }

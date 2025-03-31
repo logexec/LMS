@@ -1,6 +1,6 @@
 {
   "name": "lms",
-  "version": "1.1.1.20250302",
+  "version": "1.2.1.20250328",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -46,7 +46,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.469.0",
     "motion": "^11.17.0",
-    "next": "15.1.2",
+    "next": "15.2.4",
     "next-themes": "^0.4.4",
     "pdf-lib": "^1.17.1",
     "pusher-js": "^8.4.0",
@@ -58,7 +58,7 @@
     "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.54.2",
     "react-icons": "^5.5.0",
-    "react-scan": "^0.2.6",
+    "react-scan": "^0.3.3",
     "sonner": "^1.7.2",
     "styled-components": "^6.1.13",
     "swr": "^2.3.0",

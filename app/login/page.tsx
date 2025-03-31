@@ -8,33 +8,25 @@ import Image from "next/image";
 import { toast } from "sonner";
 import Checkbox from "../components/Checkbox";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { login } from "@/services/auth.service";
+import { useAuth } from "@/hooks/useAuth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { handleLogin, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
-
     try {
-      await login(email, password, rememberMe);
+      await handleLogin(email, password, rememberMe);
       toast.success("¡Autenticación exitosa!");
-      window.location.href = "/";
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al iniciar sesión"
-      );
-      setError(
-        error instanceof Error ? error.message : "Error al iniciar sesión"
-      );
-    } finally {
-      setIsLoading(false);
+      setError("Error al iniciar sesión");
+      toast.error("Error al iniciar sesión");
+      console.error(error instanceof Error ? error.message : error);
     }
   };
 

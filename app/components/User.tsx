@@ -2,28 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
-import { getAuthToken } from "@/services/auth.service";
-
-const fetchUsers = async (): Promise<number> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/users?action=count`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch users");
-  }
-
-  const data = await response.json();
-  return data;
-};
+import apiService from "@/services/api.service";
 
 const User = () => {
   const [userCount, setUserCount] = useState<number>(0);
@@ -33,8 +12,8 @@ const User = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const users = await fetchUsers();
-        setUserCount(users);
+        const users = await apiService.getUsers();
+        setUserCount(users.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }

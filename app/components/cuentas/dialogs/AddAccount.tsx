@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { motion } from "motion/react";
 import {
@@ -30,12 +31,13 @@ interface AddAccountProps {
 }
 
 const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AccountProps>({
+    id: "", // Añadimos id como string vacío inicialmente
     name: "",
     account_number: "",
-    account_type: "nomina" as const,
-    account_status: "active" as const,
-    account_affects: "discount" as const,
+    account_type: "nomina",
+    account_status: "active",
+    account_affects: "discount",
     generates_income: false,
   });
 
@@ -56,13 +58,14 @@ const AddAccountComponent: React.FC<AddAccountProps> = ({ setAccounts }) => {
 
   const handleSubmit = async () => {
     try {
-      const newAccount = await apiService.createAccount(formData);
-      if (!newAccount || !newAccount.id)
-        throw new Error("Error al crear la cuenta");
+      const response = await apiService.createAccount(formData);
+      const newAccount: AccountProps = response.data; // Extraemos el objeto de la cuenta
+      if (!newAccount.id) throw new Error("Error al crear la cuenta");
 
       setAccounts((prev) => [newAccount, ...prev]);
       toast.success("Cuenta creada exitosamente");
       setFormData({
+        id: "",
         name: "",
         account_number: "",
         account_type: "nomina",

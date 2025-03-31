@@ -1,43 +1,41 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import Loader from "../Loader";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
-import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { toast } from "sonner";
-// import { Status } from "@/utils/types";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 const currentMonth = new Date().getMonth() + 1;
 
-// Función para obtener solo el conjunto de datos específico
 const fetchRequests = async (status: string): Promise<number> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/requests?status=${status}&month=${currentMonth}&action=count`,
+    `${API_URL}/requests?status=${status}&month=${currentMonth}&action=count`,
     {
       method: "GET",
+      credentials: "include", // Para enviar cookies de Sanctum
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getAuthToken()}`,
+        Accept: "application/json",
       },
-      credentials: "include",
     }
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${status} requests`);
+    const errorData = await response.json();
+    throw new Error(errorData.message || `Failed to fetch ${status} requests`);
   }
 
   const data = await response.json();
-  return data;
+  return data.data; // Asumimos que el backend devuelve { data: number }
 };
 
 export const PendingRequests = () => {
   const [requests, setRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const count = useMotionValue(requests); // Iniciar con el valor actual
-  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+  const count = useMotionValue(requests);
+  const rounded = useTransform(count, (value) => Math.round(value));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,14 +50,13 @@ export const PendingRequests = () => {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   useEffect(() => {
     if (requests > 0) {
       const controls = animate(count, requests, { duration: 0.25 });
-      return () => controls.stop(); // Detener la animación si el componente se desmonta
+      return () => controls.stop();
     }
   }, [requests, count]);
 
@@ -70,7 +67,6 @@ export const PendingRequests = () => {
   return (
     <div className="flex flex-row flex-wrap text-orange-500 items-center">
       <motion.pre>{rounded}</motion.pre>
-      {/* <span className="text-xs font-normal ml-2">Pendientes</span> */}
     </div>
   );
 };
@@ -79,8 +75,8 @@ export const PaidRequests = () => {
   const [paidRequests, setPaidRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const count = useMotionValue(paidRequests); // Iniciar con el valor actual
-  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+  const count = useMotionValue(paidRequests);
+  const rounded = useTransform(count, (value) => Math.round(value));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,14 +91,13 @@ export const PaidRequests = () => {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   useEffect(() => {
     if (paidRequests > 0) {
       const controls = animate(count, paidRequests, { duration: 0.25 });
-      return () => controls.stop(); // Detener la animación si el componente se desmonta
+      return () => controls.stop();
     }
   }, [paidRequests, count]);
 
@@ -113,7 +108,6 @@ export const PaidRequests = () => {
   return (
     <div className="flex flex-row flex-wrap text-green-500 items-center">
       <motion.pre>{rounded}</motion.pre>
-      {/* <span className="text-xs font-normal ml-2">Pagadas</span> */}
     </div>
   );
 };
@@ -122,8 +116,8 @@ export const RejectedRequests = () => {
   const [rejectedRequests, setRejectedRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const count = useMotionValue(rejectedRequests); // Iniciar con el valor actual
-  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+  const count = useMotionValue(rejectedRequests);
+  const rounded = useTransform(count, (value) => Math.round(value));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,14 +132,13 @@ export const RejectedRequests = () => {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   useEffect(() => {
     if (rejectedRequests > 0) {
       const controls = animate(count, rejectedRequests, { duration: 0.25 });
-      return () => controls.stop(); // Detener la animación si el componente se desmonta
+      return () => controls.stop();
     }
   }, [rejectedRequests, count]);
 
@@ -156,7 +149,6 @@ export const RejectedRequests = () => {
   return (
     <div className="flex flex-row flex-wrap text-red-500 items-center">
       <motion.pre>{rounded}</motion.pre>
-      {/* <span className="text-xs font-normal ml-2">Rechazadas</span> */}
     </div>
   );
 };
@@ -165,58 +157,29 @@ export const InRepositionRequests = () => {
   const [inRepositionRequests, setInRepositionRequests] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const count = useMotionValue(inRepositionRequests); // Iniciar con el valor actual
-  const rounded = useTransform(count, (value) => Math.round(value)); // Redondear el valor de count
+  const count = useMotionValue(inRepositionRequests);
+  const rounded = useTransform(count, (value) => Math.round(value));
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Obtenemos todos los datos y hacemos el conteo localmente
-        const response = await fetchWithAuth(`/requests?status=in_reposition`);
-
-        if (!response.ok) {
-          throw new Error(response.message || "Failed to fetch data");
-        }
-
-        let requests = [];
-        if (Array.isArray(response)) {
-          requests = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          requests = response.data;
-        } else {
-          requests = Object.values(response).filter(
-            (item) => item !== null && typeof item === "object"
-          );
-        }
-
-        // Filtramos por mes actual y contamos
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1;
-        const currentYear = currentDate.getFullYear();
-
-        const count = requests.filter((req: any) => {
-          const reqDate = new Date(req.created_at || req.updated_at);
-          return (
-            reqDate.getMonth() + 1 === currentMonth &&
-            reqDate.getFullYear() === currentYear
-          );
-        }).length;
-
-        setInRepositionRequests(count);
+        const data = await fetchRequests("in_reposition");
+        setInRepositionRequests(data);
       } catch (error) {
-        console.error("Error fetching counts:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   useEffect(() => {
     if (inRepositionRequests > 0) {
       const controls = animate(count, inRepositionRequests, { duration: 0.25 });
-      return () => controls.stop(); // Detener la animación si el componente se desmonta
+      return () => controls.stop();
     }
   }, [inRepositionRequests, count]);
 
@@ -225,7 +188,7 @@ export const InRepositionRequests = () => {
   }
 
   return (
-    <span className={`flex flex-row items-center justify-center w-min`}>
+    <span className="flex flex-row items-center justify-center w-min">
       <motion.pre>{rounded}</motion.pre>
     </span>
   );

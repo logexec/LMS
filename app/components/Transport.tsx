@@ -1,30 +1,9 @@
 "use client";
 
-import { getAuthToken } from "@/services/auth.service";
-import { animate, motion, useTransform } from "motion/react";
-import { useMotionValue } from "motion/react";
-import { useEffect, useState } from "react";
-
-const fetchVehicles = async (): Promise<number> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/transports?action=count`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch users");
-  }
-
-  const data = await response.json();
-  return data;
-};
+import { useState, useEffect } from "react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { apiService } from "@/services/api.service";
+import { toast } from "sonner";
 
 const Transport = () => {
   const [vehicles, setVehicles] = useState<number>(0);
@@ -34,10 +13,13 @@ const Transport = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const vehicles = await fetchVehicles();
-        setVehicles(vehicles);
+        const vehicleCount = await apiService.getVehiclesCount();
+        setVehicles(vehicleCount);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching vehicles count:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error desconocido"
+        );
       }
     };
 
