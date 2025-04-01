@@ -88,12 +88,13 @@ const Datalist: React.FC<DatalistProps> = ({
       <AnimatePresence>
         {error && (
           <motion.div
-            className="input-error-icon"
+            className="input-error-icon flex flex-row mt-1"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
             <AlertCircle className="text-red-500" size={18} />
+            <span className="text-red-500 text-xs">{error}</span>
           </motion.div>
         )}
       </AnimatePresence>
