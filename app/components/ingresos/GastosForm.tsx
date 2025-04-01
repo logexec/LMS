@@ -71,7 +71,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     proyecto: "",
     // empresa: "",
     responsable: "",
-    transporte: "",
+    vehicle_number: "",
     observacion: "",
   });
 
@@ -146,11 +146,11 @@ const GastosForm: React.FC<GastosFormProps> = ({
             ? "Debes escribir una observación"
             : "";
         break;
-      case "transporte":
+      case "vehicle_number":
         if (formData.tipo === "transportista") {
           newErrors[name] =
             typeof value === "string" && value.length < 1
-              ? "Debes seleccionar un transporte"
+              ? "Debes seleccionar un vehicle_number"
               : "";
         }
         break;
@@ -197,7 +197,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       proyecto: "",
       // empresa: "",
       responsable: "",
-      transporte: "",
+      vehicle_number: "",
       observacion: "",
     });
     setFormErrors({});
@@ -239,6 +239,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
       // Conditional fields
       if (formData.responsable) {
         formDataToSend.append("responsible_id", formData.responsable);
+      }
+      if (formData.vehicle_number) {
+        formDataToSend.append("vehicle_number", formData.vehicle_number);
       }
 
       await onSubmit(formDataToSend);
@@ -481,17 +484,23 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   />
                 )}
 
-                {formData.tipo === "transportista" && (
-                  <Datalist
-                    label="Transporte"
-                    name="transporte"
-                    id="transporte"
-                    options={localOptions.transports}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Input
+                    label="No. Transporte"
+                    name="vehicle_number"
+                    id="vehicle_number"
+                    type="text"
                     onChange={handleInputChange}
-                    value={formData.transporte}
-                    error={formErrors.transporte}
+                    value={formData.vehicle_number}
+                    disabled={localLoading.transports}
+                    error={formErrors.vehicle_number}
                   />
-                )}
+                </motion.div>
 
                 <Input
                   required
