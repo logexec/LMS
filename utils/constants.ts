@@ -81,23 +81,23 @@ export const sidenavLinks: NavLink[] = [
       },
     ],
   },
-  {
-    category: "Gestión",
-    links: [
-      {
-        label: "Solicitudes",
-        url: "/gestion/solicitudes",
-        icon: VscRequestChanges,
-        requiredPermissions: ["view_requests", "manage_requests"],
-      },
-      {
-        label: "Reportes Personales",
-        url: "/gestion/reportes-personales",
-        icon: GrDocumentUser,
-        requiredPermissions: ["view_reports", "manage_reports"],
-      },
-    ],
-  },
+  // {
+  //   category: "Gestión",
+  //   links: [
+  //     {
+  //       label: "Solicitudes",
+  //       url: "/gestion/solicitudes",
+  //       icon: VscRequestChanges,
+  //       requiredPermissions: ["view_requests", "manage_requests"],
+  //     },
+  //     {
+  //       label: "Reportes Personales",
+  //       url: "/gestion/reportes-personales",
+  //       icon: GrDocumentUser,
+  //       requiredPermissions: ["view_reports", "manage_reports"],
+  //     },
+  //   ],
+  // },
   // {
   //   category: "Ingresos Especiales",
   //   requiredPermissions: ["manage_special_income"],
