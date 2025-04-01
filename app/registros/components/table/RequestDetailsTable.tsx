@@ -92,7 +92,7 @@ export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
 export const fetchVehicles = async (): Promise<TransportProps[]> => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/transports?fields=id,name`,
+      `${process.env.NEXT_PUBLIC_API_URL}/requests?fields=vehicle_plate,vehicle_number`,
       { credentials: "include" }
     );
     const text = await response.text();
@@ -152,7 +152,6 @@ const RequestDetailsTableComponent = ({
 }: RequestDetailsTableProps) => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
-  const [vehicles, setVehicles] = useState<TransportProps[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -195,9 +194,6 @@ const RequestDetailsTableComponent = ({
       if (results[1].status === "fulfilled") setResponsibles(results[1].value);
       else toast.error("Error al cargar responsables");
 
-      if (results[2].status === "fulfilled") setVehicles(results[2].value);
-      else toast.error("Error al cargar vehículos");
-
       if (repositionId) {
         const fileResult = results[3];
         if (fileResult.status === "fulfilled") {
@@ -239,15 +235,6 @@ const RequestDetailsTableComponent = ({
         return acc;
       }, {}),
     [responsibles]
-  );
-
-  const vehicleMap = useMemo(
-    () =>
-      vehicles.reduce<Record<string, string>>((acc, vehicle) => {
-        acc[vehicle.id || ""] = vehicle.name;
-        return acc;
-      }, {}),
-    [vehicles]
   );
 
   // Función de filtrado personalizada
@@ -329,10 +316,14 @@ const RequestDetailsTableComponent = ({
         }
 
         // Transporte
-        if (request.transport_id) {
-          const vehicleName =
-            vehicleMap[request.transport_id] || request.transport_id;
-          valuesToSearch.push(vehicleName);
+        if (request.vehicle_plate) {
+          const vehiclePlate: string = request.vehicle_plate;
+          valuesToSearch.push(vehiclePlate);
+        }
+
+        if (request.vehicle_number) {
+          const vehicleNumber = request.vehicle_number;
+          valuesToSearch.push(vehicleNumber);
         }
 
         // Observación
@@ -343,7 +334,7 @@ const RequestDetailsTableComponent = ({
         );
       });
     },
-    [accountMap, responsibleMap, vehicleMap, projectMap]
+    [accountMap, responsibleMap, projectMap]
   );
 
   useEffect(() => {
@@ -486,9 +477,14 @@ const RequestDetailsTableComponent = ({
                   Responsable
                 </th>
               )}
-              {filteredRequests.some((request) => request.transport_id) && (
+              {filteredRequests.some((request) => request.vehicle_plate) && (
                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                  Transporte
+                  Placa
+                </th>
+              )}
+              {filteredRequests.some((request) => request.vehicle_number) && (
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
+                  No. Transporte
                 </th>
               )}
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
@@ -565,10 +561,14 @@ const RequestDetailsTableComponent = ({
                           responsibleMap[request.responsible_id]}
                       </td>
                     )}
-                    {filteredRequests.some((r) => r.transport_id) && (
+                    {filteredRequests.some((r) => r.vehicle_plate) && (
                       <td className="px-4 py-3">
-                        {request.transport_id &&
-                          vehicleMap[request.transport_id]}
+                        {request.vehicle_plate || "No encontrado"}
+                      </td>
+                    )}
+                    {filteredRequests.some((r) => r.vehicle_number) && (
+                      <td className="px-4 py-3">
+                        {request.vehicle_number || "No encontrado"}
                       </td>
                     )}
                     <td className="px-4 py-3 max-w-xs truncate">

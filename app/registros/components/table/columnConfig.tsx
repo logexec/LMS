@@ -161,10 +161,10 @@ export const getRequestColumns = ({
     enableSorting: true,
   },
   {
-    accessorKey: "transport_id",
+    accessorKey: "vehicle_plate",
     header: () => <div className="w-[12ch] text-center">Placa</div>,
     cell: ({ row }) => {
-      const id = row.getValue("transport_id") as string;
+      const id = row.getValue("vehicle_plate") as string;
       return id ? (
         <p className="text-center w-[12ch]">
           {vehicleMap[id]
@@ -176,8 +176,8 @@ export const getRequestColumns = ({
       );
     },
     sortingFn: (rowA, rowB) => {
-      const aId = rowA.getValue("transport_id") as string;
-      const bId = rowB.getValue("transport_id") as string;
+      const aId = rowA.getValue("vehicle_plate") as string;
+      const bId = rowB.getValue("vehicle_plate") as string;
       const a = aId
         ? vehicleMap[aId]
           ? `${vehicleMap[aId].slice(0, 3)}-${vehicleMap[aId].slice(3, 7)}`
@@ -186,6 +186,38 @@ export const getRequestColumns = ({
       const b = bId
         ? vehicleMap[bId]
           ? `${vehicleMap[bId].slice(0, 3)}-${vehicleMap[bId].slice(3, 7)}`
+          : "No encontrado"
+        : "No aplica";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
+  },
+  {
+    accessorKey: "vehicle_number",
+    header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
+    cell: ({ row }) => {
+      const vehicle_number = row.getValue("vehicle_number") as string;
+      return vehicle_number ? (
+        <p className="text-center w-[12ch]">
+          {row.getValue("vehicle_number")
+            ? `${row.getValue("vehicle_number")}`
+            : "No encontrado"}
+        </p>
+      ) : (
+        <p className="text-center">Sin datos</p>
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const aNumber = rowA.getValue("vehicle_number") as string;
+      const bNumber = rowB.getValue("vehicle_number") as string;
+      const a = aNumber
+        ? aNumber
+          ? `${aNumber}`
+          : "No encontrado"
+        : "No aplica";
+      const b = bNumber
+        ? bNumber
+          ? `${bNumber}`
           : "No encontrado"
         : "No aplica";
       return a.localeCompare(b);

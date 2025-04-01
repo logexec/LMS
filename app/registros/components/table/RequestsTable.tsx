@@ -187,7 +187,7 @@ export function RequestsTable<
             return acc;
           }, {} as Record<string, string>),
           vehicleMap: safeVehicles.reduce((acc, vehicle) => {
-            acc[vehicle.id || ""] = vehicle.name || "";
+            acc[vehicle.vehicle_plate || ""] = vehicle.vehicle_plate || "";
             return acc;
           }, {} as Record<string, string>),
           projectMap: projects,

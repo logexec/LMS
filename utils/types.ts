@@ -28,7 +28,8 @@ export interface RequestProps extends BaseEntity {
   amount: number;
   project: string;
   responsible_id: string | null;
-  transport_id: string | null;
+  vehicle_plate: string | null;
+  vehicle_number: string | null;
   note: string | null;
   status: Status;
   type: RequestType;
@@ -54,8 +55,8 @@ export interface ResponsibleProps {
 }
 
 export interface TransportProps {
-  id: string | number;
-  name: string;
+  vehicle_plate: string;
+  vehicle_number: string;
 }
 
 export interface ReposicionProps {
