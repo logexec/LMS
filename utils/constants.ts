@@ -1,8 +1,7 @@
 import { LuUsers } from "react-icons/lu";
 import { SquarePlus, Landmark, Wallet, PiggyBank, Receipt } from "lucide-react";
-import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
+import { GrSubtractCircle, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
-import { VscRequestChanges } from "react-icons/vsc";
 import { HandHelping } from "lucide-react";
 
 export const BASE_URL =
