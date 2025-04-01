@@ -31,6 +31,7 @@ import apiService from "@/services/api.service";
 interface NormalDiscountFormProps {
   options: OptionsState;
   loading: LoadingState;
+  type: "discount" | "income";
   onSubmit: (data: FormData) => Promise<void>;
 }
 
@@ -38,6 +39,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   options,
   loading,
   onSubmit,
+  type,
 }) => {
   const [normalFormData, setNormalFormData] = React.useState<NormalFormData>({
     fechaGasto: new Date().toISOString().split("T")[0],
@@ -47,7 +49,8 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     valor: "",
     proyecto: "",
     responsable: "",
-    transporte: "",
+    vehicle_plate: "",
+    vehicle_number: "",
     observacion: "",
   });
 
@@ -186,7 +189,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         ...prev,
         transports: data.map((transport: { name: string; id: string }) => ({
           label: transport.name,
-          value: transport.id,
+          value: transport.name,
         })),
       }));
     } catch (error) {
@@ -216,7 +219,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
     if (normalFormData.tipo === "transportista") {
       fetchTransports();
     }
-  }, [normalFormData.tipo, fetchTransports]);
+  }, [normalFormData.tipo]);
 
   const validateField = (name: string, value: string): boolean => {
     const newErrors = { ...formErrors };
@@ -266,16 +269,17 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
             ? "Debes escribir una observación"
             : "";
         break;
-      case "transporte":
+      case "vehicle_plate":
         if (
           normalFormData.tipo === "transportista" &&
           typeof value === "string" &&
           value.length < 1
         ) {
-          newErrors[name] = "Debes seleccionar un transporte";
+          newErrors[name] = "Debes seleccionar una placa";
         } else {
           newErrors[name] = "";
         }
+        console.log(value);
         break;
       case "responsable":
         if (
@@ -324,7 +328,8 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       valor: "",
       proyecto: "",
       responsable: "",
-      transporte: "",
+      vehicle_plate: "",
+      vehicle_number: "",
       observacion: "",
     });
     setFormErrors({});
@@ -357,8 +362,11 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       if (normalFormData.responsable) {
         formData.append("responsible_id", normalFormData.responsable);
       }
-      if (normalFormData.transporte) {
-        formData.append("transport_id", normalFormData.transporte);
+      if (normalFormData.vehicle_plate) {
+        formData.append("vehicle_plate", normalFormData.vehicle_plate);
+      }
+      if (normalFormData.vehicle_number) {
+        formData.append("vehicle_number", normalFormData.vehicle_number);
       }
       formData.append("note", normalFormData.observacion);
       formData.append("personnel_type", normalFormData.tipo);
@@ -409,7 +417,11 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                   id="fechaGasto"
                   name="fechaGasto"
                   currentDate={true}
-                  label="Fecha del Gasto"
+                  label={
+                    type === "discount"
+                      ? "Fecha del Descuento"
+                      : "Fecha del Ingreso"
+                  }
                   type="date"
                   value={normalFormData.fechaGasto}
                   onChange={handleInputChange}
@@ -516,21 +528,38 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                         transition={{ duration: 0.2 }}
                       >
                         <Datalist
-                          label="Transporte"
-                          name="transporte"
-                          id="transporte"
+                          label="Placa"
+                          name="vehicle_plate"
+                          id="vehicle_plate"
                           required
                           options={localOptions.transports}
                           onChange={handleInputChange}
-                          value={normalFormData.transporte}
+                          value={normalFormData.vehicle_plate}
                           disabled={localLoading.transports}
-                          error={formErrors.transporte}
+                          error={formErrors.vehicle_plate}
                           loading={localLoading.transports}
                         />
                       </motion.div>
                     )}
                   </AnimatePresence>
                 )}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Input
+                    label="No. Transporte"
+                    name="vehicle_number"
+                    id="vehicle_number"
+                    type="text"
+                    onChange={handleInputChange}
+                    value={normalFormData.vehicle_number}
+                    disabled={localLoading.transports}
+                    error={formErrors.vehicle_number}
+                  />
+                </motion.div>
 
                 <AnimatePresence mode="wait">
                   {normalFormData.tipo && (

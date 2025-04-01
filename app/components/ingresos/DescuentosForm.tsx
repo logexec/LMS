@@ -126,7 +126,7 @@ const DescuentosForm = () => {
           })),
           transports: transportsData.map((vehicle) => ({
             label: vehicle.name,
-            value: vehicle.id,
+            value: vehicle.name,
           })),
         }));
       } catch (error) {
@@ -262,6 +262,7 @@ const DescuentosForm = () => {
                   options={options}
                   loading={loading}
                   onSubmit={handleNormalSubmit}
+                  type="discount"
                 />
               </motion.div>
             )}

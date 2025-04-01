@@ -155,6 +155,7 @@ const IngresosForm = () => {
                 options={options}
                 loading={loading}
                 onSubmit={handleNormalSubmit}
+                type="income"
               />
             </motion.div>
           </AnimatePresence>

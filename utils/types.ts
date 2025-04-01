@@ -178,7 +178,8 @@ export interface NormalFormData {
   valor: string;
   proyecto: string;
   responsable: string;
-  transporte: string;
+  vehicle_plate: string;
+  vehicle_number: string;
   observacion: string;
 }
 
@@ -323,11 +324,6 @@ export interface BaseFormData {
   valor: string;
   proyecto: string;
   observacion: string;
-}
-
-export interface NormalFormData extends BaseFormData {
-  responsable: string;
-  transporte: string;
 }
 
 export interface MassiveFormData extends NormalFormData {
