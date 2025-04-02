@@ -18,43 +18,64 @@ const TableFooterWithTotals = ({
     if (mode === "requests") {
       return data
         .filter((item) => item.status === "pending")
-        .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+        .reduce((sum: number, item) => {
+          const amount =
+            typeof item.amount === "string"
+              ? parseFloat(item.amount || "0")
+              : typeof item.amount === "number"
+              ? item.amount
+              : 0;
+          return sum + amount;
+        }, 0);
     } else {
       return data
         .filter((item) => item.status === "pending")
-        .reduce((sum, item) => sum + parseFloat(item.total_reposicion || 0), 0);
+        .reduce((sum: number, item) => {
+          const total =
+            typeof item.total_reposicion === "string"
+              ? parseFloat(item.total_reposicion || "0")
+              : typeof item.total_reposicion === "number"
+              ? item.total_reposicion
+              : 0;
+          return sum + total;
+        }, 0);
     }
   }, [data, mode]);
 
   // Calcular el total de las filas seleccionadas
+  const selectedRows = table.getSelectedRowModel().rows;
   const selectedAmount = useMemo(() => {
-    const selectedRows = table.getSelectedRowModel().rows;
     if (mode === "requests") {
-      return selectedRows.reduce(
-        (sum: number, row: any) => sum + parseFloat(row.original.amount || 0),
-        0
-      );
+      return selectedRows.reduce((sum: number, row: any) => {
+        const amount =
+          typeof row.original.amount === "string"
+            ? parseFloat(row.original.amount || "0")
+            : typeof row.original.amount === "number"
+            ? row.original.amount
+            : 0;
+        return sum + amount;
+      }, 0);
     } else {
-      return selectedRows.reduce(
-        (sum: number, row: any) =>
-          sum + parseFloat(row.original.total_reposicion || 0),
-        0
-      );
+      return selectedRows.reduce((sum: number, row: any) => {
+        const total =
+          typeof row.original.total_reposicion === "string"
+            ? parseFloat(row.original.total_reposicion || "0")
+            : typeof row.original.total_reposicion === "number"
+            ? row.original.total_reposicion
+            : 0;
+        return sum + total;
+      }, 0);
     }
-  }, [table.getSelectedRowModel().rows, mode]);
+  }, [selectedRows, mode]);
 
-  // Función para encontrar el índice de la columna amount
-  const findAmountColumnIndex = (table: any, mode: any) => {
-    const visibleColumns = table.getVisibleLeafColumns();
+  // Obtener el índice de la columna amount
+  // Extraigo la expresión compleja a una variable fuera del useMemo
+  const visibleColumns = table.getVisibleLeafColumns();
+  const amountIndex = useMemo(() => {
     const keyToFind = mode === "requests" ? "amount" : "total_reposicion";
     const index = visibleColumns.findIndex((col: any) => col.id === keyToFind);
     return index !== -1 ? index : Math.floor(visibleColumns.length / 2);
-  };
-
-  // Obtener el índice de la columna amount
-  const amountIndex = useMemo(() => {
-    return findAmountColumnIndex(table, mode);
-  }, [table, mode]);
+  }, [visibleColumns, mode]); // Ahora usamos visibleColumns como dependencia
 
   return (
     <TableFooter>

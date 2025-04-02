@@ -222,8 +222,8 @@ const LoanForm: React.FC<LoanFormProps> = ({
       const data = await response.json();
       setVehicles(
         data.map((vehicle: TransportProps) => ({
-          label: vehicle.name,
-          value: vehicle.id,
+          label: vehicle.vehicle_plate,
+          value: vehicle.vehicle_plate,
         }))
       );
     } catch (error) {
