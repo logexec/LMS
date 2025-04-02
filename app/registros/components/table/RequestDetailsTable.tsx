@@ -1,6 +1,6 @@
 "use client";
 
-import React, { JSX, useCallback, useEffect, useState } from "react";
+import React, { JSX, useCallback, useEffect, useState, useMemo } from "react";
 import { Download, Paperclip, RefreshCw, Search } from "lucide-react";
 import {
   AccountProps,
@@ -287,10 +287,20 @@ const RequestDetailsTableComponent = ({
     setFilteredRequests(filterRequests(requests, searchTerm));
   }, [searchTerm, requests, filterRequests]);
 
-  const totalAmount = filteredRequests.reduce(
-    (sum, req) => sum + (req.amount || 0),
-    0
-  );
+  // Versión corregida de totalAmount usando useMemo para evitar recálculos innecesarios
+  const totalAmount = useMemo(() => {
+    return filteredRequests.reduce((sum, req) => {
+      // Asegurarse de que amount se parsee correctamente a número
+      const amount =
+        typeof req.amount === "string"
+          ? parseFloat(req.amount || "0")
+          : typeof req.amount === "number"
+          ? req.amount
+          : 0;
+
+      return sum + amount;
+    }, 0);
+  }, [filteredRequests]);
 
   return (
     <motion.div
@@ -502,8 +512,8 @@ const RequestDetailsTableComponent = ({
                     </td>
                     <td className="px-4 py-3 font-semibold text-red-700">
                       {(typeof request.amount === "string"
-                        ? parseFloat(request.amount)
-                        : request.amount
+                        ? parseFloat(request.amount || "0")
+                        : request.amount || 0
                       ).toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
