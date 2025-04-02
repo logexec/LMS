@@ -338,7 +338,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
     // Validación final antes de enviar
     const hasErrors = Object.keys(normalFormData).some(
-      (key) => !validateField(key, normalFormData[key as keyof NormalFormData])
+      (key) => !validateField(key, normalFormData[key as keyof NormalFormData]!)
     );
 
     if (hasErrors) {
