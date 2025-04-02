@@ -193,6 +193,12 @@ export const apiService = {
     });
   },
 
+  updateData: () => {
+    return fetchWithAuth(`/update-data`, {
+      credentials: "include",
+    });
+  },
+
   // Descargar plantilla
   downloadTemplate: async (context: "discounts" | "expenses") => {
     const endpoint =

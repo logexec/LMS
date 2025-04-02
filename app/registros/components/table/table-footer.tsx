@@ -44,7 +44,7 @@ const TableFooterWithTotals = ({
   }, [table.getSelectedRowModel().rows, mode]);
 
   // Función para encontrar el índice de la columna amount
-  const findAmountColumnIndex = () => {
+  const findAmountColumnIndex = (table: any, mode: any) => {
     const visibleColumns = table.getVisibleLeafColumns();
     const keyToFind = mode === "requests" ? "amount" : "total_reposicion";
     const index = visibleColumns.findIndex((col: any) => col.id === keyToFind);
@@ -52,7 +52,9 @@ const TableFooterWithTotals = ({
   };
 
   // Obtener el índice de la columna amount
-  const amountIndex = findAmountColumnIndex();
+  const amountIndex = useMemo(() => {
+    return findAmountColumnIndex(table, mode);
+  }, [table, mode]);
 
   return (
     <TableFooter>

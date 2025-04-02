@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -22,6 +23,7 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  TableFooter,
 } from "@/components/ui/table";
 import {
   DropdownMenu,
@@ -33,6 +35,8 @@ import {
   Search,
   RefreshCw,
   Filter,
+  ChevronLeft,
+  ChevronRight,
   SortAscIcon,
   SortDescIcon,
 } from "lucide-react";
@@ -43,15 +47,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
 import {
-  AccountProps,
   DataTableProps,
-  Project,
   ReposicionProps,
   ReposicionUpdateData,
   RequestProps,
-  ResponsibleProps,
   Status,
-  TransportProps,
 } from "@/utils/types";
 import {
   TooltipProvider,
@@ -67,8 +67,6 @@ import {
 import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
 import { Switch } from "@/components/ui/switch";
-import TableFooterWithTotals from "./table-footer";
-
 interface MappableData {
   project?: string | number;
   project_name?: string;
@@ -100,6 +98,153 @@ const TableSkeleton = () => (
   </>
 );
 
+// Función auxiliar para encontrar el índice de la columna amount
+const findAmountColumnIndex = (
+  table: {
+    getVisibleLeafColumns: () => Array<{ id: string }>;
+  },
+  mode: "requests" | "reposiciones"
+): number => {
+  const visibleColumns = table.getVisibleLeafColumns();
+  const keyToFind = mode === "requests" ? "amount" : "total_reposicion";
+  const index = visibleColumns.findIndex((col) => col.id === keyToFind);
+  return index !== -1 ? index : Math.floor(visibleColumns.length / 2);
+};
+
+// Componente del footer con totales
+const TableFooterWithTotals = ({
+  table,
+  data,
+  mode,
+}: {
+  table: any;
+  data: any[];
+  mode: "requests" | "reposiciones";
+}) => {
+  // Calcular el total de todas las solicitudes pending
+  const totalAmount = useMemo(() => {
+    if (mode === "requests") {
+      return data
+        .filter((item) => item.status === "pending")
+        .reduce((sum, item) => {
+          const amount =
+            typeof item.amount === "string"
+              ? parseFloat(item.amount || "0")
+              : typeof item.amount === "number"
+              ? item.amount
+              : 0;
+          return sum + amount;
+        }, 0);
+    } else {
+      return data
+        .filter((item) => item.status === "pending")
+        .reduce((sum, item) => {
+          const total =
+            typeof item.total_reposicion === "string"
+              ? parseFloat(item.total_reposicion || "0")
+              : typeof item.total_reposicion === "number"
+              ? item.total_reposicion
+              : 0;
+          return sum + total;
+        }, 0);
+    }
+  }, [data, mode]);
+
+  // Calcular el total de las filas seleccionadas
+  const selectedAmount = useMemo(() => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    if (mode === "requests") {
+      return selectedRows.reduce((sum: number, row: any) => {
+        const amount =
+          typeof row.original.amount === "string"
+            ? parseFloat(row.original.amount || "0")
+            : typeof row.original.amount === "number"
+            ? row.original.amount
+            : 0;
+        return sum + amount;
+      }, 0);
+    } else {
+      return selectedRows.reduce((sum: number, row: any) => {
+        const total =
+          typeof row.original.total_reposicion === "string"
+            ? parseFloat(row.original.total_reposicion || "0")
+            : typeof row.original.total_reposicion === "number"
+            ? row.original.total_reposicion
+            : 0;
+        return sum + total;
+      }, 0);
+    }
+  }, [table, mode]);
+
+  // Obtener el índice de la columna amount
+  const amountIndex = useMemo(() => {
+    return findAmountColumnIndex(table, mode);
+  }, [table, mode]);
+
+  return (
+    <TableFooter>
+      <TableRow>
+        {/* Columnas antes de amount - información de resultados */}
+        <TableCell colSpan={amountIndex}>
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            Mostrando {table.getRowModel().rows.length} de{" "}
+            {table.getFilteredRowModel().rows.length} resultados
+            {table.getFilteredRowModel().rows.length !== data.length &&
+              ` (Total: ${data.length})`}
+          </div>
+        </TableCell>
+
+        {/* Columna amount y el resto - totales y paginación */}
+        <TableCell colSpan={table.getVisibleLeafColumns().length - amountIndex}>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Parte de los totales */}
+            <div className="font-medium whitespace-nowrap">
+              {selectedAmount > 0 ? (
+                <span className="text-blue-600">
+                  Seleccionado: ${selectedAmount.toFixed(2)} (de $
+                  {totalAmount.toFixed(2)})
+                </span>
+              ) : (
+                <span className="text-slate-800">
+                  Total: ${totalAmount.toFixed(2)}
+                </span>
+              )}
+            </div>
+
+            {/* Parte de la paginación */}
+            <div className="flex items-center gap-2 ml-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="h-8 w-8 p-0 sm:w-auto sm:px-3"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Anterior</span>
+              </Button>
+              <span className="text-sm text-slate-600">
+                Página {table.getState().pagination.pageIndex + 1} de{" "}
+                {table.getPageCount()}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="h-8 w-8 p-0 sm:w-auto sm:px-3"
+              >
+                <span className="hidden sm:inline mr-2">Siguiente</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
+    </TableFooter>
+  );
+};
+
 export function RequestsTable<
   TData extends (RequestProps | ReposicionProps) & MappableData
 >({
@@ -120,31 +265,30 @@ export function RequestsTable<
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadAllData, setLoadAllData] = useState(false);
-  // Nuevo estado para manejar la edición de celdas
-  const [editingCell, setEditingCell] = useState<{
-    rowIndex: number;
-    columnId: string;
-  } | null>(null);
 
-  // Ampliamos el dataMaps para incluir arrays completos
   const [dataMaps, setDataMaps] = useState({
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
     vehicleMap: {} as Record<string, string>,
-    projectMap: {} as Record<string, string>,
-    // Arrays para los selects
-    accounts: [] as AccountProps[],
-    responsibles: [] as ResponsibleProps[],
-    vehicles: [] as TransportProps[],
-    projects: [] as { id: string; name: string }[],
+    projectMap: {} as Record<string, string>, // Mantenemos por si se necesita en otro lugar
   });
+
+  // Estados para edición con doble clic
+  const [editingField, setEditingField] = useState<{
+    id: string;
+    field: keyof RequestProps;
+  } | null>(null);
+
+  const [editedValues, setEditedValues] = useState<{
+    [key: string]: Partial<RequestProps>;
+  }>({});
+
+  // Removemos las variables no usadas
+  // const [editingCell, setEditingCell] = useState<{id: string; field: string} | null>(null);
 
   const hasFetchedRef = useRef(false);
 
-  const fetchProjects = async (): Promise<{
-    projectMap: Record<string, string>;
-    projects: { id: string; name: string }[];
-  }> => {
+  const fetchProjects = async (): Promise<Record<string, string>> => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/projects`,
@@ -155,13 +299,12 @@ export function RequestsTable<
       );
       if (!response.ok) throw new Error("Error al cargar proyectos");
       const data = await response.json();
-      const projectsData = Array.isArray(data.data)
+      const projects = Array.isArray(data.data)
         ? data.data
         : Array.isArray(data)
         ? data
         : [];
-
-      const projectMap = projectsData.reduce(
+      return projects.reduce(
         (
           acc: Record<string, string>,
           project: { id: string; name: string }
@@ -171,31 +314,22 @@ export function RequestsTable<
         },
         {}
       );
-
-      return {
-        projectMap,
-        projects: projectsData.map((p: Project) => ({
-          id: p.id,
-          name: p.name || p.id,
-        })),
-      };
     } catch (error) {
       console.error("Error fetching projects:", error);
       toast.error("Error al cargar proyectos");
-      return { projectMap: {}, projects: [] };
+      return {};
     }
   };
 
   useEffect(() => {
     const loadDataMaps = async () => {
       try {
-        const [accounts, responsibles, vehicles, projectsData] =
-          await Promise.all([
-            fetchAccounts(),
-            fetchResponsibles(),
-            fetchVehicles(),
-            fetchProjects(),
-          ]);
+        const [accounts, responsibles, vehicles, projects] = await Promise.all([
+          fetchAccounts(),
+          fetchResponsibles(),
+          fetchVehicles(),
+          fetchProjects(),
+        ]);
 
         const safeAccounts = Array.isArray(accounts) ? accounts : [];
         const safeResponsibles = Array.isArray(responsibles)
@@ -216,11 +350,7 @@ export function RequestsTable<
             acc[vehicle.vehicle_plate || ""] = vehicle.vehicle_plate || "";
             return acc;
           }, {} as Record<string, string>),
-          projectMap: projectsData.projectMap,
-          accounts: safeAccounts,
-          responsibles: safeResponsibles,
-          vehicles: safeVehicles,
-          projects: projectsData.projects,
+          projectMap: projects,
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
@@ -230,10 +360,6 @@ export function RequestsTable<
           responsibleMap: {},
           vehicleMap: {},
           projectMap: {},
-          accounts: [],
-          responsibles: [],
-          vehicles: [],
-          projects: [],
         });
       }
     };
@@ -241,9 +367,136 @@ export function RequestsTable<
     loadDataMaps();
   }, []);
 
+  // Funciones para manejar la edición con doble clic
+  const handleDoubleClick = useCallback(
+    (id: string, field: keyof RequestProps) => {
+      // No permitir edición si no es el modo "requests"
+      if (mode !== "requests") return;
+
+      // No permitir edición de ID
+      if (field === "unique_id") return;
+
+      // Encontrar el item específico
+      const foundItem = data.find((item) => {
+        return "unique_id" in item && item.unique_id === id;
+      });
+
+      // Solo si es un RequestProps y tiene la propiedad
+      if (foundItem && "unique_id" in foundItem) {
+        // Asumimos que foundItem es un RequestProps
+        const requestItem = foundItem as RequestProps;
+
+        // Ahora podemos acceder a la propiedad de forma segura
+        const fieldValue = requestItem[field];
+
+        setEditingField({ id, field });
+        setEditedValues((prev) => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            [field]: fieldValue,
+          },
+        }));
+      }
+    },
+    [data, mode, setEditingField, setEditedValues]
+  );
+
+  const handleInputChange = useCallback(
+    (id: string, field: keyof RequestProps, value: any) => {
+      setEditedValues((prev) => ({
+        ...prev,
+        [id]: { ...prev[id], [field]: value },
+      }));
+    },
+    []
+  );
+
+  const handleSave = useCallback(
+    async (id: string) => {
+      const updatedData = editedValues[id];
+      if (!updatedData) return;
+
+      try {
+        setIsLoading(true);
+        // Llamar a la API para actualizar la solicitud
+        const response = await fetchWithAuth(`/requests/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(updatedData),
+        });
+
+        if (response && response.ok) {
+          // Actualización optimista en el estado local
+          setData((prev) =>
+            prev.map((item: any) =>
+              "unique_id" in item && item.unique_id === id
+                ? { ...item, ...updatedData }
+                : item
+            )
+          );
+          toast.success("Solicitud actualizada correctamente");
+        } else {
+          throw new Error("No se pudo actualizar la solicitud");
+        }
+      } catch (error) {
+        console.error("Error al actualizar la solicitud:", error);
+        toast.error("Error al actualizar la solicitud");
+      } finally {
+        setIsLoading(false);
+        setEditingField(null);
+        setEditedValues((prev) => {
+          const newValues = { ...prev };
+          delete newValues[id];
+          return newValues;
+        });
+      }
+    },
+    [editedValues, setData, setIsLoading, setEditingField, setEditedValues]
+  );
+
+  const handleKeyDown = useCallback(
+    (
+      event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+      id: string
+    ) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSave(id);
+      } else if (event.key === "Escape") {
+        setEditingField(null);
+        setEditedValues((prev) => {
+          const newValues = { ...prev };
+          delete newValues[id];
+          return newValues;
+        });
+      }
+    },
+    [handleSave]
+  );
+
   const columns = useMemo(
-    () => getColumns<TData>(mode, { ...dataMaps, onStatusChange }),
-    [mode, dataMaps, onStatusChange]
+    () =>
+      getColumns<TData>(mode, {
+        ...dataMaps,
+        onStatusChange,
+        handleDoubleClick,
+        handleInputChange,
+        handleKeyDown,
+        handleSave,
+        editingField,
+        editedValues,
+      }),
+    [
+      mode,
+      dataMaps,
+      onStatusChange,
+      handleDoubleClick,
+      handleInputChange,
+      handleKeyDown,
+      handleSave,
+      editingField,
+      editedValues,
+    ]
   );
 
   const buildQueryUrl = useCallback(
@@ -363,7 +616,7 @@ export function RequestsTable<
       const rowData = row.original;
       const mappedValues: string[] = [];
 
-      // Proyecto
+      // Verificar propiedades con comprobación de tipo segura
       if ("project_name" in rowData && rowData.project_name) {
         mappedValues.push(String(rowData.project_name));
       } else if ("project" in rowData && rowData.project) {
@@ -375,7 +628,11 @@ export function RequestsTable<
 
       // Cuenta
       if ("account" in rowData && rowData.account) {
-        if (typeof rowData.account === "object" && "name" in rowData.account) {
+        if (
+          typeof rowData.account === "object" &&
+          rowData.account !== null &&
+          "name" in rowData.account
+        ) {
           mappedValues.push(String(rowData.account.name)); // Usar el nombre si es un objeto
         } else {
           const accountId = String(rowData.account);
@@ -388,6 +645,7 @@ export function RequestsTable<
       if ("responsible" in rowData && rowData.responsible) {
         if (
           typeof rowData.responsible === "object" &&
+          rowData.responsible !== null &&
           "nombre_completo" in rowData.responsible
         ) {
           mappedValues.push(String(rowData.responsible.nombre_completo));
@@ -405,7 +663,7 @@ export function RequestsTable<
         mappedValues.push(dataMaps.vehicleMap[vehicleId] || vehicleId);
       }
 
-      // Valores renderizados de las columnas
+      // Valores renderizados de las columnas con manejo seguro de tipos
       const searchableColumns = row
         .getAllCells()
         .filter((cell) => !actionColumns.includes(cell.column.id))

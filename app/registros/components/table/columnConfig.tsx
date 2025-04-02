@@ -21,6 +21,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ColumnHelpers {
   accountMap: Record<string, string>;
@@ -28,181 +37,484 @@ interface ColumnHelpers {
   vehicleMap: Record<string, string>;
   projectMap: Record<string, string>;
   onStatusChange?: (id: number, status: Status) => Promise<void>;
+  // Nuevos campos para edición con doble clic
+  handleDoubleClick?: (id: string, field: keyof RequestProps) => void;
+  handleInputChange?: (
+    id: string,
+    field: keyof RequestProps,
+    value: any
+  ) => void;
+  handleKeyDown?: (
+    event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    id: string
+  ) => void;
+  handleSave?: (id: string) => Promise<void>;
+  editingField?: { id: string; field: keyof RequestProps } | null;
+  editedValues?: { [key: string]: Partial<RequestProps> };
 }
 
 // Columnas para RequestProps
-export const getRequestColumns =
-  ({}: ColumnHelpers): ColumnDef<RequestProps>[] => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          label="Select all"
-          name="selectAll"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
-          className="w-[3ch]"
-          hideLabel
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          label="Select row"
-          name={`select-${row.id}`}
-          checked={row.getIsSelected()}
-          onChange={(e) => row.toggleSelected(!!e.target.checked)}
-          className="-ml-[7px]"
-          hideLabel
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "unique_id",
-      header: () => <div className="w-[10ch] text-center">ID</div>,
-      sortingFn: "alphanumeric",
-      enableSorting: true,
-    },
-    {
-      accessorKey: "updated_at",
-      header: () => <div className="text-center w-[10ch]">Fecha</div>,
-      cell: ({ row }) => (
-        <p className="text-slate-500 font-medium w-full text-start">
+export const getRequestColumns = ({
+  accountMap,
+  responsibleMap,
+  vehicleMap,
+  projectMap,
+  // onStatusChange no se usa, lo mantenemos en la interfaz pero lo quitamos de los parámetros desestructurados
+  handleDoubleClick,
+  handleInputChange,
+  handleKeyDown,
+  handleSave,
+  editingField,
+  editedValues,
+}: ColumnHelpers): ColumnDef<RequestProps>[] => [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        label="Select all"
+        name="selectAll"
+        checked={table.getIsAllPageRowsSelected()}
+        onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+        className="w-[3ch]"
+        hideLabel
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        label="Select row"
+        name={`select-${row.id}`}
+        checked={row.getIsSelected()}
+        onChange={(e) => row.toggleSelected(!!e.target.checked)}
+        className="-ml-[7px]"
+        hideLabel
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "unique_id",
+    header: () => <div className="w-[10ch] text-center">ID</div>,
+    sortingFn: "alphanumeric",
+    enableSorting: true,
+  },
+  {
+    accessorKey: "updated_at",
+    header: () => <div className="text-center w-[10ch]">Fecha</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "updated_at") {
+        return (
+          <Input
+            type="date"
+            value={
+              editedValues?.[id]?.updated_at
+                ? new Date(editedValues[id].updated_at as string)
+                    .toISOString()
+                    .split("T")[0]
+                : new Date(row.getValue("updated_at") as string)
+                    .toISOString()
+                    .split("T")[0]
+            }
+            onChange={(e) =>
+              handleInputChange?.(id, "updated_at", e.target.value)
+            }
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
+        );
+      }
+      return (
+        <p
+          className="text-slate-500 font-medium w-full text-start"
+          onDoubleClick={() => handleDoubleClick?.(id, "updated_at")}
+        >
           {(row.getValue("updated_at") as string).split("T")[0]}
         </p>
-      ),
-      sortingFn: "datetime",
-      enableSorting: true,
+      );
     },
-    {
-      accessorKey: "invoice_number",
-      header: () => <div className="w-[25ch] text-center">Factura</div>,
-      sortingFn: "alphanumeric",
-      enableSorting: true,
+    sortingFn: "datetime",
+    enableSorting: true,
+  },
+  {
+    accessorKey: "invoice_number",
+    header: () => <div className="w-[25ch] text-center">Factura</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "invoice_number") {
+        return (
+          <Input
+            type="text"
+            value={
+              editedValues?.[id]?.invoice_number ||
+              (row.getValue("invoice_number") as string)
+            }
+            onChange={(e) =>
+              handleInputChange?.(id, "invoice_number", e.target.value)
+            }
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
+        );
+      }
+      return (
+        <div onDoubleClick={() => handleDoubleClick?.(id, "invoice_number")}>
+          {row.getValue("invoice_number") || ""}
+        </div>
+      );
     },
-    {
-      accessorKey: "account_id",
-      header: () => (
-        <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
-      ),
-      cell: ({ row }) => (
-        <p className="capitalize px-1">{row.getValue("account_id")}</p>
-      ),
-      sortingFn: (rowA, rowB) => {
-        const a: string = rowA.getValue("account_id");
-        const b: string = rowB.getValue("account_id");
-        return a.localeCompare(b);
-      },
-      enableSorting: true,
-    },
-    {
-      accessorKey: "amount",
-      header: () => <div className="w-[7ch] text-center">Valor</div>,
-      cell: ({ row }) => (
-        <p className="font-medium text-slate-900 text-start">
-          ${parseFloat(row.getValue("amount") as string).toFixed(2)}
+    sortingFn: "alphanumeric",
+    enableSorting: true,
+  },
+  {
+    accessorKey: "account_id",
+    header: () => (
+      <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
+    ),
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "account_id") {
+        return (
+          <Select
+            value={
+              editedValues?.[id]?.account_id?.toString() ||
+              (row.getValue("account_id") as string)
+            }
+            onValueChange={(value) => {
+              handleInputChange?.(id, "account_id", value);
+              handleSave?.(id);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar cuenta" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(accountMap).map(([accountId, accountName]) => (
+                <SelectItem key={accountId} value={accountId}>
+                  {accountName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      }
+      return (
+        <p
+          className="capitalize px-1"
+          onDoubleClick={() => handleDoubleClick?.(id, "account_id")}
+        >
+          {row.getValue("account_id") || ""}
         </p>
-      ),
-      sortingFn: (rowA, rowB) => {
-        const a = parseFloat(rowA.getValue("amount") as string);
-        const b = parseFloat(rowB.getValue("amount") as string);
-        return a - b; // Ordenamiento numérico
-      },
-      enableSorting: true,
+      );
     },
-    {
-      accessorKey: "project",
-      header: () => <div className="w-[7ch] text-center">Proyecto</div>,
-      cell: ({ row }) => (
-        <p className="px-1 text-center">{row.getValue<string>("project")}</p>
-      ),
-      sortingFn: (rowA, rowB) => {
-        const a = rowA.getValue<string>("project");
-        const b = rowB.getValue<string>("project");
-        return a.localeCompare(b);
-      },
-      enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a: string = rowA.getValue("account_id") || "";
+      const b: string = rowB.getValue("account_id") || "";
+      return a.localeCompare(b);
     },
-    {
-      accessorKey: "responsible_id",
-      header: () => (
-        <div className="min-w-64 max-w-sm text-center">Responsable</div>
-      ),
-      cell: ({ row }) => {
-        const responsible = row.getValue("responsible_id");
-        return responsible ? responsible || "No encontrado" : "—";
-      },
-      sortingFn: (rowA, rowB) => {
-        const aId = rowA.getValue("responsible_id") as string;
-        const bId = rowB.getValue("responsible_id") as string;
-        const a = aId ? aId || "No encontrado" : "—";
-        const b = bId ? bId || "No encontrado" : "—";
-        return a.localeCompare(b);
-      },
-      enableSorting: true,
-    },
-    {
-      accessorKey: "vehicle_plate",
-      header: () => <div className="w-[12ch] text-center">Placa</div>,
-      cell: ({ row }) => {
-        const vehicle_plate = row.getValue("vehicle_plate") as string;
-        return vehicle_plate ? (
-          <p className="text-center w-[12ch]">
-            {vehicle_plate
-              ? `${vehicle_plate.slice(0, 3)}-${vehicle_plate.slice(3, 7)}`
-              : "No encontrado"}
-          </p>
-        ) : (
-          <p className="text-center">—</p>
+    enableSorting: true,
+  },
+  {
+    accessorKey: "amount",
+    header: () => <div className="w-[7ch] text-center">Valor</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "amount") {
+        return (
+          <Input
+            type="number"
+            step="0.01"
+            value={
+              editedValues?.[id]?.amount || (row.getValue("amount") as string)
+            }
+            onChange={(e) => handleInputChange?.(id, "amount", e.target.value)}
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
         );
-      },
-      sortingFn: (rowA, rowB) => {
-        const aId = rowA.getValue("vehicle_plate") as string;
-        const bId = rowB.getValue("vehicle_plate") as string;
-        const a = aId
-          ? aId
-            ? `${aId.slice(0, 3)}-${aId.slice(3, 7)}`
-            : "No encontrado"
-          : "—";
-        const b = bId
-          ? bId
-            ? `${bId.slice(0, 3)}-${bId.slice(3, 7)}`
-            : "No encontrado"
-          : "—";
-        return a.localeCompare(b);
-      },
-      enableSorting: true,
+      }
+
+      const rawAmount = row.getValue("amount");
+      const amount =
+        typeof rawAmount === "string"
+          ? parseFloat(rawAmount || "0")
+          : typeof rawAmount === "number"
+          ? rawAmount
+          : 0;
+
+      return (
+        <p
+          className="font-medium text-slate-900 text-start"
+          onDoubleClick={() => handleDoubleClick?.(id, "amount")}
+        >
+          ${amount.toFixed(2)}
+        </p>
+      );
     },
-    {
-      accessorKey: "vehicle_number",
-      header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
-      cell: ({ row }) => {
-        const vehicle_number = row.getValue("vehicle_number") as string;
-        return vehicle_number ? (
-          <p className="text-center w-[12ch]">
-            {row.getValue("vehicle_number")
-              ? `${row.getValue("vehicle_number")}`
-              : "No encontrado"}
-          </p>
-        ) : (
-          <p className="text-center">Sin datos</p>
+    sortingFn: (rowA, rowB) => {
+      const aValue = rowA.getValue("amount");
+      const bValue = rowB.getValue("amount");
+
+      const a =
+        typeof aValue === "string"
+          ? parseFloat(aValue || "0")
+          : typeof aValue === "number"
+          ? aValue
+          : 0;
+      const b =
+        typeof bValue === "string"
+          ? parseFloat(bValue || "0")
+          : typeof bValue === "number"
+          ? bValue
+          : 0;
+
+      return a - b; // Ordenamiento numérico
+    },
+    enableSorting: true,
+  },
+  {
+    accessorKey: "project",
+    header: () => <div className="w-[7ch] text-center">Proyecto</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "project") {
+        return (
+          <Select
+            value={
+              editedValues?.[id]?.project?.toString() ||
+              (row.getValue("project") as string)
+            }
+            onValueChange={(value) => {
+              handleInputChange?.(id, "project", value);
+              handleSave?.(id);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar proyecto" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(projectMap).map(([projectId, projectName]) => (
+                <SelectItem key={projectId} value={projectId}>
+                  {projectName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         );
-      },
-      sortingFn: (rowA, rowB) => {
-        const aNumber = rowA.getValue("vehicle_number") as string;
-        const bNumber = rowB.getValue("vehicle_number") as string;
-        const a = aNumber ? (aNumber ? `${aNumber}` : "No encontrado") : "—";
-        const b = bNumber ? (bNumber ? `${bNumber}` : "No encontrado") : "—";
-        return a.localeCompare(b);
-      },
-      enableSorting: true,
+      }
+      return (
+        <p
+          className="px-1 text-center"
+          onDoubleClick={() => handleDoubleClick?.(id, "project")}
+        >
+          {row.getValue<string>("project") || ""}
+        </p>
+      );
     },
-    {
-      accessorKey: "note",
-      header: () => <div className="min-w-[40ch] text-center">Observación</div>,
-      cell: ({ row }) => (
-        <p className="text-pretty text-justify overflow-ellipsis">
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.getValue<string>("project") || "";
+      const b = rowB.getValue<string>("project") || "";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
+  },
+  // Corrección para el cell de responsible_id
+  {
+    accessorKey: "responsible_id",
+    header: () => (
+      <div className="min-w-64 max-w-sm text-center">Responsable</div>
+    ),
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "responsible_id") {
+        return (
+          <Select
+            value={
+              editedValues?.[id]?.responsible_id?.toString() ||
+              (row.getValue("responsible_id") as string) ||
+              ""
+            }
+            onValueChange={(value) => {
+              handleInputChange?.(id, "responsible_id", value);
+              handleSave?.(id);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar responsable" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(responsibleMap).map(([respId, respName]) => (
+                <SelectItem key={respId} value={respId}>
+                  {respName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      }
+
+      // Obtenemos el valor y nos aseguramos de que sea un string o undefined/null
+      const responsible = row.getValue("responsible_id") as
+        | string
+        | null
+        | undefined;
+
+      // Al utilizar operador ternario, aseguramos que siempre retornamos un ReactNode válido
+      return (
+        <div onDoubleClick={() => handleDoubleClick?.(id, "responsible_id")}>
+          {responsible ? responsible || "No encontrado" : "—"}
+        </div>
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const aId = rowA.getValue("responsible_id") as string | null | undefined;
+      const bId = rowB.getValue("responsible_id") as string | null | undefined;
+      // Convertimos a string para comparación, asegurando valores por defecto
+      const a = aId ? aId || "No encontrado" : "—";
+      const b = bId ? bId || "No encontrado" : "—";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
+  },
+  {
+    accessorKey: "vehicle_plate",
+    header: () => <div className="w-[12ch] text-center">Placa</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "vehicle_plate") {
+        return (
+          <Select
+            value={
+              editedValues?.[id]?.vehicle_plate?.toString() ||
+              (row.getValue("vehicle_plate") as string)
+            }
+            onValueChange={(value) => {
+              handleInputChange?.(id, "vehicle_plate", value);
+              handleSave?.(id);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar placa" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(vehicleMap).map(([plateId, plateName]) => (
+                <SelectItem key={plateId} value={plateId}>
+                  {plateName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      }
+      const vehicle_plate = row.getValue("vehicle_plate") as string;
+      return (
+        <div onDoubleClick={() => handleDoubleClick?.(id, "vehicle_plate")}>
+          {vehicle_plate ? (
+            <p className="text-center w-[12ch]">
+              {vehicle_plate
+                ? `${vehicle_plate.slice(0, 3)}-${vehicle_plate.slice(3, 7)}`
+                : "No encontrado"}
+            </p>
+          ) : (
+            <p className="text-center">—</p>
+          )}
+        </div>
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const aId = rowA.getValue("vehicle_plate") as string;
+      const bId = rowB.getValue("vehicle_plate") as string;
+      const a = aId
+        ? aId
+          ? `${aId.slice(0, 3)}-${aId.slice(3, 7)}`
+          : "No encontrado"
+        : "—";
+      const b = bId
+        ? bId
+          ? `${bId.slice(0, 3)}-${bId.slice(3, 7)}`
+          : "No encontrado"
+        : "—";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
+  },
+  {
+    accessorKey: "vehicle_number",
+    header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "vehicle_number") {
+        return (
+          <Input
+            type="text"
+            value={
+              editedValues?.[id]?.vehicle_number ||
+              (row.getValue("vehicle_number") as string)
+            }
+            onChange={(e) =>
+              handleInputChange?.(id, "vehicle_number", e.target.value)
+            }
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
+        );
+      }
+      const vehicle_number = row.getValue("vehicle_number") as string;
+      return (
+        <div onDoubleClick={() => handleDoubleClick?.(id, "vehicle_number")}>
+          {vehicle_number ? (
+            <p className="text-center w-[12ch]">
+              {row.getValue("vehicle_number")
+                ? `${row.getValue("vehicle_number")}`
+                : "No encontrado"}
+            </p>
+          ) : (
+            <p className="text-center">Sin datos</p>
+          )}
+        </div>
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const aNumber = rowA.getValue("vehicle_number") as string;
+      const bNumber = rowB.getValue("vehicle_number") as string;
+      const a = aNumber ? (aNumber ? `${aNumber}` : "No encontrado") : "—";
+      const b = bNumber ? (bNumber ? `${bNumber}` : "No encontrado") : "—";
+      return a.localeCompare(b);
+    },
+    enableSorting: true,
+  },
+  {
+    accessorKey: "note",
+    header: () => <div className="min-w-[40ch] text-center">Observación</div>,
+    cell: ({ row }) => {
+      const id = row.original.unique_id;
+      if (editingField?.id === id && editingField.field === "note") {
+        return (
+          <Textarea
+            value={
+              editedValues?.[id]?.note || (row.getValue("note") as string) || ""
+            }
+            onChange={(e) => handleInputChange?.(id, "note", e.target.value)}
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full min-h-[80px]"
+          />
+        );
+      }
+      return (
+        <p
+          className="text-pretty text-justify overflow-ellipsis"
+          onDoubleClick={() => handleDoubleClick?.(id, "note")}
+        >
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -216,11 +528,12 @@ export const getRequestColumns =
             </Tooltip>
           </TooltipProvider>
         </p>
-      ),
-      sortingFn: "alphanumeric",
-      enableSorting: true,
+      );
     },
-  ];
+    sortingFn: "alphanumeric",
+    enableSorting: true,
+  },
+];
 
 // Componente de celda separado:
 const DetailsCell = ({
