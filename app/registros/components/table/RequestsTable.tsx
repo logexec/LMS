@@ -22,7 +22,6 @@ import {
   TableHead,
   TableBody,
   TableCell,
-  TableFooter,
 } from "@/components/ui/table";
 import {
   DropdownMenu,
@@ -34,8 +33,6 @@ import {
   Search,
   RefreshCw,
   Filter,
-  ChevronLeft,
-  ChevronRight,
   SortAscIcon,
   SortDescIcon,
 } from "lucide-react";
@@ -46,11 +43,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getColumns } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
 import {
+  AccountProps,
   DataTableProps,
+  Project,
   ReposicionProps,
   ReposicionUpdateData,
   RequestProps,
+  ResponsibleProps,
   Status,
+  TransportProps,
 } from "@/utils/types";
 import {
   TooltipProvider,
@@ -66,6 +67,7 @@ import {
 import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
 import { Switch } from "@/components/ui/switch";
+import TableFooterWithTotals from "./table-footer";
 
 interface MappableData {
   project?: string | number;
@@ -118,17 +120,31 @@ export function RequestsTable<
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadAllData, setLoadAllData] = useState(false);
+  // Nuevo estado para manejar la edición de celdas
+  const [editingCell, setEditingCell] = useState<{
+    rowIndex: number;
+    columnId: string;
+  } | null>(null);
 
+  // Ampliamos el dataMaps para incluir arrays completos
   const [dataMaps, setDataMaps] = useState({
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
     vehicleMap: {} as Record<string, string>,
-    projectMap: {} as Record<string, string>, // Mantenemos por si se necesita en otro lugar
+    projectMap: {} as Record<string, string>,
+    // Arrays para los selects
+    accounts: [] as AccountProps[],
+    responsibles: [] as ResponsibleProps[],
+    vehicles: [] as TransportProps[],
+    projects: [] as { id: string; name: string }[],
   });
 
   const hasFetchedRef = useRef(false);
 
-  const fetchProjects = async (): Promise<Record<string, string>> => {
+  const fetchProjects = async (): Promise<{
+    projectMap: Record<string, string>;
+    projects: { id: string; name: string }[];
+  }> => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/projects`,
@@ -139,12 +155,13 @@ export function RequestsTable<
       );
       if (!response.ok) throw new Error("Error al cargar proyectos");
       const data = await response.json();
-      const projects = Array.isArray(data.data)
+      const projectsData = Array.isArray(data.data)
         ? data.data
         : Array.isArray(data)
         ? data
         : [];
-      return projects.reduce(
+
+      const projectMap = projectsData.reduce(
         (
           acc: Record<string, string>,
           project: { id: string; name: string }
@@ -154,22 +171,31 @@ export function RequestsTable<
         },
         {}
       );
+
+      return {
+        projectMap,
+        projects: projectsData.map((p: Project) => ({
+          id: p.id,
+          name: p.name || p.id,
+        })),
+      };
     } catch (error) {
       console.error("Error fetching projects:", error);
       toast.error("Error al cargar proyectos");
-      return {};
+      return { projectMap: {}, projects: [] };
     }
   };
 
   useEffect(() => {
     const loadDataMaps = async () => {
       try {
-        const [accounts, responsibles, vehicles, projects] = await Promise.all([
-          fetchAccounts(),
-          fetchResponsibles(),
-          fetchVehicles(),
-          fetchProjects(),
-        ]);
+        const [accounts, responsibles, vehicles, projectsData] =
+          await Promise.all([
+            fetchAccounts(),
+            fetchResponsibles(),
+            fetchVehicles(),
+            fetchProjects(),
+          ]);
 
         const safeAccounts = Array.isArray(accounts) ? accounts : [];
         const safeResponsibles = Array.isArray(responsibles)
@@ -190,7 +216,11 @@ export function RequestsTable<
             acc[vehicle.vehicle_plate || ""] = vehicle.vehicle_plate || "";
             return acc;
           }, {} as Record<string, string>),
-          projectMap: projects,
+          projectMap: projectsData.projectMap,
+          accounts: safeAccounts,
+          responsibles: safeResponsibles,
+          vehicles: safeVehicles,
+          projects: projectsData.projects,
         });
       } catch (error) {
         console.error("Error loading data maps:", error);
@@ -200,6 +230,10 @@ export function RequestsTable<
           responsibleMap: {},
           vehicleMap: {},
           projectMap: {},
+          accounts: [],
+          responsibles: [],
+          vehicles: [],
+          projects: [],
         });
       }
     };
@@ -752,50 +786,7 @@ export function RequestsTable<
               </AnimatePresence>
             </TableBody>
             {table.getRowModel().rows.length > 0 && (
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={table.getAllColumns().length}>
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2">
-                      <div className="text-sm text-slate-600 dark:text-slate-400">
-                        Mostrando {table.getRowModel().rows.length} de{" "}
-                        {table.getFilteredRowModel().rows.length} resultados
-                        {table.getFilteredRowModel().rows.length !==
-                          data.length && ` (Total: ${data.length})`}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => table.previousPage()}
-                          disabled={!table.getCanPreviousPage()}
-                          className="h-8 w-8 p-0 sm:w-auto sm:px-3"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          <span className="hidden sm:inline ml-2">
-                            Anterior
-                          </span>
-                        </Button>
-                        <span className="text-sm text-slate-600">
-                          Página {table.getState().pagination.pageIndex + 1} de{" "}
-                          {table.getPageCount()}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => table.nextPage()}
-                          disabled={!table.getCanNextPage()}
-                          className="h-8 w-8 p-0 sm:w-auto sm:px-3"
-                        >
-                          <span className="hidden sm:inline mr-2">
-                            Siguiente
-                          </span>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
+              <TableFooterWithTotals table={table} data={data} mode={mode} />
             )}
           </Table>
         </div>

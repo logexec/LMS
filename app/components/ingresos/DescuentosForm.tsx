@@ -118,11 +118,11 @@ const DescuentosForm = () => {
           })),
           accounts: accountsData.map((account) => ({
             label: account.name,
-            value: account.id,
+            value: account.name,
           })),
           responsibles: responsiblesData.map((resp) => ({
             label: resp.nombre_completo,
-            value: resp.id,
+            value: resp.nombre_completo,
           })),
           transports: transportsData.map((vehicle) => ({
             label: vehicle.name,

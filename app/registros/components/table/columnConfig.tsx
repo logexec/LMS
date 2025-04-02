@@ -31,222 +31,196 @@ interface ColumnHelpers {
 }
 
 // Columnas para RequestProps
-export const getRequestColumns = ({
-  accountMap,
-  responsibleMap,
-  vehicleMap,
-  projectMap,
-}: ColumnHelpers): ColumnDef<RequestProps>[] => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        label="Select all"
-        name="selectAll"
-        checked={table.getIsAllPageRowsSelected()}
-        onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
-        className="w-[3ch]"
-        hideLabel
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        label="Select row"
-        name={`select-${row.id}`}
-        checked={row.getIsSelected()}
-        onChange={(e) => row.toggleSelected(!!e.target.checked)}
-        className="-ml-[7px]"
-        hideLabel
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "unique_id",
-    header: () => <div className="w-[10ch] text-center">ID</div>,
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-  },
-  {
-    accessorKey: "updated_at",
-    header: () => <div className="text-center w-[10ch]">Fecha</div>,
-    cell: ({ row }) => (
-      <p className="text-slate-500 font-medium w-full text-start">
-        {(row.getValue("updated_at") as string).split("T")[0]}
-      </p>
-    ),
-    sortingFn: "datetime",
-    enableSorting: true,
-  },
-  {
-    accessorKey: "invoice_number",
-    header: () => <div className="w-[25ch] text-center">Factura</div>,
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-  },
-  {
-    accessorKey: "account_id",
-    header: () => (
-      <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
-    ),
-    cell: ({ row }) => (
-      <p className="capitalize px-1">
-        {accountMap[row.getValue("account_id") as string] ||
-          row.getValue("account_id")}
-      </p>
-    ),
-    sortingFn: (rowA, rowB) => {
-      const a =
-        accountMap[rowA.getValue("account_id") as string] ||
-        rowA.getValue("account_id");
-      const b =
-        accountMap[rowB.getValue("account_id") as string] ||
-        rowB.getValue("account_id");
-      return a.localeCompare(b);
+export const getRequestColumns =
+  ({}: ColumnHelpers): ColumnDef<RequestProps>[] => [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          label="Select all"
+          name="selectAll"
+          checked={table.getIsAllPageRowsSelected()}
+          onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+          className="w-[3ch]"
+          hideLabel
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          label="Select row"
+          name={`select-${row.id}`}
+          checked={row.getIsSelected()}
+          onChange={(e) => row.toggleSelected(!!e.target.checked)}
+          className="-ml-[7px]"
+          hideLabel
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div className="w-[7ch] text-center">Valor</div>,
-    cell: ({ row }) => (
-      <p className="font-medium text-slate-900 text-start">
-        ${parseFloat(row.getValue("amount") as string).toFixed(2)}
-      </p>
-    ),
-    sortingFn: (rowA, rowB) => {
-      const a = parseFloat(rowA.getValue("amount") as string);
-      const b = parseFloat(rowB.getValue("amount") as string);
-      return a - b; // Ordenamiento numérico
+    {
+      accessorKey: "unique_id",
+      header: () => <div className="w-[10ch] text-center">ID</div>,
+      sortingFn: "alphanumeric",
+      enableSorting: true,
     },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "project",
-    header: () => <div className="w-[7ch] text-center">Proyecto</div>,
-    cell: ({ row }) => (
-      <p className="px-1 text-center">
-        {projectMap[row.getValue<string>("project")] ||
-          row.getValue<string>("project")}
-      </p>
-    ),
-    sortingFn: (rowA, rowB) => {
-      const a =
-        projectMap[rowA.getValue<string>("project")] ||
-        rowA.getValue<string>("project");
-      const b =
-        projectMap[rowB.getValue<string>("project")] ||
-        rowB.getValue<string>("project");
-      return a.localeCompare(b);
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "responsible_id",
-    header: () => (
-      <div className="min-w-64 max-w-sm text-center">Responsable</div>
-    ),
-    cell: ({ row }) => {
-      const id = row.getValue("responsible_id") as string;
-      return id ? responsibleMap[id] || "No encontrado" : "No aplica";
-    },
-    sortingFn: (rowA, rowB) => {
-      const aId = rowA.getValue("responsible_id") as string;
-      const bId = rowB.getValue("responsible_id") as string;
-      const a = aId ? responsibleMap[aId] || "No encontrado" : "No aplica";
-      const b = bId ? responsibleMap[bId] || "No encontrado" : "No aplica";
-      return a.localeCompare(b);
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "vehicle_plate",
-    header: () => <div className="w-[12ch] text-center">Placa</div>,
-    cell: ({ row }) => {
-      const id = row.getValue("vehicle_plate") as string;
-      return id ? (
-        <p className="text-center w-[12ch]">
-          {vehicleMap[id]
-            ? `${vehicleMap[id].slice(0, 3)}-${vehicleMap[id].slice(3, 7)}`
-            : "No encontrado"}
+    {
+      accessorKey: "updated_at",
+      header: () => <div className="text-center w-[10ch]">Fecha</div>,
+      cell: ({ row }) => (
+        <p className="text-slate-500 font-medium w-full text-start">
+          {(row.getValue("updated_at") as string).split("T")[0]}
         </p>
-      ) : (
-        <p className="text-center">No aplica</p>
-      );
+      ),
+      sortingFn: "datetime",
+      enableSorting: true,
     },
-    sortingFn: (rowA, rowB) => {
-      const aId = rowA.getValue("vehicle_plate") as string;
-      const bId = rowB.getValue("vehicle_plate") as string;
-      const a = aId
-        ? vehicleMap[aId]
-          ? `${vehicleMap[aId].slice(0, 3)}-${vehicleMap[aId].slice(3, 7)}`
-          : "No encontrado"
-        : "No aplica";
-      const b = bId
-        ? vehicleMap[bId]
-          ? `${vehicleMap[bId].slice(0, 3)}-${vehicleMap[bId].slice(3, 7)}`
-          : "No encontrado"
-        : "No aplica";
-      return a.localeCompare(b);
+    {
+      accessorKey: "invoice_number",
+      header: () => <div className="w-[25ch] text-center">Factura</div>,
+      sortingFn: "alphanumeric",
+      enableSorting: true,
     },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "vehicle_number",
-    header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
-    cell: ({ row }) => {
-      const vehicle_number = row.getValue("vehicle_number") as string;
-      return vehicle_number ? (
-        <p className="text-center w-[12ch]">
-          {row.getValue("vehicle_number")
-            ? `${row.getValue("vehicle_number")}`
-            : "No encontrado"}
+    {
+      accessorKey: "account_id",
+      header: () => (
+        <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
+      ),
+      cell: ({ row }) => (
+        <p className="capitalize px-1">{row.getValue("account_id")}</p>
+      ),
+      sortingFn: (rowA, rowB) => {
+        const a: string = rowA.getValue("account_id");
+        const b: string = rowB.getValue("account_id");
+        return a.localeCompare(b);
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "amount",
+      header: () => <div className="w-[7ch] text-center">Valor</div>,
+      cell: ({ row }) => (
+        <p className="font-medium text-slate-900 text-start">
+          ${parseFloat(row.getValue("amount") as string).toFixed(2)}
         </p>
-      ) : (
-        <p className="text-center">Sin datos</p>
-      );
+      ),
+      sortingFn: (rowA, rowB) => {
+        const a = parseFloat(rowA.getValue("amount") as string);
+        const b = parseFloat(rowB.getValue("amount") as string);
+        return a - b; // Ordenamiento numérico
+      },
+      enableSorting: true,
     },
-    sortingFn: (rowA, rowB) => {
-      const aNumber = rowA.getValue("vehicle_number") as string;
-      const bNumber = rowB.getValue("vehicle_number") as string;
-      const a = aNumber
-        ? aNumber
-          ? `${aNumber}`
-          : "No encontrado"
-        : "No aplica";
-      const b = bNumber
-        ? bNumber
-          ? `${bNumber}`
-          : "No encontrado"
-        : "No aplica";
-      return a.localeCompare(b);
+    {
+      accessorKey: "project",
+      header: () => <div className="w-[7ch] text-center">Proyecto</div>,
+      cell: ({ row }) => (
+        <p className="px-1 text-center">{row.getValue<string>("project")}</p>
+      ),
+      sortingFn: (rowA, rowB) => {
+        const a = rowA.getValue<string>("project");
+        const b = rowB.getValue<string>("project");
+        return a.localeCompare(b);
+      },
+      enableSorting: true,
     },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "note",
-    header: () => <div className="min-w-[40ch] text-center">Observación</div>,
-    cell: ({ row }) => (
-      <p className="text-pretty text-justify overflow-ellipsis">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-default">
+    {
+      accessorKey: "responsible_id",
+      header: () => (
+        <div className="min-w-64 max-w-sm text-center">Responsable</div>
+      ),
+      cell: ({ row }) => {
+        const responsible = row.getValue("responsible_id");
+        return responsible ? responsible || "No encontrado" : "—";
+      },
+      sortingFn: (rowA, rowB) => {
+        const aId = rowA.getValue("responsible_id") as string;
+        const bId = rowB.getValue("responsible_id") as string;
+        const a = aId ? aId || "No encontrado" : "—";
+        const b = bId ? bId || "No encontrado" : "—";
+        return a.localeCompare(b);
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "vehicle_plate",
+      header: () => <div className="w-[12ch] text-center">Placa</div>,
+      cell: ({ row }) => {
+        const vehicle_plate = row.getValue("vehicle_plate") as string;
+        return vehicle_plate ? (
+          <p className="text-center w-[12ch]">
+            {vehicle_plate
+              ? `${vehicle_plate.slice(0, 3)}-${vehicle_plate.slice(3, 7)}`
+              : "No encontrado"}
+          </p>
+        ) : (
+          <p className="text-center">—</p>
+        );
+      },
+      sortingFn: (rowA, rowB) => {
+        const aId = rowA.getValue("vehicle_plate") as string;
+        const bId = rowB.getValue("vehicle_plate") as string;
+        const a = aId
+          ? aId
+            ? `${aId.slice(0, 3)}-${aId.slice(3, 7)}`
+            : "No encontrado"
+          : "—";
+        const b = bId
+          ? bId
+            ? `${bId.slice(0, 3)}-${bId.slice(3, 7)}`
+            : "No encontrado"
+          : "—";
+        return a.localeCompare(b);
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "vehicle_number",
+      header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
+      cell: ({ row }) => {
+        const vehicle_number = row.getValue("vehicle_number") as string;
+        return vehicle_number ? (
+          <p className="text-center w-[12ch]">
+            {row.getValue("vehicle_number")
+              ? `${row.getValue("vehicle_number")}`
+              : "No encontrado"}
+          </p>
+        ) : (
+          <p className="text-center">Sin datos</p>
+        );
+      },
+      sortingFn: (rowA, rowB) => {
+        const aNumber = rowA.getValue("vehicle_number") as string;
+        const bNumber = rowB.getValue("vehicle_number") as string;
+        const a = aNumber ? (aNumber ? `${aNumber}` : "No encontrado") : "—";
+        const b = bNumber ? (bNumber ? `${bNumber}` : "No encontrado") : "—";
+        return a.localeCompare(b);
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "note",
+      header: () => <div className="min-w-[40ch] text-center">Observación</div>,
+      cell: ({ row }) => (
+        <p className="text-pretty text-justify overflow-ellipsis">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default">
+                  {(row.getValue("note") as string) || "Sin observaciones."}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
                 {(row.getValue("note") as string) || "Sin observaciones."}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              {(row.getValue("note") as string) || "Sin observaciones."}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </p>
-    ),
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-  },
-];
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </p>
+      ),
+      sortingFn: "alphanumeric",
+      enableSorting: true,
+    },
+  ];
 
 // Componente de celda separado:
 const DetailsCell = ({

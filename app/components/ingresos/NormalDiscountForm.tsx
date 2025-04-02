@@ -109,12 +109,10 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
       setLocalOptions((prev) => ({
         ...prev,
-        accounts: activeAccounts.map(
-          (account: { name: string; id: string }) => ({
-            label: account.name,
-            value: account.id,
-          })
-        ),
+        accounts: activeAccounts.map((account: { name: string }) => ({
+          label: account.name,
+          value: account.name,
+        })),
       }));
     } catch (error) {
       toast.error(
@@ -149,9 +147,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         setLocalOptions((prev) => ({
           ...prev,
           responsibles: data.map(
-            (responsible: { nombre_completo: string; id: string }) => ({
+            (responsible: { nombre_completo: string }) => ({
               label: responsible.nombre_completo,
-              value: responsible.id,
+              value: responsible.nombre_completo,
             })
           ),
         }));
@@ -187,7 +185,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       const data = await response.json();
       setLocalOptions((prev) => ({
         ...prev,
-        transports: data.map((transport: { name: string; id: string }) => ({
+        transports: data.map((transport: { name: string }) => ({
           label: transport.name,
           value: transport.name,
         })),

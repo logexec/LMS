@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { fetchWithAuth, fetchWithAuthFormData } from "@/services/auth.service";
-import { AccountProps } from "@/utils/types";
+import { AccountProps, RequestProps } from "@/utils/types";
 
 export const apiService = {
   // Users
@@ -300,6 +300,28 @@ export const apiService = {
         error instanceof Error ? `❌ Error in createLoan: ${error}` : error
       );
       throw error; // Propagamos el error como objeto o string
+    }
+  },
+
+  updateRequest: async (id: string, data: Partial<RequestProps>) => {
+    try {
+      const response = await fetchWithAuth(`/requests/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`
+        );
+      }
+
+      return response; // Devuelve el objeto actualizado
+    } catch (error) {
+      console.error("❌ Error in updateRequest:", error);
+      throw error;
     }
   },
 };

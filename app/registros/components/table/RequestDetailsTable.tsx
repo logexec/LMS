@@ -1,6 +1,6 @@
 "use client";
 
-import React, { JSX, useCallback, useEffect, useState, useMemo } from "react";
+import React, { JSX, useCallback, useEffect, useState } from "react";
 import { Download, Paperclip, RefreshCw, Search } from "lucide-react";
 import {
   AccountProps,
@@ -150,8 +150,6 @@ const RequestDetailsTableComponent = ({
   repositionId,
   projectMap,
 }: RequestDetailsTableProps) => {
-  const [accounts, setAccounts] = useState<AccountProps[]>([]);
-  const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -188,12 +186,6 @@ const RequestDetailsTableComponent = ({
         ...(repositionId ? [fetchFile(repositionId)] : []),
       ]);
 
-      if (results[0].status === "fulfilled") setAccounts(results[0].value);
-      else toast.error("Error al cargar cuentas");
-
-      if (results[1].status === "fulfilled") setResponsibles(results[1].value);
-      else toast.error("Error al cargar responsables");
-
       if (repositionId) {
         const fileResult = results[3];
         if (fileResult.status === "fulfilled") {
@@ -218,50 +210,23 @@ const RequestDetailsTableComponent = ({
     }
   }, [loadData, hasLoaded]);
 
-  // Mapas para traducir IDs a nombres
-  const accountMap = useMemo(
-    () =>
-      accounts.reduce<Record<string, string>>((acc, account) => {
-        acc[account.id || ""] = account.name;
-        return acc;
-      }, {}),
-    [accounts]
-  );
-
-  const responsibleMap = useMemo(
-    () =>
-      responsibles.reduce<Record<string, string>>((acc, responsible) => {
-        acc[responsible.id || ""] = responsible.nombre_completo;
-        return acc;
-      }, {}),
-    [responsibles]
-  );
-
-  // Función de filtrado personalizada
   const filterRequests = useCallback(
     (requests: RequestProps[], search: string) => {
       const searchLower = search.toLowerCase();
       return requests.filter((request) => {
         const valuesToSearch: string[] = [];
 
-        // ID único
         if (request.unique_id) valuesToSearch.push(request.unique_id);
-
-        // Tipo
         if (request.type) {
           valuesToSearch.push(
             request.type === "discount" ? "Descuento" : "Gasto"
           );
         }
-
-        // Área
         if (request.personnel_type) {
           valuesToSearch.push(
             request.personnel_type === "nomina" ? "Nómina" : "Transporte"
           );
         }
-
-        // Fecha
         if (request.request_date) {
           valuesToSearch.push(
             new Date(request.request_date).toLocaleDateString("es-ES", {
@@ -271,8 +236,6 @@ const RequestDetailsTableComponent = ({
             })
           );
         }
-
-        // Estado
         if (request.status) {
           const statusText =
             {
@@ -284,49 +247,32 @@ const RequestDetailsTableComponent = ({
             }[request.status] || request.status;
           valuesToSearch.push(statusText);
         }
-
-        // Factura
         if (request.invoice_number) valuesToSearch.push(request.invoice_number);
-
-        // Cuenta
         if ("account" in request && request.account) {
-          const accountId = String(request.account);
-          const accountName: string = accountMap[accountId] || accountId;
-          valuesToSearch.push(accountName);
+          const account = String(request.account);
+          valuesToSearch.push(account);
         }
-
-        // Monto
         if (request.amount) {
           valuesToSearch.push(
             `$${new Intl.NumberFormat("es-ES").format(request.amount)}`
           );
         }
-
-        // Proyecto
         if (request.project) {
-          const projectName = projectMap[request.project] || request.project;
+          const projectName = request.project;
           valuesToSearch.push(projectName);
         }
-
-        // Responsable
         if (request.responsible_id) {
-          const responsibleName =
-            responsibleMap[request.responsible_id] || request.responsible_id;
+          const responsibleName = request.responsible_id;
           valuesToSearch.push(responsibleName);
         }
-
-        // Transporte
         if (request.vehicle_plate) {
           const vehiclePlate: string = request.vehicle_plate;
           valuesToSearch.push(vehiclePlate);
         }
-
         if (request.vehicle_number) {
           const vehicleNumber = request.vehicle_number;
           valuesToSearch.push(vehicleNumber);
         }
-
-        // Observación
         if (request.note) valuesToSearch.push(request.note);
 
         return valuesToSearch.some((value) =>
@@ -334,12 +280,17 @@ const RequestDetailsTableComponent = ({
         );
       });
     },
-    [accountMap, responsibleMap, projectMap]
+    []
   );
 
   useEffect(() => {
     setFilteredRequests(filterRequests(requests, searchTerm));
   }, [searchTerm, requests, filterRequests]);
+
+  const totalAmount = filteredRequests.reduce(
+    (sum, req) => sum + (req.amount || 0),
+    0
+  );
 
   return (
     <motion.div
@@ -496,13 +447,13 @@ const RequestDetailsTableComponent = ({
             <AnimatePresence mode="sync">
               {isLoading ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-8">
+                  <td colSpan={14} className="text-center py-8">
                     <Loader fullScreen={false} text="Cargando datos..." />
                   </td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-8 text-slate-500">
+                  <td colSpan={14} className="text-center py-8 text-slate-500">
                     No se encontraron resultados
                   </td>
                 </tr>
@@ -547,18 +498,20 @@ const RequestDetailsTableComponent = ({
                     </td>
                     <td className="px-4 py-3">{request.invoice_number}</td>
                     <td className="px-4 py-3">
-                      {request.account_id && accountMap[request.account_id]}
+                      {request.account_id && request.account_id}
                     </td>
                     <td className="px-4 py-3 font-semibold text-red-700">
-                      ${new Intl.NumberFormat("es-ES").format(request.amount)}
+                      {(typeof request.amount === "string"
+                        ? parseFloat(request.amount)
+                        : request.amount
+                      ).toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
                       {projectMap[request.project] || request.project}
                     </td>
                     {filteredRequests.some((r) => r.responsible_id) && (
                       <td className="px-4 py-3">
-                        {request.responsible_id &&
-                          responsibleMap[request.responsible_id]}
+                        {request.responsible_id && request.responsible_id}
                       </td>
                     )}
                     {filteredRequests.some((r) => r.vehicle_plate) && (
@@ -586,6 +539,22 @@ const RequestDetailsTableComponent = ({
               )}
             </AnimatePresence>
           </tbody>
+          {filteredRequests.length > 0 && (
+            <tfoot>
+              <tr className="bg-slate-50">
+                <td
+                  colSpan={8}
+                  className="px-4 py-3 text-right font-semibold text-slate-600"
+                >
+                  Total:
+                </td>
+                <td className="px-4 py-3 font-semibold text-red-700">
+                  ${new Intl.NumberFormat("es-ES").format(totalAmount)}
+                </td>
+                <td colSpan={5} className="px-4 py-3"></td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </motion.div>

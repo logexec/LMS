@@ -54,7 +54,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     proyecto: "",
     area: "",
     responsable: "",
-    transporte: "",
     observacion: "",
   });
 
@@ -67,11 +66,11 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     accounts: [
       {
         label: "Recuperación Valores Comisión de Reparto",
-        value: "19",
+        value: "Recuperación Valores Comisión de Reparto",
       },
       {
         label: "Faltantes por Cobrar Empleados y Transportistas",
-        value: "8",
+        value: "Faltantes por Cobrar Empleados y Transportistas",
       },
     ],
     projects: [],
@@ -122,7 +121,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
           }
 
           const mappedEmployees: Employee[] = employeesArray.map((emp) => ({
-            id: emp.id,
+            id: emp.nombre_completo,
             name: emp.nombre_completo,
             area: emp.area,
             project: emp.proyecto,
@@ -247,7 +246,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       proyecto: "",
       area: "",
       responsable: "",
-      transporte: "",
       observacion: "",
     });
     setEmployees([]);
@@ -282,7 +280,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
         formData.append("amount", amountPerEmployee);
         formData.append("project", massFormData.proyecto);
         formData.append("responsible_id", employee.id);
-        formData.append("transport_id", "");
         formData.append("note", massFormData.observacion);
         formData.append("personnel_type", "nomina");
 
@@ -290,9 +287,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       });
 
       await Promise.all(requests);
-      toast.success(
-        `${selectedEmployees.length} descuentos registrados exitosamente`
-      );
       resetForm();
     } catch (error) {
       toast.error("Error al procesar los descuentos");

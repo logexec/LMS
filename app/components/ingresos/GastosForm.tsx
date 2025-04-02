@@ -146,14 +146,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
             ? "Debes escribir una observación"
             : "";
         break;
-      case "vehicle_number":
-        if (formData.tipo === "transportista") {
-          newErrors[name] =
-            typeof value === "string" && value.length < 1
-              ? "Debes seleccionar un vehicle_number"
-              : "";
-        }
-        break;
       case "responsable":
         if (formData.tipo === "nomina") {
           newErrors[name] =
@@ -274,7 +266,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
         accounts: activeAccounts.map(
           (account: { name: string; id: string }) => ({
             label: account.name,
-            value: account.id,
+            value: account.name,
           })
         ),
       }));
@@ -312,7 +304,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
             responsibles: data.map(
               (responsible: { nombre_completo: string; id: string }) => ({
                 label: responsible.nombre_completo,
-                value: responsible.id,
+                value: responsible.nombre_completo,
               })
             ),
           }));

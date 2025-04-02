@@ -76,6 +76,10 @@ export interface ReposicionProps {
     | "decimo_cuarto"
     | "utilidades";
   note?: string;
+  vehicle_plate?: string;
+  vehicle_number?: string;
+  responsible_id?: string;
+  amount?: number;
   requests?: any[];
 }
 
@@ -179,8 +183,8 @@ export interface NormalFormData {
   valor: string;
   proyecto: string;
   responsable: string;
-  vehicle_plate: string;
-  vehicle_number: string;
+  vehicle_plate?: string;
+  vehicle_number?: string;
   observacion: string;
 }
 
