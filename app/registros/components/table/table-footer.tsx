@@ -18,7 +18,7 @@ const TableFooterWithTotals = ({
     if (mode === "requests") {
       return data
         .filter((item) => item.status === "pending")
-        .reduce((sum, item) => {
+        .reduce((sum: number, item: any) => {
           const amount =
             typeof item.amount === "string"
               ? parseFloat(item.amount || "0")
@@ -30,7 +30,7 @@ const TableFooterWithTotals = ({
     } else {
       return data
         .filter((item) => item.status === "pending")
-        .reduce((sum, item) => {
+        .reduce((sum: number, item: any) => {
           const total =
             typeof item.total_reposicion === "string"
               ? parseFloat(item.total_reposicion || "0")
@@ -52,7 +52,7 @@ const TableFooterWithTotals = ({
     }
 
     if (mode === "requests") {
-      return selectedRows.reduce((sum, row) => {
+      return selectedRows.reduce((sum: number, row: any) => {
         const amount =
           typeof row.original.amount === "string"
             ? parseFloat(row.original.amount || "0")
@@ -62,7 +62,7 @@ const TableFooterWithTotals = ({
         return sum + amount;
       }, 0);
     } else {
-      return selectedRows.reduce((sum, row) => {
+      return selectedRows.reduce((sum: number, row: any) => {
         const total =
           typeof row.original.total_reposicion === "string"
             ? parseFloat(row.original.total_reposicion || "0")
@@ -78,7 +78,7 @@ const TableFooterWithTotals = ({
   const visibleColumns = table.getVisibleLeafColumns();
   const amountColumnIndex = useMemo(() => {
     const keyToFind = mode === "requests" ? "amount" : "total_reposicion";
-    const index = visibleColumns.findIndex((col) => col.id === keyToFind);
+    const index = visibleColumns.findIndex((col: any) => col.id === keyToFind);
     return index !== -1 ? index : Math.floor(visibleColumns.length / 2);
   }, [visibleColumns, mode]);
 
