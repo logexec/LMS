@@ -111,7 +111,7 @@ const findAmountColumnIndex = (
   return index !== -1 ? index : Math.floor(visibleColumns.length / 2);
 };
 
-// Componente del footer con totales
+// Componente del footer con totales actualizado
 const TableFooterWithTotals = ({
   table,
   data,
@@ -121,65 +121,79 @@ const TableFooterWithTotals = ({
   data: any[];
   mode: "requests" | "reposiciones";
 }) => {
-  // Calcular el total de todas las solicitudes pending
+  // Obtener los modelos de filas importantes
+  const filteredRows = table.getFilteredRowModel().rows;
+  const selectedRows = table.getSelectedRowModel().rows;
+  const displayedRows = table.getRowModel().rows;
+
+  // Calcular el total de todas las solicitudes pendientes (en todos los datos)
   const totalAmount = useMemo(() => {
-    if (mode === "requests") {
-      return data
-        .filter((item) => item.status === "pending")
-        .reduce((sum, item) => {
-          const amount =
-            typeof item.amount === "string"
-              ? parseFloat(item.amount || "0")
-              : typeof item.amount === "number"
-              ? item.amount
-              : 0;
-          return sum + amount;
-        }, 0);
-    } else {
-      return data
-        .filter((item) => item.status === "pending")
-        .reduce((sum, item) => {
-          const total =
-            typeof item.total_reposicion === "string"
-              ? parseFloat(item.total_reposicion || "0")
-              : typeof item.total_reposicion === "number"
-              ? item.total_reposicion
-              : 0;
-          return sum + total;
-        }, 0);
-    }
+    return data
+      .filter((item) => item.status === "pending")
+      .reduce((sum: number, item: any) => {
+        const value = mode === "requests" ? item.amount : item.total_reposicion;
+        return (
+          sum +
+          (typeof value === "string" ? parseFloat(value || "0") : value || 0)
+        );
+      }, 0);
   }, [data, mode]);
 
-  // Calcular el total de las filas seleccionadas
-  const selectedAmount = useMemo(() => {
-    const selectedRows = table.getSelectedRowModel().rows;
-    if (mode === "requests") {
-      return selectedRows.reduce((sum: number, row: any) => {
-        const amount =
-          typeof row.original.amount === "string"
-            ? parseFloat(row.original.amount || "0")
-            : typeof row.original.amount === "number"
+  // Calcular el total de los registros FILTRADOS pendientes
+  const filteredAmount = useMemo(() => {
+    return filteredRows
+      .filter((row: any) => row.original.status === "pending")
+      .reduce((sum: number, row: any) => {
+        const value =
+          mode === "requests"
             ? row.original.amount
-            : 0;
-        return sum + amount;
+            : row.original.total_reposicion;
+        return (
+          sum +
+          (typeof value === "string" ? parseFloat(value || "0") : value || 0)
+        );
       }, 0);
-    } else {
-      return selectedRows.reduce((sum: number, row: any) => {
-        const total =
-          typeof row.original.total_reposicion === "string"
-            ? parseFloat(row.original.total_reposicion || "0")
-            : typeof row.original.total_reposicion === "number"
-            ? row.original.total_reposicion
-            : 0;
-        return sum + total;
-      }, 0);
-    }
-  }, [table, mode]);
+  }, [filteredRows, mode]);
 
-  // Obtener el índice de la columna amount
+  // Calcular el total de los registros SELECCIONADOS
+  const selectedAmount = useMemo(() => {
+    if (selectedRows.length === 0) return 0;
+    return selectedRows.reduce((sum: number, row: any) => {
+      const value =
+        mode === "requests"
+          ? row.original.amount
+          : row.original.total_reposicion;
+      return (
+        sum +
+        (typeof value === "string" ? parseFloat(value || "0") : value || 0)
+      );
+    }, 0);
+  }, [selectedRows, mode]);
+
+  // Obtener el índice de la columna de monto
   const amountIndex = useMemo(() => {
     return findAmountColumnIndex(table, mode);
   }, [table, mode]);
+
+  // Determinar si hay filtros aplicados
+  const isFiltered = filteredRows.length < data.length;
+  // Determinar si hay selecciones hechas
+  const hasSelection = selectedAmount > 0;
+
+  // Construir el texto de visualización para los totales
+  const displayText = hasSelection
+    ? isFiltered
+      ? `Seleccionado: $${selectedAmount.toFixed(
+          2
+        )} (de $${filteredAmount.toFixed(
+          2
+        )} filtrado, total $${totalAmount.toFixed(2)})`
+      : `Seleccionado: $${selectedAmount.toFixed(2)} (de $${totalAmount.toFixed(
+          2
+        )})`
+    : isFiltered
+    ? `Mostrando: $${filteredAmount.toFixed(2)} (de $${totalAmount.toFixed(2)})`
+    : `Total: $${totalAmount.toFixed(2)}`;
 
   return (
     <TableFooter>
@@ -187,10 +201,8 @@ const TableFooterWithTotals = ({
         {/* Columnas antes de amount - información de resultados */}
         <TableCell colSpan={amountIndex}>
           <div className="text-sm text-slate-600 dark:text-slate-400">
-            Mostrando {table.getRowModel().rows.length} de{" "}
-            {table.getFilteredRowModel().rows.length} resultados
-            {table.getFilteredRowModel().rows.length !== data.length &&
-              ` (Total: ${data.length})`}
+            Mostrando {displayedRows.length} de {filteredRows.length} resultados
+            {isFiltered && ` (Total: ${data.length})`}
           </div>
         </TableCell>
 
@@ -199,16 +211,11 @@ const TableFooterWithTotals = ({
           <div className="flex flex-wrap items-center gap-4">
             {/* Parte de los totales */}
             <div className="font-medium whitespace-nowrap">
-              {selectedAmount > 0 ? (
-                <span className="text-blue-600">
-                  Seleccionado: ${selectedAmount.toFixed(2)} (de $
-                  {totalAmount.toFixed(2)})
-                </span>
-              ) : (
-                <span className="text-slate-800">
-                  Total: ${totalAmount.toFixed(2)}
-                </span>
-              )}
+              <span
+                className={hasSelection ? "text-blue-600" : "text-slate-800"}
+              >
+                {displayText}
+              </span>
             </div>
 
             {/* Parte de la paginación */}
@@ -282,9 +289,6 @@ export function RequestsTable<
   const [editedValues, setEditedValues] = useState<{
     [key: string]: Partial<RequestProps>;
   }>({});
-
-  // Removemos las variables no usadas
-  // const [editingCell, setEditingCell] = useState<{id: string; field: string} | null>(null);
 
   const hasFetchedRef = useRef(false);
 
@@ -513,7 +517,6 @@ export function RequestsTable<
       try {
         setIsRefreshing(true);
         const response = await fetchWithAuth(buildQueryUrl(period));
-        console.log(response);
         if (response && response.ok === true && typeof response === "object") {
           delete response.ok;
         }
@@ -612,79 +615,28 @@ export function RequestsTable<
   const customGlobalFilterFn = useCallback(
     (row: Row<TData>, columnId: string, filterValue: string): boolean => {
       const search = filterValue.toLowerCase();
-      const actionColumns = ["acciones", "actions"];
-
       const rowData = row.original;
-      const mappedValues: string[] = [];
+      const searchableValues = Object.values(rowData)
+        .map((value) => String(value ?? "").toLowerCase())
+        .filter(Boolean);
 
-      // Verificar propiedades con comprobación de tipo segura
-      if ("project_name" in rowData && rowData.project_name) {
-        mappedValues.push(String(rowData.project_name));
-      } else if ("project" in rowData && rowData.project) {
-        mappedValues.push(
-          dataMaps.projectMap[String(rowData.project)] ||
-            String(rowData.project)
-        );
-      }
-
-      // Cuenta
-      if ("account" in rowData && rowData.account) {
-        if (
-          typeof rowData.account === "object" &&
-          rowData.account !== null &&
-          "name" in rowData.account
-        ) {
-          mappedValues.push(String(rowData.account.name)); // Usar el nombre si es un objeto
-        } else {
-          const accountId = String(rowData.account);
-          const accountName = dataMaps.accountMap[accountId] || accountId;
-          mappedValues.push(accountName); // Traducir ID a nombre si es necesario
-        }
-      }
-
-      // Responsable
-      if ("responsible" in rowData && rowData.responsible) {
-        if (
-          typeof rowData.responsible === "object" &&
-          rowData.responsible !== null &&
-          "nombre_completo" in rowData.responsible
-        ) {
-          mappedValues.push(String(rowData.responsible.nombre_completo));
-        } else {
-          const responsibleId = String(rowData.responsible);
-          const responsibleName =
-            dataMaps.responsibleMap[responsibleId] || responsibleId;
-          mappedValues.push(responsibleName); // Filtramos por nombre, no por ID
-        }
-      }
-
-      // Vehículo
-      if ("vehicle" in rowData && rowData.vehicle) {
-        const vehicleId = String(rowData.vehicle);
-        mappedValues.push(dataMaps.vehicleMap[vehicleId] || vehicleId);
-      }
-
-      // Valores renderizados de las columnas con manejo seguro de tipos
-      const searchableColumns = row
+      const cellValues = row
         .getAllCells()
-        .filter((cell) => !actionColumns.includes(cell.column.id))
+        .filter((cell) => !["acciones", "actions"].includes(cell.column.id))
         .map((cell) => {
           const value = cell.getValue();
-          const renderedValue = flexRender(
+          const rendered = flexRender(
             cell.column.columnDef.cell,
             cell.getContext()
           );
-          return String(value ?? renderedValue ?? "").toLowerCase();
+          return String(value ?? rendered ?? "").toLowerCase();
         });
 
-      const allValues = [
-        ...searchableColumns,
-        ...mappedValues.map((val) => val.toLowerCase()),
-      ];
-
-      return allValues.some((value) => value.includes(search));
+      return [...searchableValues, ...cellValues].some((value) =>
+        value.includes(search)
+      );
     },
-    [dataMaps]
+    []
   );
 
   const table = useReactTable<TData>({
@@ -726,6 +678,16 @@ export function RequestsTable<
     manualSorting: false,
     manualFiltering: false,
   });
+
+  // Log state changes for debugging
+  useEffect(() => {
+    console.log("Table State Updated:", {
+      globalFilter: tableState.globalFilter, // Add this to see filter value
+      rowSelection,
+      filteredRows: table.getFilteredRowModel().rows.length,
+      selectedRows: table.getSelectedRowModel().rows.length,
+    });
+  }, [tableState.globalFilter, rowSelection, table]); // Add tableState.globalFilter
 
   const handleSendRequests = async (
     requestIds: string[],
@@ -1045,7 +1007,14 @@ export function RequestsTable<
               </AnimatePresence>
             </TableBody>
             {table.getRowModel().rows.length > 0 && (
-              <TableFooterWithTotals table={table} data={data} mode={mode} />
+              <TableFooterWithTotals
+                table={table}
+                data={data}
+                mode={mode}
+                key={`${table.getFilteredRowModel().rows.length}-${
+                  table.getSelectedRowModel().rows.length
+                }`}
+              />
             )}
           </Table>
         </div>

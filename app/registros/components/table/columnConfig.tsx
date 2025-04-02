@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ColumnDef } from "@tanstack/react-table";
-import { ReposicionProps, RequestProps, Status } from "@/utils/types";
+import { RequestProps, ReposicionProps, Status } from "@/utils/types";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import {
@@ -32,12 +32,7 @@ import {
 } from "@/components/ui/select";
 
 interface ColumnHelpers {
-  accountMap: Record<string, string>;
-  responsibleMap: Record<string, string>;
-  vehicleMap: Record<string, string>;
-  projectMap: Record<string, string>;
   onStatusChange?: (id: number, status: Status) => Promise<void>;
-  // Nuevos campos para edición con doble clic
   handleDoubleClick?: (id: string, field: keyof RequestProps) => void;
   handleInputChange?: (
     id: string,
@@ -55,11 +50,6 @@ interface ColumnHelpers {
 
 // Columnas para RequestProps
 export const getRequestColumns = ({
-  accountMap,
-  responsibleMap,
-  vehicleMap,
-  projectMap,
-  // onStatusChange no se usa, lo mantenemos en la interfaz pero lo quitamos de los parámetros desestructurados
   handleDoubleClick,
   handleInputChange,
   handleKeyDown,
@@ -100,7 +90,7 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "updated_at",
-    header: () => <div className="text-center w-[10ch]">Fecha</div>,
+    header: () => <div className="text-center w-[15ch]">Fecha</div>,
     cell: ({ row }) => {
       const id = row.original.unique_id;
       if (editingField?.id === id && editingField.field === "updated_at") {
@@ -122,7 +112,7 @@ export const getRequestColumns = ({
             onBlur={() => handleSave?.(id)}
             onKeyDown={(e) => handleKeyDown?.(e, id)}
             autoFocus
-            className="w-full"
+            className="w-full text-center"
           />
         );
       }
@@ -140,7 +130,7 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "invoice_number",
-    header: () => <div className="w-[25ch] text-center">Factura</div>,
+    header: () => <div className="w-[15ch] text-center">Factura</div>,
     cell: ({ row }) => {
       const id = row.original.unique_id;
       if (editingField?.id === id && editingField.field === "invoice_number") {
@@ -179,27 +169,20 @@ export const getRequestColumns = ({
       const id = row.original.unique_id;
       if (editingField?.id === id && editingField.field === "account_id") {
         return (
-          <Select
+          <Input
+            type="text"
             value={
-              editedValues?.[id]?.account_id?.toString() ||
+              editedValues?.[id]?.account_id ||
               (row.getValue("account_id") as string)
             }
-            onValueChange={(value) => {
-              handleInputChange?.(id, "account_id", value);
-              handleSave?.(id);
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar cuenta" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(accountMap).map(([accountId, accountName]) => (
-                <SelectItem key={accountId} value={accountId}>
-                  {accountName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) =>
+              handleInputChange?.(id, "account_id", e.target.value)
+            }
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
         );
       }
       return (
@@ -211,11 +194,7 @@ export const getRequestColumns = ({
         </p>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const a: string = rowA.getValue("account_id") || "";
-      const b: string = rowB.getValue("account_id") || "";
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
@@ -239,43 +218,21 @@ export const getRequestColumns = ({
           />
         );
       }
-
-      const rawAmount = row.getValue("amount");
+      const rawAmount = row.getValue("amount") as string | number; // Explicitly type
       const amount =
         typeof rawAmount === "string"
           ? parseFloat(rawAmount || "0")
-          : typeof rawAmount === "number"
-          ? rawAmount
-          : 0;
-
+          : rawAmount || 0;
       return (
         <p
           className="font-medium text-slate-900 text-start"
           onDoubleClick={() => handleDoubleClick?.(id, "amount")}
         >
-          ${amount.toFixed(2)}
+          ${amount.toFixed(2)} {/* Now TypeScript knows amount is a number */}
         </p>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const aValue = rowA.getValue("amount");
-      const bValue = rowB.getValue("amount");
-
-      const a =
-        typeof aValue === "string"
-          ? parseFloat(aValue || "0")
-          : typeof aValue === "number"
-          ? aValue
-          : 0;
-      const b =
-        typeof bValue === "string"
-          ? parseFloat(bValue || "0")
-          : typeof bValue === "number"
-          ? bValue
-          : 0;
-
-      return a - b; // Ordenamiento numérico
-    },
+    sortingFn: "basic",
     enableSorting: true,
   },
   {
@@ -285,27 +242,17 @@ export const getRequestColumns = ({
       const id = row.original.unique_id;
       if (editingField?.id === id && editingField.field === "project") {
         return (
-          <Select
+          <Input
+            type="text"
             value={
-              editedValues?.[id]?.project?.toString() ||
-              (row.getValue("project") as string)
+              editedValues?.[id]?.project || (row.getValue("project") as string)
             }
-            onValueChange={(value) => {
-              handleInputChange?.(id, "project", value);
-              handleSave?.(id);
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar proyecto" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(projectMap).map(([projectId, projectName]) => (
-                <SelectItem key={projectId} value={projectId}>
-                  {projectName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) => handleInputChange?.(id, "project", e.target.value)}
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
         );
       }
       return (
@@ -313,18 +260,13 @@ export const getRequestColumns = ({
           className="px-1 text-center"
           onDoubleClick={() => handleDoubleClick?.(id, "project")}
         >
-          {row.getValue<string>("project") || ""}
+          {row.getValue("project") || ""}
         </p>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.getValue<string>("project") || "";
-      const b = rowB.getValue<string>("project") || "";
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
-  // Corrección para el cell de responsible_id
   {
     accessorKey: "responsible_id",
     header: () => (
@@ -334,52 +276,29 @@ export const getRequestColumns = ({
       const id = row.original.unique_id;
       if (editingField?.id === id && editingField.field === "responsible_id") {
         return (
-          <Select
+          <Input
+            type="text"
             value={
-              editedValues?.[id]?.responsible_id?.toString() ||
-              (row.getValue("responsible_id") as string) ||
-              ""
+              editedValues?.[id]?.responsible_id ||
+              (row.getValue("responsible_id") as string)
             }
-            onValueChange={(value) => {
-              handleInputChange?.(id, "responsible_id", value);
-              handleSave?.(id);
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar responsable" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(responsibleMap).map(([respId, respName]) => (
-                <SelectItem key={respId} value={respId}>
-                  {respName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) =>
+              handleInputChange?.(id, "responsible_id", e.target.value)
+            }
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
         );
       }
-
-      // Obtenemos el valor y nos aseguramos de que sea un string o undefined/null
-      const responsible = row.getValue("responsible_id") as
-        | string
-        | null
-        | undefined;
-
-      // Al utilizar operador ternario, aseguramos que siempre retornamos un ReactNode válido
       return (
         <div onDoubleClick={() => handleDoubleClick?.(id, "responsible_id")}>
-          {responsible ? responsible || "No encontrado" : "—"}
+          {row.getValue("responsible_id") || "—"}
         </div>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const aId = rowA.getValue("responsible_id") as string | null | undefined;
-      const bId = rowB.getValue("responsible_id") as string | null | undefined;
-      // Convertimos a string para comparación, asegurando valores por defecto
-      const a = aId ? aId || "No encontrado" : "—";
-      const b = bId ? bId || "No encontrado" : "—";
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
@@ -389,59 +308,34 @@ export const getRequestColumns = ({
       const id = row.original.unique_id;
       if (editingField?.id === id && editingField.field === "vehicle_plate") {
         return (
-          <Select
+          <Input
+            type="text"
             value={
-              editedValues?.[id]?.vehicle_plate?.toString() ||
+              editedValues?.[id]?.vehicle_plate ||
               (row.getValue("vehicle_plate") as string)
             }
-            onValueChange={(value) => {
-              handleInputChange?.(id, "vehicle_plate", value);
-              handleSave?.(id);
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar placa" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(vehicleMap).map(([plateId, plateName]) => (
-                <SelectItem key={plateId} value={plateId}>
-                  {plateName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) =>
+              handleInputChange?.(id, "vehicle_plate", e.target.value)
+            }
+            onBlur={() => handleSave?.(id)}
+            onKeyDown={(e) => handleKeyDown?.(e, id)}
+            autoFocus
+            className="w-full"
+          />
         );
       }
       const vehicle_plate = row.getValue("vehicle_plate") as string;
       return (
         <div onDoubleClick={() => handleDoubleClick?.(id, "vehicle_plate")}>
           {vehicle_plate ? (
-            <p className="text-center w-[12ch]">
-              {vehicle_plate
-                ? `${vehicle_plate.slice(0, 3)}-${vehicle_plate.slice(3, 7)}`
-                : "No encontrado"}
-            </p>
+            <p className="text-center w-[12ch]">{vehicle_plate}</p>
           ) : (
             <p className="text-center">—</p>
           )}
         </div>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const aId = rowA.getValue("vehicle_plate") as string;
-      const bId = rowB.getValue("vehicle_plate") as string;
-      const a = aId
-        ? aId
-          ? `${aId.slice(0, 3)}-${aId.slice(3, 7)}`
-          : "No encontrado"
-        : "—";
-      const b = bId
-        ? bId
-          ? `${bId.slice(0, 3)}-${bId.slice(3, 7)}`
-          : "No encontrado"
-        : "—";
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
@@ -467,14 +361,11 @@ export const getRequestColumns = ({
           />
         );
       }
-      const vehicle_number = row.getValue("vehicle_number") as string;
       return (
         <div onDoubleClick={() => handleDoubleClick?.(id, "vehicle_number")}>
-          {vehicle_number ? (
+          {row.getValue("vehicle_number") ? (
             <p className="text-center w-[12ch]">
-              {row.getValue("vehicle_number")
-                ? `${row.getValue("vehicle_number")}`
-                : "No encontrado"}
+              {row.getValue("vehicle_number")}
             </p>
           ) : (
             <p className="text-center">Sin datos</p>
@@ -482,13 +373,7 @@ export const getRequestColumns = ({
         </div>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const aNumber = rowA.getValue("vehicle_number") as string;
-      const bNumber = rowB.getValue("vehicle_number") as string;
-      const a = aNumber ? (aNumber ? `${aNumber}` : "No encontrado") : "—";
-      const b = bNumber ? (bNumber ? `${bNumber}` : "No encontrado") : "—";
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
@@ -536,13 +421,7 @@ export const getRequestColumns = ({
 ];
 
 // Componente de celda separado:
-const DetailsCell = ({
-  row,
-  projectMap,
-}: {
-  row: any;
-  projectMap: Record<string, string>;
-}) => {
+const DetailsCell = ({ row }: { row: any }) => {
   const [isOpen, setIsOpen] = useState(false);
   const requests = row.original.requests || [];
   const id = row.original.id;
@@ -559,13 +438,13 @@ const DetailsCell = ({
         <DialogHeader>
           <DialogTitle>Solicitudes de la Reposición</DialogTitle>
           <DialogDescription>
-            Proyecto {projectMap[row.original.project] || row.original.project}
+            Proyecto {row.original.project || "Sin proyecto"}
           </DialogDescription>
         </DialogHeader>
         <RequestDetailsTable
           requests={requests}
           repositionId={id}
-          projectMap={projectMap}
+          projectMap={{}}
         />
       </DialogContent>
     </Dialog>
@@ -574,7 +453,7 @@ const DetailsCell = ({
 
 // Columnas para ReposicionProps
 export const getReposicionColumns = (
-  projectMap: Record<string, string>
+  helpers?: ColumnHelpers
 ): ColumnDef<ReposicionProps>[] => [
   {
     accessorKey: "unique_id",
@@ -627,19 +506,36 @@ export const getReposicionColumns = (
         )}
       </p>
     ),
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.getValue<number>("total_reposicion");
-      const b = rowB.getValue<number>("total_reposicion");
-      return a - b; // Ordenamiento numérico
-    },
+    sortingFn: "basic",
     enableSorting: true,
   },
   {
     accessorKey: "status",
     header: () => <div className="w-[12ch] text-center">Estado</div>,
     cell: ({ row }) => {
+      const id = row.original.id;
       const status = row.getValue("status") as Status;
-      return (
+      return helpers?.onStatusChange ? (
+        <Select
+          value={status}
+          onValueChange={async (newStatus: Status) => {
+            if (helpers.onStatusChange) {
+              await helpers.onStatusChange(id, newStatus);
+              // Optimistic update handled by parent
+            }
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="rejected">Rechazado</SelectItem>
+            <SelectItem value="review">Revisar</SelectItem>
+            <SelectItem value="paid">Pagado</SelectItem>
+          </SelectContent>
+        </Select>
+      ) : (
         <p
           className={`font-semibold rounded-lg text-center ${
             status === "pending"
@@ -675,19 +571,10 @@ export const getReposicionColumns = (
           "opacity-50"
         }`}
       >
-        {projectMap[row.getValue<string>("project")] ||
-          row.getValue<string>("project")}
+        {row.getValue<string>("project") || "Sin proyecto"}
       </p>
     ),
-    sortingFn: (rowA, rowB) => {
-      const a =
-        projectMap[rowA.getValue<string>("project")] ||
-        rowA.getValue<string>("project");
-      const b =
-        projectMap[rowB.getValue<string>("project")] ||
-        rowB.getValue<string>("project");
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
@@ -703,8 +590,7 @@ export const getReposicionColumns = (
       >
         {row.original.status === "rejected" ||
         row.getValue("month") === "0000-00-00" ||
-        row.getValue("month") === null ||
-        row.getValue("month") === undefined
+        !row.getValue("month")
           ? "No especificado"
           : row.getValue("month")}
       </p>
@@ -723,12 +609,9 @@ export const getReposicionColumns = (
           "opacity-50"
         }`}
       >
-        {row.getValue("when") === "" ||
-        row.getValue("when") === null ||
-        row.getValue("when") === undefined ||
-        (row.original.status === "rejected" && row.getValue("when") === null)
+        {!row.getValue("when") || row.original.status === "rejected"
           ? "No especificado"
-          : row.original.when}
+          : row.getValue("when")}
       </p>
     ),
     sortingFn: "alphanumeric",
@@ -762,20 +645,7 @@ export const getReposicionColumns = (
         </p>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const getType = (requests: RequestProps[]) => {
-        if (!requests.length) return "No especificado";
-        const id = requests[0].unique_id;
-        return id.startsWith("G")
-          ? "Gasto"
-          : id.startsWith("D")
-          ? "Descuento"
-          : "Desconocido";
-      };
-      const a = getType(rowA.original.requests || []);
-      const b = getType(rowB.original.requests || []);
-      return a.localeCompare(b);
-    },
+    sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
@@ -793,15 +663,11 @@ export const getReposicionColumns = (
                   "opacity-50"
                 }`}
               >
-                {row.getValue("note") !== null && row.getValue("note") !== ""
-                  ? row.getValue("note")
-                  : "Sin observaciones"}
+                {row.getValue("note") || "Sin observaciones"}
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              {row.getValue("note") !== null && row.getValue("note") !== ""
-                ? row.getValue("note")
-                : "Sin observaciones"}
+              {row.getValue("note") || "Sin observaciones"}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -813,7 +679,7 @@ export const getReposicionColumns = (
   {
     accessorKey: "details",
     header: () => <div className="w-[10ch] text-center">Detalles</div>,
-    cell: ({ row }) => <DetailsCell row={row} projectMap={projectMap} />,
+    cell: ({ row }) => <DetailsCell row={row} />,
     enableSorting: false,
   },
   {
@@ -832,5 +698,5 @@ export function getColumns<T extends RequestProps | ReposicionProps>(
   if (mode === "requests" && helpers) {
     return getRequestColumns(helpers) as ColumnDef<T>[];
   }
-  return getReposicionColumns(helpers?.projectMap || {}) as ColumnDef<T>[];
+  return getReposicionColumns(helpers) as ColumnDef<T>[];
 }
