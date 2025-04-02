@@ -513,6 +513,7 @@ export function RequestsTable<
       try {
         setIsRefreshing(true);
         const response = await fetchWithAuth(buildQueryUrl(period));
+        console.log(response);
         if (response && response.ok === true && typeof response === "object") {
           delete response.ok;
         }

@@ -373,6 +373,20 @@ const GastosForm: React.FC<GastosFormProps> = ({
   //   { value: "PREBAM", label: "PREBAM" },
   // ];
 
+  const today = new Date();
+  // Obtener el 29 del mes pasado
+  const firstAllowedDate = new Date(
+    today.getFullYear(),
+    today.getMonth() - 1,
+    29
+  );
+
+  // Obtener el 28 del mes actual
+  const lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 28);
+
+  const minDate = firstAllowedDate.toISOString().split("T")[0];
+  const maxDate = lastAllowedDate.toISOString().split("T")[0];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -420,7 +434,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   type="date"
                   value={formData.fechaGasto}
                   onChange={handleInputChange}
-                  allowPastDates={false}
+                  allowPastDates={true}
+                  minDate={minDate}
+                  maxDate={maxDate}
                   error={formErrors.fechaGasto}
                 />
 
