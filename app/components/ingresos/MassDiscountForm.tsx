@@ -355,7 +355,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     type="date"
                     value={massFormData.fechaGasto}
                     onChange={handleInputChange}
-                    allowPastDates={true}
                     minDate={minDate}
                     maxDate={maxDate}
                     error={formErrors.fechaGasto}

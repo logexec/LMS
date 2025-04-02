@@ -434,7 +434,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   type="date"
                   value={formData.fechaGasto}
                   onChange={handleInputChange}
-                  allowPastDates={true}
                   minDate={minDate}
                   maxDate={maxDate}
                   error={formErrors.fechaGasto}

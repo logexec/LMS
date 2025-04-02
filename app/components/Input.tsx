@@ -26,8 +26,6 @@ type InputProps = {
   numericInput?: boolean;
   containerClassName?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  allowPastDates?: boolean;
-  min?: number;
   minDate?: string;
   maxDate?: string;
   readonly?: boolean;
@@ -74,8 +72,6 @@ const Input: React.FC<InputProps> = ({
   onKeyDown,
   numericInput,
   containerClassName,
-  allowPastDates = true,
-  min,
   minDate,
   maxDate,
   readonly,

@@ -437,7 +437,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                   type="date"
                   value={normalFormData.fechaGasto}
                   onChange={handleInputChange}
-                  allowPastDates={true}
                   minDate={minDate}
                   maxDate={maxDate}
                   error={formErrors.fechaGasto}
