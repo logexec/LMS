@@ -69,7 +69,7 @@ export default function EditRecord({
     resolver: zodResolver(formSchema),
     defaultValues: {
       request_date: clampedDate,
-      invoice_number: row.original.invoice_number || "0",
+      invoice_number: row.original.invoice_number.toString() || "0",
       account_id: row.original.account_id
         ? String(row.original.account_id)
         : "",
@@ -239,7 +239,7 @@ export default function EditRecord({
               render={({ field }) => (
                 <SelectField
                   label="Proyecto"
-                  value={field.value}
+                  value={field.value as string}
                   onChange={field.onChange}
                   options={projects.map((proj) => ({
                     id: String(proj.id),
