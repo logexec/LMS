@@ -454,7 +454,7 @@ export interface LoanFormData {
   account_id: string;
   amount: string;
   project: string;
-  invoice_number: number | string;
+  invoice_number: string;
   installments: string;
   responsible_id?: string;
   vehicle_id?: string;
