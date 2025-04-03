@@ -247,7 +247,8 @@ const RequestDetailsTableComponent = ({
             }[request.status] || request.status;
           valuesToSearch.push(statusText);
         }
-        if (request.invoice_number) valuesToSearch.push(request.invoice_number);
+        if (request.invoice_number)
+          valuesToSearch.push(request.invoice_number.toString());
         if ("account" in request && request.account) {
           const account = String(request.account);
           valuesToSearch.push(account);
