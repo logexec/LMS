@@ -447,7 +447,7 @@ export const getReposicionColumns = (
     cell: ({ row }) => {
       const requests = row.original.requests || [];
       if (!requests.length) {
-        return <p className="text-center opacity-50">No especificado</p>;
+        return <p className="text-center opacity-50">—</p>;
       }
       const firstRequestId = requests[0].unique_id;
       const type = firstRequestId.startsWith("G")
@@ -456,6 +456,8 @@ export const getReposicionColumns = (
         ? "Descuento"
         : firstRequestId.startsWith("P")
         ? "Préstamo"
+        : firstRequestId.startsWith("I")
+        ? "Ingreso"
         : "Desconocido";
       return (
         <p
@@ -487,12 +489,10 @@ export const getReposicionColumns = (
                   "opacity-50"
                 }`}
               >
-                {row.getValue("note") || "Sin observaciones"}
+                {row.getValue("note") || "—"}
               </span>
             </TooltipTrigger>
-            <TooltipContent>
-              {row.getValue("note") || "Sin observaciones"}
-            </TooltipContent>
+            <TooltipContent>{row.getValue("note") || "—"}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </p>

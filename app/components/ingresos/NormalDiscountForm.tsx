@@ -348,10 +348,12 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
     setLocalLoading((prev) => ({ ...prev, submit: true }));
 
+    console.log("TIPO: ", type);
+
     try {
       const formData = new FormData();
       formData.append("request_date", normalFormData.fechaGasto);
-      formData.append("type", "discount");
+      formData.append("type", type === "discount" ? "discount" : "income");
       formData.append("status", "pending");
       formData.append("invoice_number", normalFormData.factura);
       formData.append("account_id", normalFormData.cuenta);
@@ -398,9 +400,12 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Registro de Descuento</CardTitle>
+        <CardTitle>
+          Registro de {type === "income" ? "Ingreso" : "Descuento"}
+        </CardTitle>
         <CardDescription>
-          Completa todos los campos requeridos para registrar un nuevo descuento
+          Completa todos los campos requeridos para registrar un nuevo{" "}
+          {type === "income" ? "ingreso" : "descuento"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -609,7 +614,9 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                         required
                         id="valor"
                         name="valor"
-                        label="Valor del Descuento"
+                        label={`Valor del ${
+                          type === "income" ? "Ingreso" : "Descuento"
+                        }`}
                         type="number"
                         value={normalFormData.valor}
                         onChange={handleInputChange}
@@ -662,8 +669,10 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Procesando...
                     </>
-                  ) : (
+                  ) : type === "discount" ? (
                     "Registrar Descuento"
+                  ) : (
+                    "Registrar Ingreso"
                   )}
                 </Button>
               </div>

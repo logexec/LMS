@@ -55,15 +55,12 @@ const IngresosForm = () => {
             },
             credentials: "include",
           }),
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/accounts?account_affects="income"`,
-            {
-              headers: {
-                Authorization: `Bearer ${getAuthToken()}`,
-              },
-              credentials: "include",
-            }
-          ),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
+            credentials: "include",
+          }),
         ]);
 
         if (!projectsRes.ok) throw new Error("Error al cargar proyectos");
