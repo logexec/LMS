@@ -264,15 +264,6 @@ export function RequestsTable<
     projectMap: {} as Record<string, string>,
   });
 
-  const [editingField, setEditingField] = useState<{
-    id: string;
-    field: keyof RequestProps;
-  } | null>(null);
-
-  const [editedValues, setEditedValues] = useState<{
-    [key: string]: Partial<RequestProps>;
-  }>({});
-
   const hasFetchedRef = useRef(false);
 
   const fetchProjects = async (): Promise<Record<string, string>> => {
@@ -354,125 +345,13 @@ export function RequestsTable<
     loadDataMaps();
   }, []);
 
-  const handleDoubleClick = useCallback(
-    (id: string, field: keyof RequestProps) => {
-      if (mode !== "requests") return;
-      if (field === "unique_id") return;
-
-      const foundItem = data.find((item) => {
-        return "unique_id" in item && item.unique_id === id;
-      });
-
-      if (foundItem && "unique_id" in foundItem) {
-        const requestItem = foundItem as RequestProps;
-        const fieldValue = requestItem[field];
-
-        setEditingField({ id, field });
-        setEditedValues((prev) => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            [field]: fieldValue,
-          },
-        }));
-      }
-    },
-    [data, mode, setEditingField, setEditedValues]
-  );
-
-  const handleInputChange = useCallback(
-    (id: string, field: keyof RequestProps, value: any) => {
-      setEditedValues((prev) => ({
-        ...prev,
-        [id]: { ...prev[id], [field]: value },
-      }));
-    },
-    []
-  );
-
-  const handleSave = useCallback(
-    async (id: string) => {
-      const updatedData = editedValues[id];
-      if (!updatedData) return;
-
-      try {
-        setIsLoading(true);
-        const response = await fetchWithAuth(`/requests/${id}`, {
-          method: "PUT",
-          body: JSON.stringify(updatedData),
-        });
-
-        if (response && response.ok) {
-          setData((prev) =>
-            prev.map((item: any) =>
-              "unique_id" in item && item.unique_id === id
-                ? { ...item, ...updatedData }
-                : item
-            )
-          );
-          toast.success("Solicitud actualizada correctamente");
-        } else {
-          throw new Error("No se pudo actualizar la solicitud");
-        }
-      } catch (error) {
-        console.error("Error al actualizar la solicitud:", error);
-        toast.error("Error al actualizar la solicitud");
-      } finally {
-        setIsLoading(false);
-        setEditingField(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[id];
-          return newValues;
-        });
-      }
-    },
-    [editedValues, setData, setIsLoading, setEditingField, setEditedValues]
-  );
-
-  const handleKeyDown = useCallback(
-    (
-      event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-      id: string
-    ) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        handleSave(id);
-      } else if (event.key === "Escape") {
-        setEditingField(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[id];
-          return newValues;
-        });
-      }
-    },
-    [handleSave]
-  );
-
   const columns = useMemo(
     () =>
       getColumns<TData>(mode, {
         ...dataMaps,
         onStatusChange,
-        handleDoubleClick,
-        handleInputChange,
-        handleKeyDown,
-        handleSave,
-        editingField,
-        editedValues,
       }),
-    [
-      mode,
-      dataMaps,
-      onStatusChange,
-      handleDoubleClick,
-      handleInputChange,
-      handleKeyDown,
-      handleSave,
-      editingField,
-      editedValues,
-    ]
+    [mode, dataMaps, onStatusChange]
   );
 
   const buildQueryUrl = useCallback(
