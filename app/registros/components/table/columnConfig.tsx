@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ColumnDef } from "@tanstack/react-table";
-import { RequestProps, ReposicionProps, Status } from "@/utils/types";
+import {
+  RequestProps,
+  ReposicionProps,
+  Status,
+  AccountProps,
+  Project,
+} from "@/utils/types";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import {
@@ -21,8 +27,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,33 +34,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import EditCell from "./EditCell";
 
 interface ColumnHelpers {
   onStatusChange?: (id: number, status: Status) => Promise<void>;
-  handleDoubleClick?: (id: string, field: keyof RequestProps) => void;
-  handleInputChange?: (
-    id: string,
-    field: keyof RequestProps,
-    value: any
-  ) => void;
-  handleKeyDown?: (
-    event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-    id: string
-  ) => void;
-  handleSave?: (id: string) => Promise<void>;
-  editingField?: { id: string; field: keyof RequestProps } | null;
-  editedValues?: { [key: string]: Partial<RequestProps> };
+  accountMap?: Record<string, string>;
+  responsibleMap?: Record<string, string>;
+  vehicleMap?: Record<string, string>;
+  projectMap?: Record<string, string>;
+  accounts?: AccountProps[];
+  projects?: Project[];
 }
 
 // Columnas para RequestProps
-export const getRequestColumns = ({
-  handleDoubleClick,
-  handleInputChange,
-  handleKeyDown,
-  handleSave,
-  editingField,
-  editedValues,
-}: ColumnHelpers): ColumnDef<RequestProps>[] => [
+
+export const getRequestColumns = (
+  helpers: ColumnHelpers = {}
+): ColumnDef<RequestProps>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -92,35 +86,8 @@ export const getRequestColumns = ({
     accessorKey: "updated_at",
     header: () => <div className="text-center w-[15ch]">Fecha</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "updated_at") {
-        return (
-          <Input
-            type="date"
-            value={
-              editedValues?.[id]?.updated_at
-                ? new Date(editedValues[id].updated_at as string)
-                    .toISOString()
-                    .split("T")[0]
-                : new Date(row.getValue("updated_at") as string)
-                    .toISOString()
-                    .split("T")[0]
-            }
-            onChange={(e) =>
-              handleInputChange?.(id, "updated_at", e.target.value)
-            }
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full text-center"
-          />
-        );
-      }
       return (
-        <p
-          className="text-slate-500 font-medium w-full text-start"
-          onDoubleClick={() => handleDoubleClick?.(id, "updated_at")}
-        >
+        <p className="text-slate-500 font-medium w-full text-start">
           {(row.getValue("updated_at") as string).split("T")[0]}
         </p>
       );
@@ -130,32 +97,9 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "invoice_number",
-    header: () => <div className="w-[15ch] text-center">Factura</div>,
+    header: () => <div className="w-[10ch] text-center">Factura</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "invoice_number") {
-        return (
-          <Input
-            type="text"
-            value={
-              editedValues?.[id]?.invoice_number ||
-              (row.getValue("invoice_number") as string)
-            }
-            onChange={(e) =>
-              handleInputChange?.(id, "invoice_number", e.target.value)
-            }
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
-      return (
-        <div onDoubleClick={() => handleDoubleClick?.(id, "invoice_number")}>
-          {row.getValue("invoice_number") || ""}
-        </div>
-      );
+      return <div>{row.getValue("invoice_number") || ""}</div>;
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
@@ -166,32 +110,8 @@ export const getRequestColumns = ({
       <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
     ),
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "account_id") {
-        return (
-          <Input
-            type="text"
-            value={
-              editedValues?.[id]?.account_id ||
-              (row.getValue("account_id") as string)
-            }
-            onChange={(e) =>
-              handleInputChange?.(id, "account_id", e.target.value)
-            }
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
       return (
-        <p
-          className="capitalize px-1"
-          onDoubleClick={() => handleDoubleClick?.(id, "account_id")}
-        >
-          {row.getValue("account_id") || ""}
-        </p>
+        <p className="capitalize px-1">{row.getValue("account_id") || ""}</p>
       );
     },
     sortingFn: "alphanumeric",
@@ -201,34 +121,14 @@ export const getRequestColumns = ({
     accessorKey: "amount",
     header: () => <div className="w-[7ch] text-center">Valor</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "amount") {
-        return (
-          <Input
-            type="number"
-            step="0.01"
-            value={
-              editedValues?.[id]?.amount || (row.getValue("amount") as string)
-            }
-            onChange={(e) => handleInputChange?.(id, "amount", e.target.value)}
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
-      const rawAmount = row.getValue("amount") as string | number; // Explicitly type
+      const rawAmount = row.getValue("amount") as string | number;
       const amount =
         typeof rawAmount === "string"
           ? parseFloat(rawAmount || "0")
           : rawAmount || 0;
       return (
-        <p
-          className="font-medium text-slate-900 text-start"
-          onDoubleClick={() => handleDoubleClick?.(id, "amount")}
-        >
-          ${amount.toFixed(2)} {/* Now TypeScript knows amount is a number */}
+        <p className="font-medium text-slate-900 text-start">
+          ${amount.toFixed(2)}
         </p>
       );
     },
@@ -239,29 +139,8 @@ export const getRequestColumns = ({
     accessorKey: "project",
     header: () => <div className="w-[7ch] text-center">Proyecto</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "project") {
-        return (
-          <Input
-            type="text"
-            value={
-              editedValues?.[id]?.project || (row.getValue("project") as string)
-            }
-            onChange={(e) => handleInputChange?.(id, "project", e.target.value)}
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
       return (
-        <p
-          className="px-1 text-center"
-          onDoubleClick={() => handleDoubleClick?.(id, "project")}
-        >
-          {row.getValue("project") || ""}
-        </p>
+        <p className="px-1 text-center">{row.getValue("project") || ""}</p>
       );
     },
     sortingFn: "alphanumeric",
@@ -273,30 +152,7 @@ export const getRequestColumns = ({
       <div className="min-w-64 max-w-sm text-center">Responsable</div>
     ),
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "responsible_id") {
-        return (
-          <Input
-            type="text"
-            value={
-              editedValues?.[id]?.responsible_id ||
-              (row.getValue("responsible_id") as string)
-            }
-            onChange={(e) =>
-              handleInputChange?.(id, "responsible_id", e.target.value)
-            }
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
-      return (
-        <div onDoubleClick={() => handleDoubleClick?.(id, "responsible_id")}>
-          {row.getValue("responsible_id") || "—"}
-        </div>
-      );
+      return <div>{row.getValue("responsible_id") || "—"}</div>;
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
@@ -305,28 +161,9 @@ export const getRequestColumns = ({
     accessorKey: "vehicle_plate",
     header: () => <div className="w-[12ch] text-center">Placa</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "vehicle_plate") {
-        return (
-          <Input
-            type="text"
-            value={
-              editedValues?.[id]?.vehicle_plate ||
-              (row.getValue("vehicle_plate") as string)
-            }
-            onChange={(e) =>
-              handleInputChange?.(id, "vehicle_plate", e.target.value)
-            }
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
       const vehicle_plate = row.getValue("vehicle_plate") as string;
       return (
-        <div onDoubleClick={() => handleDoubleClick?.(id, "vehicle_plate")}>
+        <div>
           {vehicle_plate ? (
             <p className="text-center w-[12ch]">{vehicle_plate}</p>
           ) : (
@@ -342,33 +179,14 @@ export const getRequestColumns = ({
     accessorKey: "vehicle_number",
     header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "vehicle_number") {
-        return (
-          <Input
-            type="text"
-            value={
-              editedValues?.[id]?.vehicle_number ||
-              (row.getValue("vehicle_number") as string)
-            }
-            onChange={(e) =>
-              handleInputChange?.(id, "vehicle_number", e.target.value)
-            }
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full"
-          />
-        );
-      }
       return (
-        <div onDoubleClick={() => handleDoubleClick?.(id, "vehicle_number")}>
+        <div>
           {row.getValue("vehicle_number") ? (
             <p className="text-center w-[12ch]">
               {row.getValue("vehicle_number")}
             </p>
           ) : (
-            <p className="text-center">Sin datos</p>
+            <p className="text-center">—</p>
           )}
         </div>
       );
@@ -378,37 +196,19 @@ export const getRequestColumns = ({
   },
   {
     accessorKey: "note",
-    header: () => <div className="min-w-[40ch] text-center">Observación</div>,
+    header: () => <div className="min-w-[35ch] text-center">Observación</div>,
     cell: ({ row }) => {
-      const id = row.original.unique_id;
-      if (editingField?.id === id && editingField.field === "note") {
-        return (
-          <Textarea
-            value={
-              editedValues?.[id]?.note || (row.getValue("note") as string) || ""
-            }
-            onChange={(e) => handleInputChange?.(id, "note", e.target.value)}
-            onBlur={() => handleSave?.(id)}
-            onKeyDown={(e) => handleKeyDown?.(e, id)}
-            autoFocus
-            className="w-full min-h-[80px]"
-          />
-        );
-      }
       return (
-        <p
-          className="text-pretty text-justify overflow-ellipsis"
-          onDoubleClick={() => handleDoubleClick?.(id, "note")}
-        >
+        <p className="text-pretty text-justify overflow-ellipsis">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="cursor-default">
-                  {(row.getValue("note") as string) || "Sin observaciones."}
+                  {(row.getValue("note") as string) || "—"}
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                {(row.getValue("note") as string) || "Sin observaciones."}
+                {(row.getValue("note") as string) || "—"}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -417,6 +217,30 @@ export const getRequestColumns = ({
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+  },
+  {
+    accessorKey: "options",
+    header: () => <div className="min-w-[8ch] text-center">Acciones</div>,
+    cell: ({ row, table }) => (
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="flex items-center justify-center">
+              <EditCell
+                row={row}
+                table={table}
+                accounts={helpers.accounts || []}
+                projects={helpers.projects || []}
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Editar</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
+    enableSorting: false,
   },
 ];
 
@@ -645,7 +469,7 @@ export const getReposicionColumns = (
         </p>
       );
     },
-    sortingFn: "alphanumeric",
+    sortingFn: "text",
     enableSorting: true,
   },
   {

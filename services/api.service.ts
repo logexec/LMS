@@ -317,10 +317,9 @@ export const apiService = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response;
         throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`
+          errorData.error || `Error ${response.status}: ${response.statusText}`
         );
       }
 

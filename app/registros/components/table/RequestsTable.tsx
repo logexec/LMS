@@ -280,16 +280,6 @@ export function RequestsTable<
     projectMap: {} as Record<string, string>, // Mantenemos por si se necesita en otro lugar
   });
 
-  // Estados para edición con doble clic
-  const [editingField, setEditingField] = useState<{
-    id: string;
-    field: keyof RequestProps;
-  } | null>(null);
-
-  const [editedValues, setEditedValues] = useState<{
-    [key: string]: Partial<RequestProps>;
-  }>({});
-
   const hasFetchedRef = useRef(false);
 
   const fetchProjects = async (): Promise<Record<string, string>> => {
@@ -371,136 +361,22 @@ export function RequestsTable<
     loadDataMaps();
   }, []);
 
-  // Funciones para manejar la edición con doble clic
-  const handleDoubleClick = useCallback(
-    (id: string, field: keyof RequestProps) => {
-      // No permitir edición si no es el modo "requests"
-      if (mode !== "requests") return;
-
-      // No permitir edición de ID
-      if (field === "unique_id") return;
-
-      // Encontrar el item específico
-      const foundItem = data.find((item) => {
-        return "unique_id" in item && item.unique_id === id;
-      });
-
-      // Solo si es un RequestProps y tiene la propiedad
-      if (foundItem && "unique_id" in foundItem) {
-        // Asumimos que foundItem es un RequestProps
-        const requestItem = foundItem as RequestProps;
-
-        // Ahora podemos acceder a la propiedad de forma segura
-        const fieldValue = requestItem[field];
-
-        setEditingField({ id, field });
-        setEditedValues((prev) => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            [field]: fieldValue,
-          },
-        }));
-      }
-    },
-    [data, mode, setEditingField, setEditedValues]
-  );
-
-  const handleInputChange = useCallback(
-    (id: string, field: keyof RequestProps, value: any) => {
-      setEditedValues((prev) => ({
-        ...prev,
-        [id]: { ...prev[id], [field]: value },
-      }));
-    },
-    []
-  );
-
-  const handleSave = useCallback(
-    async (id: string) => {
-      const updatedData = editedValues[id];
-      if (!updatedData) return;
-
-      try {
-        setIsLoading(true);
-        // Llamar a la API para actualizar la solicitud
-        const response = await fetchWithAuth(`/requests/${id}`, {
-          method: "PUT",
-          body: JSON.stringify(updatedData),
-        });
-
-        if (response && response.ok) {
-          // Actualización optimista en el estado local
-          setData((prev) =>
-            prev.map((item: any) =>
-              "unique_id" in item && item.unique_id === id
-                ? { ...item, ...updatedData }
-                : item
-            )
-          );
-          toast.success("Solicitud actualizada correctamente");
-        } else {
-          throw new Error("No se pudo actualizar la solicitud");
-        }
-      } catch (error) {
-        console.error("Error al actualizar la solicitud:", error);
-        toast.error("Error al actualizar la solicitud");
-      } finally {
-        setIsLoading(false);
-        setEditingField(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[id];
-          return newValues;
-        });
-      }
-    },
-    [editedValues, setData, setIsLoading, setEditingField, setEditedValues]
-  );
-
-  const handleKeyDown = useCallback(
-    (
-      event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-      id: string
-    ) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        handleSave(id);
-      } else if (event.key === "Escape") {
-        setEditingField(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[id];
-          return newValues;
-        });
-      }
-    },
-    [handleSave]
-  );
-
   const columns = useMemo(
     () =>
       getColumns<TData>(mode, {
         ...dataMaps,
         onStatusChange,
-        handleDoubleClick,
-        handleInputChange,
-        handleKeyDown,
-        handleSave,
-        editingField,
-        editedValues,
+        // Añadir estas dos propiedades:
+        accounts: Object.entries(dataMaps.accountMap).map(([id, name]) => ({
+          id,
+          name,
+        })),
+        projects: Object.entries(dataMaps.projectMap).map(([id, name]) => ({
+          id,
+          name,
+        })),
       }),
-    [
-      mode,
-      dataMaps,
-      onStatusChange,
-      handleDoubleClick,
-      handleInputChange,
-      handleKeyDown,
-      handleSave,
-      editingField,
-      editedValues,
-    ]
+    [mode, dataMaps, onStatusChange]
   );
 
   const buildQueryUrl = useCallback(
@@ -594,18 +470,15 @@ export function RequestsTable<
   }, [fetchData, loadAllData]);
 
   const handleUpdateData = useCallback(
-    ({
-      rowIndex,
-      columnId,
-      value,
-    }: {
-      rowIndex: number;
-      columnId: string;
-      value: unknown;
-    }) => {
+    (args: { rowIndex: number; columnId: string; value: unknown }) => {
+      const { rowIndex, columnId, value } = args;
+
       setData((old) => {
         const newData = [...old];
-        newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
+        newData[rowIndex] = {
+          ...newData[rowIndex],
+          [columnId]: value,
+        };
         return newData;
       });
     },
@@ -678,16 +551,6 @@ export function RequestsTable<
     manualSorting: false,
     manualFiltering: false,
   });
-
-  // Log state changes for debugging
-  useEffect(() => {
-    console.log("Table State Updated:", {
-      globalFilter: tableState.globalFilter, // Add this to see filter value
-      rowSelection,
-      filteredRows: table.getFilteredRowModel().rows.length,
-      selectedRows: table.getSelectedRowModel().rows.length,
-    });
-  }, [tableState.globalFilter, rowSelection, table]); // Add tableState.globalFilter
 
   const handleSendRequests = async (
     requestIds: string[],

@@ -23,8 +23,10 @@ export interface BaseEntity {
 export interface RequestProps extends BaseEntity {
   unique_id: string;
   updated_at: string;
-  invoice_number: string;
-  account_id: number;
+  invoice_number: number | string;
+  account_id: string;
+  account_name?: string;
+  project_name?: string;
   amount: number;
   project: string;
   responsible_id: string | null;
@@ -42,11 +44,11 @@ export interface RequestProps extends BaseEntity {
 
 export interface AccountProps extends BaseEntity {
   name: string;
-  account_number: string;
-  account_type: string;
-  account_status: string;
-  account_affects: string;
-  generates_income: boolean;
+  account_number?: string;
+  account_type?: string;
+  account_status?: string;
+  account_affects?: string;
+  generates_income?: boolean;
 }
 
 export interface ResponsibleProps {
@@ -192,7 +194,7 @@ export interface NormalRequestData {
   type: string;
   personnel_type: string;
   request_date: string;
-  invoice_number: string;
+  invoice_number: number | string;
   account_id: string;
   amount: string;
   project: string;
@@ -386,7 +388,7 @@ export interface NormalRequestData {
   type: string;
   personnel_type: string;
   request_date: string;
-  invoice_number: string;
+  invoice_number: number | string;
   account_id: string;
   amount: string;
   project: string;
@@ -452,7 +454,7 @@ export interface LoanFormData {
   account_id: string;
   amount: string;
   project: string;
-  invoice_number: string;
+  invoice_number: number | string;
   installments: string;
   responsible_id?: string;
   vehicle_id?: string;
@@ -466,3 +468,23 @@ export interface Installment {
 }
 
 // Fin Préstamos
+
+// export interface TableMeta<TData> {
+//   updateData: (args: {
+//     rowIndex: number;
+//     columnId: string;
+//     value: unknown;
+//   }) => void;
+// }
+
+// Esta es la declaración que puedes usar para extender React Table
+
+// declare module "@tanstack/react-table" {
+//   interface TableMeta<TData> {
+//     updateData?: (args: {
+//       rowIndex: number;
+//       columnId: string;
+//       value: unknown;
+//     }) => void;
+//   }
+// }
