@@ -280,7 +280,7 @@ export const getReposicionColumns = (
   helpers?: ColumnHelpers
 ): ColumnDef<ReposicionProps>[] => [
   {
-    accessorKey: "unique_id",
+    accessorKey: "id",
     header: () => <div className="max-w-[5ch] text-center">ID</div>,
     cell: ({ row }) => (
       <p
@@ -293,7 +293,7 @@ export const getReposicionColumns = (
         {row.original.id}
       </p>
     ),
-    sortingFn: "alphanumeric",
+    sortingFn: "basic",
     enableSorting: true,
   },
   {
@@ -442,7 +442,8 @@ export const getReposicionColumns = (
     enableSorting: true,
   },
   {
-    id: "type",
+    id: "request_type",
+    accessorKey: "request_type", // Esto puede quedarse aunque no se use directamente
     header: () => <div className="w-[12ch] text-center">Tipo</div>,
     cell: ({ row }) => {
       const requests = row.original.requests || [];
@@ -471,7 +472,29 @@ export const getReposicionColumns = (
         </p>
       );
     },
-    sortingFn: "text",
+    sortingFn: (rowA, rowB, columnId) => {
+      // Extrae el tipo de request para ambas filas
+      const getRequestType = (row) => {
+        const requests = row.original.requests || [];
+        if (!requests.length) return "—"; // Valor por defecto para filas sin requests
+        const firstRequestId = requests[0].unique_id;
+        return firstRequestId.startsWith("G")
+          ? "Gasto"
+          : firstRequestId.startsWith("D")
+          ? "Descuento"
+          : firstRequestId.startsWith("P")
+          ? "Préstamo"
+          : firstRequestId.startsWith("I")
+          ? "Ingreso"
+          : "Desconocido";
+      };
+
+      const typeA = getRequestType(rowA);
+      const typeB = getRequestType(rowB);
+
+      // Compara los valores como strings
+      return typeA.localeCompare(typeB);
+    },
     enableSorting: true,
   },
   {
