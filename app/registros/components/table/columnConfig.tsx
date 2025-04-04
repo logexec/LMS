@@ -472,9 +472,8 @@ export const getReposicionColumns = (
         </p>
       );
     },
-    sortingFn: (rowA, rowB, columnId) => {
-      // Extrae el tipo de request para ambas filas
-      const getRequestType = (row) => {
+    sortingFn: (rowA, rowB) => {
+      const getRequestType = (row: any) => {
         const requests = row.original.requests || [];
         if (!requests.length) return "—"; // Valor por defecto para filas sin requests
         const firstRequestId = requests[0].unique_id;
