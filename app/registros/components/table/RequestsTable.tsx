@@ -103,7 +103,7 @@ const findAmountColumnIndex = (
   table: {
     getVisibleLeafColumns: () => Array<{ id: string }>;
   },
-  mode: "requests" | "reposiciones"
+  mode: "requests" | "reposiciones" | "income"
 ): number => {
   const visibleColumns = table.getVisibleLeafColumns();
   const keyToFind = mode === "requests" ? "amount" : "total_reposicion";
@@ -119,7 +119,7 @@ const TableFooterWithTotals = ({
 }: {
   table: any;
   data: any[];
-  mode: "requests" | "reposiciones";
+  mode: "requests" | "reposiciones" | "income";
 }) => {
   // Obtener los modelos de filas importantes
   const filteredRows = table.getFilteredRowModel().rows;
@@ -366,7 +366,6 @@ export function RequestsTable<
       getColumns<TData>(mode, {
         ...dataMaps,
         onStatusChange,
-        // Añadir estas dos propiedades:
         accounts: Object.entries(dataMaps.accountMap).map(([id, name]) => ({
           id,
           name,

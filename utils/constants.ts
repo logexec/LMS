@@ -1,5 +1,12 @@
 import { LuUsers } from "react-icons/lu";
-import { SquarePlus, Landmark, Wallet, PiggyBank, Receipt } from "lucide-react";
+import {
+  SquarePlus,
+  Landmark,
+  Wallet,
+  PiggyBank,
+  Receipt,
+  Banknote,
+} from "lucide-react";
 import { GrSubtractCircle, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
 import { HandHelping } from "lucide-react";
@@ -49,7 +56,7 @@ export const sidenavLinks: NavLink[] = [
     category: "Registros",
     links: [
       {
-        label: "Nuevo Ingreso",
+        label: "Nuevo Registro",
         url: "/registros/nuevo",
         icon: SquarePlus,
         requiredPermissions: ["register_income"],
@@ -66,12 +73,12 @@ export const sidenavLinks: NavLink[] = [
         icon: GiPayMoney,
         requiredPermissions: ["view_expenses", "manage_expenses"],
       },
-      // {
-      //   label: "Ingresos Especiales",
-      //   url: "/registros/ingresos-especiales",
-      //   icon: Banknote,
-      //   requiredPermissions: ["view_expenses", "manage_expenses"],
-      // },
+      {
+        label: "Ingresos",
+        url: "/registros/ingresos",
+        icon: Banknote,
+        requiredPermissions: ["view_expenses", "manage_expenses"],
+      },
       {
         label: "Reposiciones",
         url: "/registros/reposiciones",

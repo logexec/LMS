@@ -10,8 +10,6 @@ import {
 } from "@/utils/types";
 import { toast } from "sonner";
 import React from "react";
-// import TableDebugger from "./table/TableDebugger";
-// import SimpleTable from "./table/SimpleTable";
 
 interface ClientTableProps {
   mode: "requests" | "reposiciones";
