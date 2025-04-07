@@ -33,12 +33,14 @@ interface NormalDiscountFormProps {
   loading: LoadingState;
   type: "discount" | "income";
   onSubmit: (data: FormData) => Promise<void>;
+  onReset?: () => void;
 }
 
 const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   options,
   loading,
   onSubmit,
+  onReset,
   type,
 }) => {
   const [normalFormData, setNormalFormData] = React.useState<NormalFormData>({
@@ -348,8 +350,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
 
     setLocalLoading((prev) => ({ ...prev, submit: true }));
 
-    console.log("TIPO: ", type);
-
     try {
       const formData = new FormData();
       formData.append("request_date", normalFormData.fechaGasto);
@@ -372,6 +372,16 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       formData.append("personnel_type", normalFormData.tipo);
 
       await onSubmit(formData);
+      toast.success(
+        type === "discount"
+          ? "Descuento registrado correctamente"
+          : type === "income"
+          ? "Ingreso registrado correctamente"
+          : type === "expense"
+          ? "Gasto registrado correctamente"
+          : "Registro realizado correctamente"
+      );
+      resetForm();
     } catch (error) {
       toast.error(
         error instanceof Error

@@ -122,6 +122,7 @@ const IngresosForm = () => {
       }
 
       toast.success("Ingreso registrado con éxito");
+      resetForm();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al procesar el ingreso"
@@ -129,6 +130,16 @@ const IngresosForm = () => {
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
+  };
+
+  const resetForm = () => {
+    setOptions((prev) => ({
+      ...prev,
+      projects: [],
+      responsibles: [],
+      transports: [],
+      accounts: [],
+    }));
   };
 
   return (
@@ -152,6 +163,7 @@ const IngresosForm = () => {
                 options={options}
                 loading={loading}
                 onSubmit={handleNormalSubmit}
+                onReset={resetForm}
                 type="income"
               />
             </motion.div>

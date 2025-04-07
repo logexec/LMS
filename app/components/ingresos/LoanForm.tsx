@@ -380,6 +380,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
       if (status === 201) {
         resetForm();
+        toast.success("Préstamo creado exitosamente");
         return response;
       }
 

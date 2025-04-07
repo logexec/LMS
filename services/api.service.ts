@@ -293,7 +293,7 @@ export const apiService = {
         console.log("Error response from backend:", errorText);
         let errorData;
         try {
-          errorData = JSON.parse(errorText);
+          errorData = errorText.error;
         } catch {
           errorData = { message: errorText || "Error desconocido" };
         }

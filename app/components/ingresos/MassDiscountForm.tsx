@@ -287,6 +287,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       });
 
       await Promise.all(requests);
+      toast.success("Registros creados con éxito");
       resetForm();
     } catch (error) {
       toast.error("Error al procesar los descuentos");
