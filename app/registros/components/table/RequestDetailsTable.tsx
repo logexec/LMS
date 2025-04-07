@@ -30,6 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import apiService from "@/services/api.service";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
@@ -400,7 +401,7 @@ const RequestDetailsTableComponent = ({
         </TooltipProvider>
       </div>
 
-      <div className="overflow-auto rounded-lg border shadow-sm">
+      <ScrollArea className="max-h-[70vh] max-w-[90vw] overflow-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-slate-50">
@@ -567,7 +568,7 @@ const RequestDetailsTableComponent = ({
             </tfoot>
           )}
         </table>
-      </div>
+      </ScrollArea>
     </motion.div>
   );
 };
