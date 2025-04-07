@@ -1,7 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { fetchWithAuth, fetchWithAuthFormData } from "@/services/auth.service";
-import { AccountProps, RequestProps } from "@/utils/types";
+import {
+  AccountProps,
+  RequestProps,
+  ResponsibleProps,
+  TransportProps,
+} from "@/utils/types";
+
+// Variable global para controlar llamadas duplicadas
+const fetchInProgress = {
+  accounts: false,
+  responsibles: false,
+  vehicles: false,
+};
 
 export const apiService = {
   // Users
@@ -327,6 +339,202 @@ export const apiService = {
     } catch (error) {
       console.error("❌ Error in updateRequest:", error);
       throw error;
+    }
+  },
+
+  // Funciones optimizadas para los dropdowns
+  fetchAccounts: async (): Promise<AccountProps[]> => {
+    // Prevenir duplicados
+    if (fetchInProgress.accounts) {
+      console.log("Fetch accounts already in progress, skipping");
+      return [];
+    }
+
+    fetchInProgress.accounts = true;
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/accounts`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Error fetching accounts:", response.status);
+        return [];
+      }
+
+      const text = await response.text();
+
+      if (!text) {
+        console.error("Empty response from accounts API");
+        return [];
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parsing accounts JSON:", e);
+        return [];
+      }
+
+      const result =
+        data?.data && Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
+
+      // Deduplicate by name (since account_id field stores name value)
+      const uniqueMap = new Map();
+      result.forEach((item: any) => {
+        if (item && item.name && !uniqueMap.has(item.name)) {
+          uniqueMap.set(item.name, {
+            id: item.id,
+            name: item.name,
+          });
+        }
+      });
+
+      return Array.from(uniqueMap.values()) as AccountProps[];
+    } catch (error) {
+      console.error("Error in fetchAccounts:", error);
+      return [];
+    } finally {
+      // Reset fetch flag
+      fetchInProgress.accounts = false;
+    }
+  },
+
+  fetchResponsibles: async (): Promise<ResponsibleProps[]> => {
+    // Prevenir duplicados
+    if (fetchInProgress.responsibles) {
+      console.log("Fetch responsibles already in progress, skipping");
+      return [];
+    }
+
+    fetchInProgress.responsibles = true;
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
+        { credentials: "include" }
+      );
+
+      if (!response.ok) {
+        console.error("Error fetching responsibles:", response.status);
+        return [];
+      }
+
+      const text = await response.text();
+
+      if (!text) {
+        console.error("Empty response from responsibles API");
+        return [];
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parsing responsibles JSON:", e);
+        return [];
+      }
+
+      const result =
+        data?.data && Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
+
+      // Deduplicate by nombre_completo (since responsible_id field stores nombre_completo value)
+      const uniqueMap = new Map();
+      result.forEach((item: any) => {
+        if (
+          item &&
+          item.nombre_completo &&
+          !uniqueMap.has(item.nombre_completo)
+        ) {
+          uniqueMap.set(item.nombre_completo, {
+            id: item.id,
+            nombre_completo: item.nombre_completo,
+          });
+        }
+      });
+
+      return Array.from(uniqueMap.values()) as ResponsibleProps[];
+    } catch (error) {
+      console.error("Error in fetchResponsibles:", error);
+      return [];
+    } finally {
+      // Reset fetch flag
+      fetchInProgress.responsibles = false;
+    }
+  },
+
+  fetchVehicles: async (): Promise<TransportProps[]> => {
+    // Prevenir duplicados
+    if (fetchInProgress.vehicles) {
+      console.log("Fetch vehicles already in progress, skipping");
+      return [];
+    }
+
+    fetchInProgress.vehicles = true;
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/requests?fields=vehicle_plate,vehicle_number`,
+        { credentials: "include" }
+      );
+
+      if (!response.ok) {
+        console.error("Error fetching vehicles:", response.status);
+        return [];
+      }
+
+      const text = await response.text();
+
+      if (!text) {
+        console.error("Empty response from vehicles API");
+        return [];
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parsing vehicles JSON:", e);
+        return [];
+      }
+
+      const result =
+        data?.data && Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
+
+      // Filter items with vehicle_plate and deduplicate
+      const uniqueMap = new Map();
+      result.forEach((item: any) => {
+        if (item && item.vehicle_plate && !uniqueMap.has(item.vehicle_plate)) {
+          uniqueMap.set(item.vehicle_plate, {
+            vehicle_plate: item.vehicle_plate,
+            vehicle_number: item.vehicle_number || "",
+          });
+        }
+      });
+
+      return Array.from(uniqueMap.values()) as TransportProps[];
+    } catch (error) {
+      console.error("Error in fetchVehicles:", error);
+      return [];
+    } finally {
+      // Reset fetch flag
+      fetchInProgress.vehicles = false;
     }
   },
 };

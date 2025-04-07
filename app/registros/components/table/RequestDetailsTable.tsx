@@ -55,119 +55,8 @@ interface RequestDetailsTableProps {
   projectMap: Record<string, string>;
 }
 
-// Función auxiliar para procesar datos y eliminar duplicados
-const preprocessItems = <T extends { [key: string]: any }>(
-  items: any[],
-  keyProperty: string,
-  requiredProperties: string[]
-): T[] => {
-  // Filtrar items inválidos o sin propiedad clave
-  const validItems = items.filter((item) => item && item[keyProperty]);
-
-  // Usar un Map para eliminar duplicados
-  const uniqueMap = new Map();
-
-  validItems.forEach((item) => {
-    if (!uniqueMap.has(item[keyProperty])) {
-      // Asegurarse de que todos los campos requeridos existan
-      const processedItem: any = {};
-      requiredProperties.forEach((prop) => {
-        processedItem[prop] = item[prop] || "";
-      });
-      uniqueMap.set(item[keyProperty], processedItem);
-    }
-  });
-
-  return Array.from(uniqueMap.values()) as T[];
-};
-
-export const fetchAccounts = async (): Promise<AccountProps[]> => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/accounts`,
-      {
-        credentials: "include",
-      }
-    );
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(`Error fetching accounts: ${response.status} - ${text}`);
-    }
-    const data = JSON.parse(text);
-    const result =
-      data.data && Array.isArray(data.data)
-        ? data.data
-        : Array.isArray(data)
-        ? data
-        : [];
-
-    // Procesar y remover duplicados
-    return preprocessItems<AccountProps>(result, "id", ["id", "name"]);
-  } catch (error) {
-    console.error("fetchAccounts error:", error);
-    return [];
-  }
-};
-
-export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
-      { credentials: "include" }
-    );
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(
-        `Error fetching responsibles: ${response.status} - ${text}`
-      );
-    }
-    const data = JSON.parse(text);
-    const result =
-      data.data && Array.isArray(data.data)
-        ? data.data
-        : Array.isArray(data)
-        ? data
-        : [];
-
-    // Procesar y remover duplicados
-    return preprocessItems<ResponsibleProps>(result, "id", [
-      "id",
-      "nombre_completo",
-    ]);
-  } catch (error) {
-    console.error("fetchResponsibles error:", error);
-    return [];
-  }
-};
-
-export const fetchVehicles = async (): Promise<TransportProps[]> => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/requests?fields=vehicle_plate,vehicle_number`,
-      { credentials: "include" }
-    );
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(`Error fetching vehicles: ${response.status} - ${text}`);
-    }
-    const data = JSON.parse(text);
-    const result =
-      data.data && Array.isArray(data.data)
-        ? data.data
-        : Array.isArray(data)
-        ? data
-        : [];
-
-    // Procesar y remover duplicados
-    return preprocessItems<TransportProps>(result, "vehicle_plate", [
-      "vehicle_plate",
-      "vehicle_number",
-    ]).filter((v) => v.vehicle_plate); // Filtrar los que no tienen placa
-  } catch (error) {
-    console.error("fetchVehicles error:", error);
-    return [];
-  }
-};
+// Variable global para controlar si ya se ha realizado la carga
+let hasInitialDataBeenFetched = false;
 
 export interface FileMetadata {
   file_url: string;
@@ -212,21 +101,42 @@ const RequestDetailsTableComponent = ({
   const [filteredRequests, setFilteredRequests] =
     useState<RequestProps[]>(requests);
   const [fileData, setFileData] = useState<FileMetadata | undefined>(undefined);
-  const [accounts, setAccounts] = useState<AccountProps[]>([]);
-  const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
-  const [vehicles, setVehicles] = useState<TransportProps[]>([]);
+
+  // Almacenamos los datos con un solo fetch
+  const [accountsList, setAccountsList] = useState<AccountProps[]>([]);
+  const [responsiblesList, setResponsiblesList] = useState<ResponsibleProps[]>(
+    []
+  );
+  const [vehiclesList, setVehiclesList] = useState<TransportProps[]>([]);
+
+  // Estado para modal
   const [selectedRow, setSelectedRow] = useState<RequestProps | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [modalPreparing, setModalPreparing] = useState(false);
-  const [dataFetched, setDataFetched] = useState(false);
 
+  // Función para eliminar duplicados
+  const removeDuplicates = <T extends Record<string, any>>(
+    array: T[],
+    key: string
+  ): T[] => {
+    const uniqueMap = new Map();
+    return array.filter((item) => {
+      const val = item[key];
+      if (val && !uniqueMap.has(val)) {
+        uniqueMap.set(val, true);
+        return true;
+      }
+      return false;
+    });
+  };
+
+  // Fetch del archivo
   const fetchFile = async (
     id: string | number
   ): Promise<FileMetadata | null> => {
     try {
       const response = await apiService.getRepositionFile(id.toString());
       if (response.status === 404) {
-        console.warn("Archivo no encontrado para la reposición", id);
         return null;
       }
       if (!response.ok) {
@@ -239,50 +149,74 @@ const RequestDetailsTableComponent = ({
     }
   };
 
-  // Función para cargar los datos una sola vez
+  // Función para cargar datos una sola vez (con variable estática global)
   const loadData = useCallback(async () => {
-    // Verificar si ya está cargando o si ya se han cargado los datos
-    if (isRefreshing || dataFetched) return;
+    // Bloquear múltiples llamadas
+    if (isRefreshing || hasInitialDataBeenFetched) {
+      return;
+    }
+
+    console.log("Iniciando fetch de datos...");
+    setIsRefreshing(true);
 
     try {
-      setIsRefreshing(true);
+      // Realizar todos los fetches en paralelo
+      const [accounts, responsibles, vehicles, file] = await Promise.all([
+        apiService.fetchAccounts(),
+        apiService.fetchResponsibles(),
+        apiService.fetchVehicles(),
+        repositionId ? fetchFile(repositionId) : Promise.resolve(null),
+      ]);
 
-      // Usar Promise.all para hacer las peticiones en paralelo
-      const [accountsData, responsiblesData, vehiclesData, fileResult] =
-        await Promise.all([
-          fetchAccounts(),
-          fetchResponsibles(),
-          fetchVehicles(),
-          repositionId ? fetchFile(repositionId) : Promise.resolve(null),
-        ]);
+      console.log(
+        `Datos cargados: Cuentas=${accounts.length}, Responsables=${responsibles.length}, Vehículos=${vehicles.length}`
+      );
 
-      // Actualizar el estado con los datos obtenidos
-      setAccounts(accountsData);
-      setResponsibles(responsiblesData);
-      setVehicles(vehiclesData);
+      // Eliminar duplicados usando nuestra función
+      const uniqueAccounts = removeDuplicates(accounts, "id");
+      const uniqueResponsibles = removeDuplicates(responsibles, "id");
+      const uniqueVehicles = removeDuplicates(
+        vehicles.filter((v) => v.vehicle_plate),
+        "vehicle_plate"
+      );
 
-      if (fileResult) {
-        setFileData(fileResult);
+      // Actualizar estado con datos sin duplicados
+      setAccountsList(uniqueAccounts);
+      setResponsiblesList(uniqueResponsibles);
+      setVehiclesList(uniqueVehicles);
+
+      if (file) {
+        setFileData(file);
       }
 
-      // Marcar como cargado para evitar nuevas solicitudes
-      setDataFetched(true);
+      // Marcar que ya se ha realizado el fetch (global)
+      hasInitialDataBeenFetched = true;
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error cargando datos:", error);
       toast.error("Error al cargar los datos");
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
     }
-  }, [repositionId, isRefreshing, dataFetched]);
+  }, [repositionId, isRefreshing]);
 
-  // Cargar datos solo una vez al montar el componente
+  // Solo ejecutamos loadData una vez cuando el componente se monta
   useEffect(() => {
-    if (!dataFetched) {
+    if (!hasInitialDataBeenFetched) {
+      console.log("Realizando fetch inicial");
       loadData();
+    } else {
+      console.log("Datos ya cargados, omitiendo fetch");
+      setIsLoading(false);
     }
-  }, [loadData, dataFetched]);
 
+    // Limpieza al desmontar el componente - resetear para futuras instancias
+    return () => {
+      // Mantenemos hasInitialDataBeenFetched como está para que persista entre renders
+    };
+  }, [loadData]);
+
+  // Filtrado de solicitudes (memoizado)
   const filterRequests = useCallback(
     (requests: RequestProps[], search: string) => {
       if (!search.trim()) return requests;
@@ -353,12 +287,14 @@ const RequestDetailsTableComponent = ({
     []
   );
 
+  // Actualizar filteredRequests cuando cambie el término de búsqueda o las solicitudes
   useEffect(() => {
     setFilteredRequests(
       searchTerm ? filterRequests(requests, searchTerm) : requests
     );
   }, [searchTerm, requests, filterRequests]);
 
+  // Calcular el monto total (memoizado)
   const totalAmount = useMemo(() => {
     return filteredRequests.reduce((sum, req) => {
       const amount =
@@ -371,18 +307,19 @@ const RequestDetailsTableComponent = ({
     }, 0);
   }, [filteredRequests]);
 
+  // Función para manejar clic en botón de editar
   const handleEditClick = (row: RequestProps) => {
-    // Mostrar indicador de carga y preparar datos para el modal
     setModalPreparing(true);
 
-    // Usar setTimeout para permitir que la UI se actualice antes de abrir el modal
-    setTimeout(() => {
+    // Retrasar ligeramente para permitir la actualización de UI
+    requestAnimationFrame(() => {
       setSelectedRow(row);
       setIsEditModalOpen(true);
       setModalPreparing(false);
-    }, 50);
+    });
   };
 
+  // Función para manejar guardado de cambios
   const handleSave = async (updatedRow: RequestProps) => {
     const rowId = updatedRow.unique_id;
     const originalRequestIndex = filteredRequests.findIndex(
@@ -403,15 +340,25 @@ const RequestDetailsTableComponent = ({
       toast.success("Registro actualizado correctamente");
     } catch (error) {
       // Restaurar el estado original en caso de fallo
+      console.error("Error al guardar los cambios:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error al guardar los cambios."
+      );
       setFilteredRequests(originalRequests);
       toast.error("Error al guardar los cambios");
-      console.error("Error updating request:", error);
     } finally {
-      setIsEditModalOpen(false); // Cerrar el modal siempre
+      setIsEditModalOpen(false);
       setSelectedRow(null);
     }
   };
 
+  // Refrescar datos manualmente
+  const handleRefreshData = () => {
+    hasInitialDataBeenFetched = false;
+    loadData();
+  };
+
+  // Columnas para la tabla
   const columns = useMemo<ColumnDef<RequestProps>[]>(
     () => [
       {
@@ -565,6 +512,7 @@ const RequestDetailsTableComponent = ({
     [filteredRequests, projectMap, modalPreparing]
   );
 
+  // Configurar la tabla
   const table = useReactTable({
     data: filteredRequests,
     columns,
@@ -572,15 +520,7 @@ const RequestDetailsTableComponent = ({
   });
 
   const handleOpenModal = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que el evento se propague y cierre la modal
-  };
-
-  // Función para refrescar datos manualmente
-  const handleRefreshData = () => {
-    // Restablecer la bandera para permitir una nueva carga
-    setDataFetched(false);
-    // Activar la carga de datos
-    loadData();
+    e.stopPropagation();
   };
 
   return (
@@ -772,7 +712,7 @@ const RequestDetailsTableComponent = ({
         </div>
       </div>
 
-      {/* Modal de edición - Solo se renderiza cuando hay una fila seleccionada */}
+      {/* Modal de edición con lista corta*/}
       {selectedRow && (
         <Dialog
           open={isEditModalOpen}
@@ -782,16 +722,16 @@ const RequestDetailsTableComponent = ({
           }}
         >
           <EditModal
-            key={`edit-modal-${selectedRow.unique_id}`} // Añadir key para forzar recreación
+            key={`edit-modal-${selectedRow.unique_id}-${Date.now()}`} // Clave única para evitar problemas de caché
             row={selectedRow}
             onSave={handleSave}
             onClose={() => {
               setIsEditModalOpen(false);
               setSelectedRow(null);
             }}
-            accounts={accounts}
-            responsibles={responsibles}
-            vehicles={vehicles}
+            accounts={accountsList}
+            responsibles={responsiblesList}
+            vehicles={vehiclesList}
           />
         </Dialog>
       )}
@@ -799,5 +739,6 @@ const RequestDetailsTableComponent = ({
   );
 };
 
+// Prevenir rerenderizados innecesarios
 const RequestDetailsTable = React.memo(RequestDetailsTableComponent);
 export default RequestDetailsTable;

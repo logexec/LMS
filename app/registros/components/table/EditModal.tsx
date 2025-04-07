@@ -42,48 +42,40 @@ interface EditModalProps {
 }
 
 interface FormDataType {
-  personnel_type: string;
   request_date: string;
-  month: string;
   invoice_number: string;
-  account_id: string;
+  account_id: string; // Realmente contiene el nombre de la cuenta
   amount: string;
-  project: string;
-  responsible_id: string;
+  project: string; // Contiene el nombre del proyecto
+  responsible_id: string; // Contiene el nombre completo del responsable
   vehicle_plate: string;
   vehicle_number: string;
   note: string;
 }
 
-// Función pura para procesar y eliminar duplicados
-const removeDuplicates = <T extends { [key: string]: any }>(
-  items: T[],
-  keyField: string,
-  sortField?: string
-): T[] => {
-  // Usar un objeto para rastrear elementos únicos por clave
-  const uniqueMap: Record<string, T> = {};
+// Función para renderizar opciones Select sin duplicados
+const renderSelectOptions = (
+  items: any[],
+  valueProp: string,
+  labelProp: string
+) => {
+  // Usar Set para garantizar valores únicos
+  const uniqueValues = new Set<string>();
 
-  items.forEach((item) => {
-    const key = item[keyField];
-    if (key && !uniqueMap[key]) {
-      uniqueMap[key] = item;
-    }
-  });
-
-  // Convertir de vuelta a array
-  const uniqueItems = Object.values(uniqueMap);
-
-  // Ordenar si se especificó un campo de ordenamiento
-  if (sortField) {
-    return uniqueItems.sort((a, b) => {
-      const valueA = a[sortField] || "";
-      const valueB = b[sortField] || "";
-      return valueA.toString().localeCompare(valueB.toString());
-    });
-  }
-
-  return uniqueItems;
+  return items
+    .filter((item) => {
+      const value = item[valueProp];
+      if (value && !uniqueValues.has(value)) {
+        uniqueValues.add(value);
+        return true;
+      }
+      return false;
+    })
+    .map((item, index) => (
+      <SelectItem key={`${item[valueProp]}-${index}`} value={item[valueProp]}>
+        {item[labelProp] || item[valueProp]}
+      </SelectItem>
+    ));
 };
 
 const EditModal = ({
@@ -95,45 +87,22 @@ const EditModal = ({
   vehicles,
 }: EditModalProps) => {
   const [formData, setFormData] = useState<FormDataType>({
-    personnel_type: row.personnel_type || "",
     request_date: row.request_date
       ? new Date(row.request_date).toISOString().split("T")[0]
       : "",
-    month: row.month || "",
     invoice_number: row.invoice_number?.toString() || "",
-    account_id: row.account_id || "",
+    account_id: row.account_id || "", // Ya contiene el nombre de la cuenta
     amount:
       typeof row.amount === "number" ? row.amount.toString() : row.amount || "",
-    project: row.project || "",
-    responsible_id: row.responsible_id || "",
+    project: row.project || "", // Ya contiene el nombre del proyecto
+    responsible_id: row.responsible_id || "", // Ya contiene el nombre del responsable
     vehicle_plate: row.vehicle_plate || "",
     vehicle_number: row.vehicle_number || "",
     note: row.note || "",
   });
 
-  // Procesamiento de datos único usando useMemo para evitar recálculos
-  const uniqueAccounts = useMemo(
-    () => removeDuplicates(accounts, "id", "name"),
-    [accounts]
-  );
-
-  const uniqueResponsibles = useMemo(
-    () => removeDuplicates(responsibles, "id", "nombre_completo"),
-    [responsibles]
-  );
-
-  const uniqueVehicles = useMemo(
-    () =>
-      removeDuplicates(
-        vehicles.filter((v) => v.vehicle_plate),
-        "vehicle_plate",
-        "vehicle_plate"
-      ),
-    [vehicles]
-  );
-
-  // Calcular rango de fechas permitido: 29 del mes pasado al 28 del mes en curso
-  const { min: minDate, max: maxDate } = useMemo(() => {
+  // Calculamos el rango de fechas una sola vez
+  const { minDate, maxDate } = useMemo(() => {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
@@ -143,8 +112,8 @@ const EditModal = ({
     }
     const maxDate = new Date(currentYear, currentMonth, 28);
     return {
-      min: minDate.toISOString().split("T")[0],
-      max: maxDate.toISOString().split("T")[0],
+      minDate: minDate.toISOString().split("T")[0],
+      maxDate: maxDate.toISOString().split("T")[0],
     };
   }, []);
 
@@ -157,6 +126,7 @@ const EditModal = ({
   };
 
   const handleSelectChange = (name: string, value: string) => {
+    console.log(`Handling select change for ${name} with value:`, value); // Debug log
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -166,15 +136,14 @@ const EditModal = ({
   const handleSubmit = () => {
     const updatedRow: RequestProps = {
       ...row,
-      personnel_type: formData.personnel_type,
+      // personnel_type NO se modifica pues no es editable
       request_date: formData.request_date,
-      month: row.month, // Mantener el valor original ya que no es editable
+      // month NO se modifica pues no es editable
       invoice_number: formData.invoice_number,
-      account_id: formData.account_id,
-      // Convertir amount a number si es posible
+      account_id: formData.account_id, // Guardamos el nombre, no el ID
       amount: formData.amount ? parseFloat(formData.amount) : 0,
-      project: formData.project,
-      responsible_id: formData.responsible_id,
+      project: formData.project, // Guardamos el nombre, no el ID
+      responsible_id: formData.responsible_id, // Guardamos el nombre, no el ID
       vehicle_plate: formData.vehicle_plate,
       vehicle_number: formData.vehicle_number,
       note: formData.note,
@@ -219,12 +188,25 @@ const EditModal = ({
       : "bg-orange-50 border-orange-200 text-orange-700";
   };
 
+  // Función para traducir el tipo de personal
+  const getPersonnelTypeText = (type: string): string => {
+    return type === "nomina" ? "Nómina" : "Transporte";
+  };
+
+  // Limitar a 20 elementos por dropdown para mejorar rendimiento
+  const limitedAccounts = useMemo(() => accounts.slice(0, 50), [accounts]);
+  const limitedResponsibles = useMemo(
+    () => responsibles.slice(0, 50),
+    [responsibles]
+  );
+  const limitedVehicles = useMemo(() => vehicles.slice(0, 50), [vehicles]);
+
   return (
     <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden bg-white">
       <div className="bg-gradient-to-r from-rose-500 to-red-600 p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-white flex items-center">
-            Editando solicitud {row.unique_id}
+            Editando la solicitud {row.unique_id}
           </DialogTitle>
           <p className="text-blue-100 text-sm mt-1">
             Completa los campos editables a continuación para actualizar la
@@ -270,28 +252,23 @@ const EditModal = ({
           </div>
         </div>
 
+        {/* Campo de área como no editable */}
+        <div className="mb-6">
+          <div className="flex flex-col rounded-lg border p-3 bg-gray-50 border-gray-200">
+            <span className="text-xs font-medium uppercase tracking-wider text-gray-500 flex items-center">
+              <User className="h-4 w-4 mr-1.5 text-gray-400" />
+              Área
+            </span>
+            <span className="font-semibold mt-1 text-gray-700">
+              {getPersonnelTypeText(row.personnel_type!)}
+            </span>
+          </div>
+        </div>
+
         {/* Campos editables agrupados por secciones con iconos */}
         <div className="space-y-6">
           {/* Primera sección: Datos generales */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <label
-                htmlFor="personnel_type"
-                className="text-sm font-medium text-gray-700 flex items-center"
-              >
-                <User className="h-4 w-4 mr-1.5 text-gray-400" />
-                Área
-              </label>
-              <Input
-                id="personnel_type"
-                name="personnel_type"
-                value={formData.personnel_type}
-                onChange={handleChange}
-                className="w-full focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nómina / Transporte"
-              />
-            </div>
-
             <div className="space-y-2">
               <label
                 htmlFor="request_date"
@@ -329,47 +306,33 @@ const EditModal = ({
                 placeholder="Número de factura"
               />
             </div>
+          </div>
 
+          {/* Segunda sección: Datos de proyecto y montos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label
                 htmlFor="account_id"
                 className="text-sm font-medium text-gray-700 flex items-center"
               >
                 <CreditCard className="h-4 w-4 mr-1.5 text-gray-400" />
-                ID de cuenta
+                Cuenta
               </label>
               <Select
                 value={formData.account_id}
                 onValueChange={(value) =>
                   handleSelectChange("account_id", value)
                 }
-                disabled={uniqueAccounts.length === 0}
               >
                 <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
                   <SelectValue placeholder="Selecciona una cuenta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueAccounts.length > 0 ? (
-                    uniqueAccounts.map((account, index) => (
-                      <SelectItem
-                        key={`${account.id}-${index}`}
-                        value={account.name}
-                      >
-                        {account.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="loading" disabled>
-                      Cargando cuentas...
-                    </SelectItem>
-                  )}
+                  {renderSelectOptions(limitedAccounts, "name", "name")}
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {/* Segunda sección: Datos de proyecto y montos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label
                 htmlFor="amount"
@@ -420,25 +383,15 @@ const EditModal = ({
                 onValueChange={(value) =>
                   handleSelectChange("responsible_id", value)
                 }
-                disabled={uniqueResponsibles.length === 0}
               >
                 <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
                   <SelectValue placeholder="Selecciona un responsable" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueResponsibles.length > 0 ? (
-                    uniqueResponsibles.map((responsible, index) => (
-                      <SelectItem
-                        key={`${responsible.id}-${index}`}
-                        value={responsible.nombre_completo}
-                      >
-                        {responsible.nombre_completo || responsible.id}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="loading" disabled>
-                      Cargando responsables...
-                    </SelectItem>
+                  {renderSelectOptions(
+                    limitedResponsibles,
+                    "nombre_completo",
+                    "nombre_completo"
                   )}
                 </SelectContent>
               </Select>
@@ -460,25 +413,15 @@ const EditModal = ({
                 onValueChange={(value) =>
                   handleSelectChange("vehicle_plate", value)
                 }
-                disabled={uniqueVehicles.length === 0}
               >
                 <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
                   <SelectValue placeholder="Selecciona una placa" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueVehicles.length > 0 ? (
-                    uniqueVehicles.map((vehicle, index) => (
-                      <SelectItem
-                        key={`${vehicle.vehicle_plate}-${index}`}
-                        value={vehicle.vehicle_plate}
-                      >
-                        {vehicle.vehicle_plate}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="loading" disabled>
-                      Cargando placas...
-                    </SelectItem>
+                  {renderSelectOptions(
+                    limitedVehicles,
+                    "vehicle_plate",
+                    "vehicle_plate"
                   )}
                 </SelectContent>
               </Select>
@@ -544,4 +487,5 @@ const EditModal = ({
   );
 };
 
+// Memo para prevenir rerenderizados innecesarios
 export default React.memo(EditModal);
