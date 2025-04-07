@@ -155,7 +155,7 @@ const DescuentosForm = () => {
         body: formData,
       });
 
-      if (response.statusText === "OK") {
+      if (response.ok) {
         const data = await response.json();
         console.log("Descuento registrado:", data);
         toast.success(`Registro ingresado exitosamente`);
