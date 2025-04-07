@@ -59,14 +59,10 @@ import {
   TooltipContent,
   Tooltip,
 } from "@/components/ui/tooltip";
-import {
-  fetchAccounts,
-  fetchResponsibles,
-  fetchVehicles,
-} from "./RequestDetailsTable";
 import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
 import { Switch } from "@/components/ui/switch";
+import apiService from "@/services/api.service";
 
 interface MappableData {
   project?: string | number;
@@ -303,9 +299,9 @@ export function RequestsTable<
     const loadDataMaps = async () => {
       try {
         const [accounts, responsibles, vehicles, projects] = await Promise.all([
-          fetchAccounts(),
-          fetchResponsibles(),
-          fetchVehicles(),
+          apiService.fetchAccounts(),
+          apiService.fetchResponsibles(),
+          apiService.fetchVehicles(),
           fetchProjects(),
         ]);
 
