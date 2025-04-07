@@ -1,7 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { JSX, useCallback, useEffect, useState, useMemo } from "react";
-import { Download, Paperclip, RefreshCw, Search } from "lucide-react";
+import {
+  Download,
+  Paperclip,
+  RefreshCw,
+  Search,
+  Edit2,
+  Loader2,
+} from "lucide-react";
 import {
   AccountProps,
   RequestProps,
@@ -29,14 +37,49 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog } from "@/components/ui/dialog";
 import apiService from "@/services/api.service";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+
+// Componente EditModal
+import EditModal from "./EditModal";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
   repositionId?: number | string;
   projectMap: Record<string, string>;
 }
+
+// Función auxiliar para procesar datos y eliminar duplicados
+const preprocessItems = <T extends { [key: string]: any }>(
+  items: any[],
+  keyProperty: string,
+  requiredProperties: string[]
+): T[] => {
+  // Filtrar items inválidos o sin propiedad clave
+  const validItems = items.filter((item) => item && item[keyProperty]);
+
+  // Usar un Map para eliminar duplicados
+  const uniqueMap = new Map();
+
+  validItems.forEach((item) => {
+    if (!uniqueMap.has(item[keyProperty])) {
+      // Asegurarse de que todos los campos requeridos existan
+      const processedItem: any = {};
+      requiredProperties.forEach((prop) => {
+        processedItem[prop] = item[prop] || "";
+      });
+      uniqueMap.set(item[keyProperty], processedItem);
+    }
+  });
+
+  return Array.from(uniqueMap.values()) as T[];
+};
 
 export const fetchAccounts = async (): Promise<AccountProps[]> => {
   try {
@@ -57,7 +100,9 @@ export const fetchAccounts = async (): Promise<AccountProps[]> => {
         : Array.isArray(data)
         ? data
         : [];
-    return result;
+
+    // Procesar y remover duplicados
+    return preprocessItems<AccountProps>(result, "id", ["id", "name"]);
   } catch (error) {
     console.error("fetchAccounts error:", error);
     return [];
@@ -83,7 +128,12 @@ export const fetchResponsibles = async (): Promise<ResponsibleProps[]> => {
         : Array.isArray(data)
         ? data
         : [];
-    return result;
+
+    // Procesar y remover duplicados
+    return preprocessItems<ResponsibleProps>(result, "id", [
+      "id",
+      "nombre_completo",
+    ]);
   } catch (error) {
     console.error("fetchResponsibles error:", error);
     return [];
@@ -107,7 +157,12 @@ export const fetchVehicles = async (): Promise<TransportProps[]> => {
         : Array.isArray(data)
         ? data
         : [];
-    return result;
+
+    // Procesar y remover duplicados
+    return preprocessItems<TransportProps>(result, "vehicle_plate", [
+      "vehicle_plate",
+      "vehicle_number",
+    ]).filter((v) => v.vehicle_plate); // Filtrar los que no tienen placa
   } catch (error) {
     console.error("fetchVehicles error:", error);
     return [];
@@ -157,6 +212,13 @@ const RequestDetailsTableComponent = ({
   const [filteredRequests, setFilteredRequests] =
     useState<RequestProps[]>(requests);
   const [fileData, setFileData] = useState<FileMetadata | undefined>(undefined);
+  const [accounts, setAccounts] = useState<AccountProps[]>([]);
+  const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
+  const [vehicles, setVehicles] = useState<TransportProps[]>([]);
+  const [selectedRow, setSelectedRow] = useState<RequestProps | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [modalPreparing, setModalPreparing] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
 
   const fetchFile = async (
     id: string | number
@@ -177,24 +239,34 @@ const RequestDetailsTableComponent = ({
     }
   };
 
+  // Función para cargar los datos una sola vez
   const loadData = useCallback(async () => {
+    // Verificar si ya está cargando o si ya se han cargado los datos
+    if (isRefreshing || dataFetched) return;
+
     try {
       setIsRefreshing(true);
-      const results = await Promise.allSettled([
-        fetchAccounts(),
-        fetchResponsibles(),
-        fetchVehicles(),
-        ...(repositionId ? [fetchFile(repositionId)] : []),
-      ]);
 
-      if (repositionId) {
-        const fileResult = results[3];
-        if (fileResult.status === "fulfilled") {
-          setFileData(fileResult.value || undefined);
-        } else if (fileResult.status === "rejected") {
-          console.error("Error fetching file:", fileResult.reason);
-        }
+      // Usar Promise.all para hacer las peticiones en paralelo
+      const [accountsData, responsiblesData, vehiclesData, fileResult] =
+        await Promise.all([
+          fetchAccounts(),
+          fetchResponsibles(),
+          fetchVehicles(),
+          repositionId ? fetchFile(repositionId) : Promise.resolve(null),
+        ]);
+
+      // Actualizar el estado con los datos obtenidos
+      setAccounts(accountsData);
+      setResponsibles(responsiblesData);
+      setVehicles(vehiclesData);
+
+      if (fileResult) {
+        setFileData(fileResult);
       }
+
+      // Marcar como cargado para evitar nuevas solicitudes
+      setDataFetched(true);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Error al cargar los datos");
@@ -202,17 +274,19 @@ const RequestDetailsTableComponent = ({
       setIsRefreshing(false);
       setIsLoading(false);
     }
-  }, [repositionId]);
+  }, [repositionId, isRefreshing, dataFetched]);
 
-  const [hasLoaded, setHasLoaded] = useState(false);
+  // Cargar datos solo una vez al montar el componente
   useEffect(() => {
-    if (!hasLoaded) {
-      loadData().then(() => setHasLoaded(true));
+    if (!dataFetched) {
+      loadData();
     }
-  }, [loadData, hasLoaded]);
+  }, [loadData, dataFetched]);
 
   const filterRequests = useCallback(
     (requests: RequestProps[], search: string) => {
+      if (!search.trim()) return requests;
+
       const searchLower = search.toLowerCase();
       return requests.filter((request) => {
         const valuesToSearch: string[] = [];
@@ -229,13 +303,7 @@ const RequestDetailsTableComponent = ({
           );
         }
         if (request.request_date) {
-          valuesToSearch.push(
-            new Date(request.request_date).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })
-          );
+          valuesToSearch.push(new Date(request.request_date).toISOString());
         }
         if (request.status) {
           const statusText =
@@ -286,23 +354,234 @@ const RequestDetailsTableComponent = ({
   );
 
   useEffect(() => {
-    setFilteredRequests(filterRequests(requests, searchTerm));
+    setFilteredRequests(
+      searchTerm ? filterRequests(requests, searchTerm) : requests
+    );
   }, [searchTerm, requests, filterRequests]);
 
-  // Versión corregida de totalAmount usando useMemo para evitar recálculos innecesarios
   const totalAmount = useMemo(() => {
     return filteredRequests.reduce((sum, req) => {
-      // Asegurarse de que amount se parsee correctamente a número
       const amount =
         typeof req.amount === "string"
           ? parseFloat(req.amount || "0")
           : typeof req.amount === "number"
           ? req.amount
           : 0;
-
       return sum + amount;
     }, 0);
   }, [filteredRequests]);
+
+  const handleEditClick = (row: RequestProps) => {
+    // Mostrar indicador de carga y preparar datos para el modal
+    setModalPreparing(true);
+
+    // Usar setTimeout para permitir que la UI se actualice antes de abrir el modal
+    setTimeout(() => {
+      setSelectedRow(row);
+      setIsEditModalOpen(true);
+      setModalPreparing(false);
+    }, 50);
+  };
+
+  const handleSave = async (updatedRow: RequestProps) => {
+    const rowId = updatedRow.unique_id;
+    const originalRequestIndex = filteredRequests.findIndex(
+      (r) => r.unique_id === rowId
+    );
+    if (originalRequestIndex === -1) return;
+
+    // Guardar una copia del estado original
+    const originalRequests = [...filteredRequests];
+
+    // Actualización optimista
+    setFilteredRequests((prev) =>
+      prev.map((r) => (r.unique_id === rowId ? updatedRow : r))
+    );
+
+    try {
+      await apiService.updateRequest(rowId, updatedRow);
+      toast.success("Registro actualizado correctamente");
+    } catch (error) {
+      // Restaurar el estado original en caso de fallo
+      setFilteredRequests(originalRequests);
+      toast.error("Error al guardar los cambios");
+      console.error("Error updating request:", error);
+    } finally {
+      setIsEditModalOpen(false); // Cerrar el modal siempre
+      setSelectedRow(null);
+    }
+  };
+
+  const columns = useMemo<ColumnDef<RequestProps>[]>(
+    () => [
+      {
+        accessorKey: "unique_id",
+        header: "ID",
+        cell: ({ row }) => <div>{row.original.unique_id}</div>,
+      },
+      {
+        accessorKey: "type",
+        header: "Tipo",
+        cell: ({ row }) => (
+          <div>{row.original.type === "discount" ? "Descuento" : "Gasto"}</div>
+        ),
+      },
+      {
+        accessorKey: "personnel_type",
+        header: "Area",
+        cell: ({ row }) => (
+          <div>
+            {row.original.personnel_type === "nomina" ? "Nómina" : "Transporte"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "request_date",
+        header: "Fecha",
+        cell: ({ row }) => (
+          <div>
+            {row.original.request_date &&
+              new Date(row.original.request_date).toLocaleDateString("es-ES", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "month",
+        header: "Mes/Rol",
+        cell: ({ row }) => (
+          <div>
+            {row.original.month
+              ? row.original.month
+              : row.original.status === "in_reposition"
+              ? "Sin asignar"
+              : "No aplica"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Estado",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: "invoice_number",
+        header: "Factura",
+        cell: ({ row }) => <div>{row.original.invoice_number}</div>,
+      },
+      {
+        accessorKey: "account_id",
+        header: "Cuenta",
+        cell: ({ row }) => <div>{row.original.account_id}</div>,
+      },
+      {
+        accessorKey: "amount",
+        header: "Monto",
+        cell: ({ row }) => (
+          <div className="font-semibold text-red-700">
+            {(typeof row.original.amount === "string"
+              ? parseFloat(row.original.amount || "0")
+              : row.original.amount || 0
+            ).toFixed(2)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "project",
+        header: "Proyecto",
+        cell: ({ row }) => (
+          <div>{projectMap[row.original.project] || row.original.project}</div>
+        ),
+      },
+      {
+        accessorKey: "responsible_id",
+        header: "Responsable",
+        cell: ({ row }) => <div>{row.original.responsible_id || ""}</div>,
+        enableHiding: !filteredRequests.some((r) => r.responsible_id),
+      },
+      {
+        accessorKey: "vehicle_plate",
+        header: "Placa",
+        cell: ({ row }) => (
+          <div>{row.original.vehicle_plate || "No encontrado"}</div>
+        ),
+        enableHiding: !filteredRequests.some((r) => r.vehicle_plate),
+      },
+      {
+        accessorKey: "vehicle_number",
+        header: "No. Transporte",
+        cell: ({ row }) => (
+          <div>{row.original.vehicle_number || "No encontrado"}</div>
+        ),
+        enableHiding: !filteredRequests.some((r) => r.vehicle_number),
+      },
+      {
+        accessorKey: "note",
+        header: "Observación",
+        cell: ({ row }) => (
+          <div className="max-w-xs truncate">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="text-left">
+                  {row.original.note}
+                </TooltipTrigger>
+                <TooltipContent>{row.original.note}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Acciones",
+        cell: ({ row }) => (
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditClick(row.original)}
+                  disabled={modalPreparing}
+                >
+                  {modalPreparing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Edit2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Editar</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ),
+      },
+    ],
+    [filteredRequests, projectMap, modalPreparing]
+  );
+
+  const table = useReactTable({
+    data: filteredRequests,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  const handleOpenModal = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que el evento se propague y cierre la modal
+  };
+
+  // Función para refrescar datos manualmente
+  const handleRefreshData = () => {
+    // Restablecer la bandera para permitir una nueva carga
+    setDataFetched(false);
+    // Activar la carga de datos
+    loadData();
+  };
 
   return (
     <motion.div
@@ -322,12 +601,14 @@ const RequestDetailsTableComponent = ({
             />
           </div>
           <AlertDialog>
-            <AlertDialogTrigger
-              className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow disabled:opacity-50 disabled:cursor-progress"
-              disabled={!fileData}
-            >
-              <Paperclip className="h-5 w-5 mr-2" />
-              Archivo adjunto
+            <AlertDialogTrigger asChild onClick={handleOpenModal}>
+              <Button
+                className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow disabled:opacity-50 disabled:cursor-progress"
+                disabled={!fileData}
+              >
+                <Paperclip className="h-5 w-5 mr-2" />
+                Archivo adjunto
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-white max-h-[90vh] max-w-6xl">
               <AlertDialogHeader>
@@ -388,7 +669,7 @@ const RequestDetailsTableComponent = ({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={loadData}
+                onClick={handleRefreshData}
                 disabled={isRefreshing}
               >
                 <RefreshCw
@@ -401,174 +682,119 @@ const RequestDetailsTableComponent = ({
         </TooltipProvider>
       </div>
 
-      <ScrollArea className="max-h-[70vh] max-w-[90vw] overflow-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-slate-50">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                ID
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Tipo
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Area
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Fecha
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Mes/Rol
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Estado
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Factura
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Cuenta
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Monto
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Proyecto
-              </th>
-              {filteredRequests.some((request) => request.responsible_id) && (
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                  Responsable
-                </th>
-              )}
-              {filteredRequests.some((request) => request.vehicle_plate) && (
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                  Placa
-                </th>
-              )}
-              {filteredRequests.some((request) => request.vehicle_number) && (
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                  No. Transporte
-                </th>
-              )}
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">
-                Observación
-              </th>
-            </tr>
-          </thead>
-          <tbody className="max-h-[90vh] overflow-hidden">
-            <AnimatePresence mode="sync">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={14} className="text-center py-8">
-                    <Loader fullScreen={false} text="Cargando datos..." />
-                  </td>
+      <div className="max-w-[90vw] overflow-x-auto">
+        <div className="max-h-[70vh] overflow-y-auto">
+          <table className="w-full border-collapse min-w-max">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id} className="bg-slate-50">
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="px-4 py-3 text-left text-sm font-semibold text-slate-600 whitespace-nowrap"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </th>
+                  ))}
                 </tr>
-              ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan={14} className="text-center py-8 text-slate-500">
-                    No se encontraron resultados
-                  </td>
-                </tr>
-              ) : (
-                filteredRequests.map((request) => (
-                  <motion.tr
-                    key={request.unique_id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="border-b hover:bg-slate-50 transition-colors group overflow-auto"
+              ))}
+            </thead>
+            <tbody>
+              <AnimatePresence mode="sync">
+                {isLoading ? (
+                  <tr>
+                    <td
+                      colSpan={table.getAllColumns().length}
+                      className="text-center py-8"
+                    >
+                      <Loader fullScreen={false} text="Cargando datos..." />
+                    </td>
+                  </tr>
+                ) : filteredRequests.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={table.getAllColumns().length}
+                      className="text-center py-8 text-slate-500"
+                    >
+                      No se encontraron resultados
+                    </td>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <motion.tr
+                      key={row.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="border-b hover:bg-slate-50 transition-colors group"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-4 py-3 whitespace-nowrap"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </motion.tr>
+                  ))
+                )}
+              </AnimatePresence>
+            </tbody>
+            {filteredRequests.length > 0 && (
+              <tfoot>
+                <tr className="bg-slate-50">
+                  <td
+                    colSpan={8}
+                    className="px-4 py-3 text-right font-semibold text-slate-600"
                   >
-                    <td className="px-4 py-3">{request.unique_id}</td>
-                    <td className="px-4 py-3">
-                      {request.type === "discount" ? "Descuento" : "Gasto"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {request.personnel_type === "nomina"
-                        ? "Nómina"
-                        : "Transporte"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {request.request_date &&
-                        new Date(request.request_date).toLocaleDateString(
-                          "es-ES",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {request.month
-                        ? request.month
-                        : request.status === "in_reposition"
-                        ? "Sin asignar"
-                        : "No aplica"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={request.status} />
-                    </td>
-                    <td className="px-4 py-3">{request.invoice_number}</td>
-                    <td className="px-4 py-3">
-                      {request.account_id && request.account_id}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-red-700">
-                      {(typeof request.amount === "string"
-                        ? parseFloat(request.amount || "0")
-                        : request.amount || 0
-                      ).toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {projectMap[request.project] || request.project}
-                    </td>
-                    {filteredRequests.some((r) => r.responsible_id) && (
-                      <td className="px-4 py-3">
-                        {request.responsible_id && request.responsible_id}
-                      </td>
-                    )}
-                    {filteredRequests.some((r) => r.vehicle_plate) && (
-                      <td className="px-4 py-3">
-                        {request.vehicle_plate || "No encontrado"}
-                      </td>
-                    )}
-                    {filteredRequests.some((r) => r.vehicle_number) && (
-                      <td className="px-4 py-3">
-                        {request.vehicle_number || "No encontrado"}
-                      </td>
-                    )}
-                    <td className="px-4 py-3 max-w-xs truncate">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger className="text-left">
-                            {request.note}
-                          </TooltipTrigger>
-                          <TooltipContent>{request.note}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </AnimatePresence>
-          </tbody>
-          {filteredRequests.length > 0 && (
-            <tfoot>
-              <tr className="bg-slate-50">
-                <td
-                  colSpan={8}
-                  className="px-4 py-3 text-right font-semibold text-slate-600"
-                >
-                  Total:
-                </td>
-                <td className="px-4 py-3 font-semibold text-red-700">
-                  ${new Intl.NumberFormat("es-ES").format(totalAmount)}
-                </td>
-                <td colSpan={5} className="px-4 py-3"></td>
-              </tr>
-            </tfoot>
-          )}
-        </table>
-      </ScrollArea>
+                    Total:
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-red-700">
+                    ${new Intl.NumberFormat("es-ES").format(totalAmount)}
+                  </td>
+                  <td
+                    colSpan={table.getAllColumns().length - 9}
+                    className="px-4 py-3"
+                  ></td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      </div>
+
+      {/* Modal de edición - Solo se renderiza cuando hay una fila seleccionada */}
+      {selectedRow && (
+        <Dialog
+          open={isEditModalOpen}
+          onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+            if (!open) setSelectedRow(null);
+          }}
+        >
+          <EditModal
+            key={`edit-modal-${selectedRow.unique_id}`} // Añadir key para forzar recreación
+            row={selectedRow}
+            onSave={handleSave}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setSelectedRow(null);
+            }}
+            accounts={accounts}
+            responsibles={responsibles}
+            vehicles={vehicles}
+          />
+        </Dialog>
+      )}
     </motion.div>
   );
 };
