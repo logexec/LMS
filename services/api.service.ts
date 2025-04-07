@@ -289,7 +289,7 @@ export const apiService = {
       console.log("createLoan response status:", response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
+        const errorText: any = await response.text();
         console.log("Error response from backend:", errorText);
         let errorData;
         try {
