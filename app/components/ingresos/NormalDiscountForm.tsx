@@ -40,7 +40,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   options,
   loading,
   onSubmit,
-  onReset,
   type,
 }) => {
   const [normalFormData, setNormalFormData] = React.useState<NormalFormData>({
