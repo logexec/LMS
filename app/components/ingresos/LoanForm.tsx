@@ -5,7 +5,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import Input from "../Input";
 import Select from "../Select";
-import Datalist from "../Datalist";
 import {
   Card,
   CardContent,
@@ -14,7 +13,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import {
@@ -30,6 +29,7 @@ import { apiService } from "@/services/api.service";
 import { SubmitFile } from "@/app/registros/components/table/SubmitFile";
 import { getAuthToken } from "@/services/auth.service";
 import { debounce } from "lodash";
+import Combobox from "@/components/ui/combobox";
 
 interface LoanFormProps {
   options: OptionsState;
@@ -449,20 +449,23 @@ const LoanForm: React.FC<LoanFormProps> = ({
   };
 
   const resetForm = () => {
-    setFormData({
-      type: "nomina",
-      account_id: "",
-      amount: "",
-      project: "",
-      invoice_number: "",
-      installments: "",
-      responsible_id: "",
-      vehicle_id: "",
-      note: "",
-      installment_dates: [],
-    });
-    setInstallments([]);
-    setFormErrors({});
+    // Primero establecer un pequeño retraso para que las animaciones sean más fluidas
+    setTimeout(() => {
+      setFormData({
+        type: "nomina",
+        account_id: "",
+        amount: "",
+        project: "",
+        invoice_number: "",
+        installments: "",
+        responsible_id: "",
+        vehicle_id: "",
+        note: "",
+        installment_dates: [],
+      });
+      setInstallments([]);
+      setFormErrors({});
+    }, 100);
   };
 
   return (
@@ -506,7 +509,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     error={formErrors.type}
                   />
 
-                  <Datalist
+                  <Combobox
                     label="Proyecto"
                     name="project"
                     id="project"
@@ -515,9 +518,10 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     onChange={handleInputChange}
                     disabled={loading.projects}
                     error={formErrors.project}
+                    loading={loading.projects}
                   />
 
-                  <Datalist
+                  <Combobox
                     label="Cuenta"
                     name="account_id"
                     id="account_id"
@@ -526,6 +530,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     onChange={handleInputChange}
                     disabled={loading.accounts}
                     error={formErrors.account_id}
+                    loading={loading.accounts}
                   />
 
                   <Input
@@ -563,7 +568,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   />
 
                   {formData.type === "nomina" ? (
-                    <Datalist
+                    <Combobox
                       label="Responsable"
                       name="responsible_id"
                       id="responsible_id"
@@ -572,9 +577,10 @@ const LoanForm: React.FC<LoanFormProps> = ({
                       onChange={handleInputChange}
                       disabled={loading.responsibles || !formData.project}
                       error={formErrors.responsible_id}
+                      loading={loading.responsibles}
                     />
                   ) : (
-                    <Datalist
+                    <Combobox
                       label="Vehículo"
                       name="vehicle_id"
                       id="vehicle_id"
@@ -583,6 +589,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                       onChange={handleInputChange}
                       disabled={loading.transports}
                       error={formErrors.vehicle_id}
+                      loading={loading.transports}
                     />
                   )}
 
@@ -658,6 +665,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     onClick={resetForm}
                     disabled={loading.submit}
                   >
+                    <RefreshCw className="mr-2 h-4 w-4" />
                     Limpiar
                   </Button>
                   <SubmitFile

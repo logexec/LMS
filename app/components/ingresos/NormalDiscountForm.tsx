@@ -12,7 +12,6 @@ import {
   NormalFormData,
   AccountProps,
 } from "@/utils/types";
-import Datalist from "../Datalist";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
 import {
@@ -27,6 +26,7 @@ import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getAuthToken } from "@/services/auth.service";
 import apiService from "@/services/api.service";
+import Combobox from "@/components/ui/combobox";
 
 interface NormalDiscountFormProps {
   options: OptionsState;
@@ -278,7 +278,6 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
         } else {
           newErrors[name] = "";
         }
-        console.log(value);
         break;
       case "responsable":
         if (
@@ -319,19 +318,23 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
   };
 
   const resetForm = () => {
-    setNormalFormData({
-      fechaGasto: new Date().toISOString().split("T")[0],
-      tipo: "",
-      factura: "",
-      cuenta: "",
-      valor: "",
-      proyecto: "",
-      responsable: "",
-      vehicle_plate: "",
-      vehicle_number: "",
-      observacion: "",
-    });
-    setFormErrors({});
+    // Primero limpiar los valores y luego restablecer el estado del formulario
+    setTimeout(() => {
+      setNormalFormData({
+        fechaGasto: new Date().toISOString().split("T")[0],
+        tipo: "",
+        factura: "",
+        cuenta: "",
+        valor: "",
+        proyecto: "",
+        responsable: "",
+        vehicle_plate: "",
+        vehicle_number: "",
+        observacion: "",
+      });
+      setFormErrors({});
+      setFormValid(false);
+    }, 100);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -479,7 +482,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Datalist
+                      <Combobox
                         label="Proyecto"
                         name="proyecto"
                         id="proyecto"
@@ -503,7 +506,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Datalist
+                      <Combobox
                         label="Cuenta"
                         name="cuenta"
                         id="cuenta"
@@ -528,7 +531,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Datalist
+                        <Combobox
                           label="Responsable"
                           name="responsable"
                           id="responsable"
@@ -554,7 +557,7 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Datalist
+                        <Combobox
                           label="Placa"
                           name="vehicle_plate"
                           id="vehicle_plate"

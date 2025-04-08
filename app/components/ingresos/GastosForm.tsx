@@ -8,9 +8,8 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import Input from "../Input";
-import Datalist from "../Datalist";
 import { toast } from "sonner";
 import {
   Card,
@@ -20,7 +19,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import debounce from "lodash/debounce";
 import { getAuthToken } from "@/services/auth.service";
@@ -28,6 +27,7 @@ import ExcelUploadSection from "./ExcelUploadSection";
 import { useAuth } from "@/hooks/useAuth";
 import apiService from "@/services/api.service";
 import { AccountProps } from "@/utils/types";
+import Combobox from "@/components/ui/combobox";
 
 interface GastosFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
@@ -69,8 +69,8 @@ const GastosForm: React.FC<GastosFormProps> = ({
     cuenta: "",
     valor: "",
     proyecto: "",
-    // empresa: "",
     responsable: "",
+    vehicle_plate: "",
     vehicle_number: "",
     observacion: "",
   });
@@ -94,7 +94,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
     {}
   );
   const [formValid, setFormValid] = React.useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showAdditionalFields, setShowAdditionalFields] = React.useState(false);
 
   // Validation method
   const validateField = (name: string, value: string | Blob): boolean => {
@@ -134,12 +134,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
             ? "La cuenta es obligatoria"
             : "";
         break;
-      // case "empresa":
-      //   newErrors[name] =
-      //     typeof value === "string" && value.length < 2
-      //       ? "La empresa es obligatoria"
-      //       : "";
-      //   break;
       case "observacion":
         newErrors[name] =
           typeof value === "string" && value.trim().length < 1
@@ -169,34 +163,36 @@ const GastosForm: React.FC<GastosFormProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     validateField(name, value);
-  };
 
-  // const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-  //   validateField(name, value);
-  // };
+    // Si es el campo proyecto y tiene valor, mostrar los campos adicionales
+    if (name === "proyecto" && value) {
+      setShowAdditionalFields(true);
+    }
+  };
 
   // Reset form method
   const resetForm = () => {
-    setFormData({
-      fechaGasto: new Date().toISOString().split("T")[0],
-      type: "expense",
-      tipo: "nomina",
-      factura: "",
-      cuenta: "",
-      valor: "",
-      proyecto: "",
-      // empresa: "",
-      responsable: "",
-      vehicle_number: "",
-      observacion: "",
-    });
-    setFormErrors({});
-    setFormValid(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    // Primero ocultar los campos adicionales
+    setShowAdditionalFields(false);
+
+    // Retraso para que primero se complete la animación de ocultar
+    setTimeout(() => {
+      setFormData({
+        fechaGasto: new Date().toISOString().split("T")[0],
+        type: "expense",
+        tipo: "nomina",
+        factura: "",
+        cuenta: "",
+        valor: "",
+        proyecto: "",
+        responsable: "",
+        vehicle_plate: "",
+        vehicle_number: "",
+        observacion: "",
+      });
+      setFormErrors({});
+      setFormValid(false);
+    }, 100); // Pequeño retraso para que la animación sea más fluida
   };
 
   // Submit handler
@@ -224,7 +220,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
       formDataToSend.append("account_id", formData.cuenta);
       formDataToSend.append("amount", formData.valor);
       formDataToSend.append("project", formData.proyecto);
-      // formDataToSend.append("company", formData.empresa);
       formDataToSend.append("note", formData.observacion);
       formDataToSend.append("personnel_type", "nomina");
 
@@ -237,14 +232,34 @@ const GastosForm: React.FC<GastosFormProps> = ({
       }
 
       await onSubmit(formDataToSend);
-      resetForm();
+
+      // Primero ocultar los campos adicionales
+      setShowAdditionalFields(false);
+
+      // Limpiar el formulario después de un breve retraso para la animación
+      setTimeout(() => {
+        setFormData({
+          fechaGasto: new Date().toISOString().split("T")[0],
+          type: "expense",
+          tipo: "nomina",
+          factura: "",
+          cuenta: "",
+          valor: "",
+          proyecto: "",
+          responsable: "",
+          vehicle_plate: "",
+          vehicle_number: "",
+          observacion: "",
+        });
+        setFormErrors({});
+        setFormValid(false);
+      }, 100);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al procesar el gasto"
       );
     } finally {
       setLocalLoading((prev) => ({ ...prev, submit: false }));
-      resetForm();
     }
   };
 
@@ -366,13 +381,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
     fetchProjects();
   }, [fetchAccounts, fetchProjects]);
 
-  // Options for dropdowns
-
-  // const empresaOptions = [
-  //   { value: "SERSUPPORT", label: "SERSUPPORT" },
-  //   { value: "PREBAM", label: "PREBAM" },
-  // ];
-
   const today = new Date();
   // Obtener el 29 del mes pasado
   const firstAllowedDate = new Date(
@@ -439,7 +447,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   error={formErrors.fechaGasto}
                 />
 
-                <Datalist
+                <Combobox
                   label="Tipo"
                   name="tipo"
                   id="tipo"
@@ -449,7 +457,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   disabled
                 />
 
-                <Datalist
+                <Combobox
                   label="Proyecto"
                   name="proyecto"
                   id="proyecto"
@@ -457,90 +465,122 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   onChange={handleInputChange}
                   value={formData.proyecto}
                   error={formErrors.proyecto}
+                  loading={localLoading.projects}
                 />
 
-                {/* <Select
-                  label="Empresa"
-                  name="empresa"
-                  id="empresa"
-                  options={empresaOptions}
-                  onChange={handleSelectChange}
-                  value={formData.empresa}
-                  error={formErrors.empresa}
-                /> */}
+                <AnimatePresence>
+                  {showAdditionalFields && (
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Combobox
+                          label="Cuenta"
+                          name="cuenta"
+                          id="cuenta"
+                          options={localOptions.accounts}
+                          onChange={handleInputChange}
+                          value={formData.cuenta}
+                          error={formErrors.cuenta}
+                          loading={localLoading.accounts}
+                        />
+                      </motion.div>
 
-                <Datalist
-                  label="Cuenta"
-                  name="cuenta"
-                  id="cuenta"
-                  options={localOptions.accounts}
-                  onChange={handleInputChange}
-                  value={formData.cuenta}
-                  error={formErrors.cuenta}
-                />
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Combobox
+                          label="Responsable"
+                          name="responsable"
+                          id="responsable"
+                          options={localOptions.responsibles}
+                          onChange={handleInputChange}
+                          value={formData.responsable}
+                          error={formErrors.responsable}
+                          loading={localLoading.responsibles}
+                        />
+                      </motion.div>
 
-                {formData.tipo === "nomina" && (
-                  <Datalist
-                    label="Responsable"
-                    name="responsable"
-                    id="responsable"
-                    options={localOptions.responsibles}
-                    onChange={handleInputChange}
-                    value={formData.responsable}
-                    error={formErrors.responsable}
-                  />
-                )}
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Input
+                          label="No. Transporte"
+                          name="vehicle_number"
+                          id="vehicle_number"
+                          type="text"
+                          onChange={handleInputChange}
+                          value={formData.vehicle_number}
+                          disabled={localLoading.transports}
+                          error={formErrors.vehicle_number}
+                        />
+                      </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Input
-                    label="No. Transporte"
-                    name="vehicle_number"
-                    id="vehicle_number"
-                    type="text"
-                    onChange={handleInputChange}
-                    value={formData.vehicle_number}
-                    disabled={localLoading.transports}
-                    error={formErrors.vehicle_number}
-                  />
-                </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Input
+                          required
+                          id="factura"
+                          name="factura"
+                          label="Factura"
+                          type="number"
+                          value={formData.factura}
+                          onChange={handleInputChange}
+                          error={formErrors.factura}
+                        />
+                      </motion.div>
 
-                <Input
-                  required
-                  id="factura"
-                  name="factura"
-                  label="Factura"
-                  type="number"
-                  value={formData.factura}
-                  onChange={handleInputChange}
-                  error={formErrors.factura}
-                />
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Input
+                          required
+                          id="valor"
+                          name="valor"
+                          label="Valor"
+                          type="number"
+                          value={formData.valor}
+                          onChange={handleInputChange}
+                          error={formErrors.valor}
+                        />
+                      </motion.div>
 
-                <Input
-                  required
-                  id="valor"
-                  name="valor"
-                  label="Valor"
-                  type="number"
-                  value={formData.valor}
-                  onChange={handleInputChange}
-                  error={formErrors.valor}
-                />
-
-                <Input
-                  required
-                  id="observacion"
-                  name="observacion"
-                  label="Observación"
-                  type="text"
-                  value={formData.observacion}
-                  onChange={handleInputChange}
-                  error={formErrors.observacion}
-                />
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Input
+                          required
+                          id="observacion"
+                          name="observacion"
+                          label="Observación"
+                          type="text"
+                          value={formData.observacion}
+                          onChange={handleInputChange}
+                          error={formErrors.observacion}
+                        />
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="flex justify-end space-x-4 mt-6">
@@ -550,6 +590,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                   onClick={resetForm}
                   disabled={localLoading.submit}
                 >
+                  <RefreshCw className="mr-2 h-4 w-4" />
                   Limpiar
                 </Button>
                 <Button

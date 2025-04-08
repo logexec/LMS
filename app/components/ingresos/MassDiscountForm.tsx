@@ -20,12 +20,12 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import debounce from "lodash/debounce";
-import Datalist from "../Datalist";
 import { fetchWithAuth } from "@/services/auth.service";
+import Combobox from "@/components/ui/combobox";
 
 export interface MassDiscountFormProps {
   options: OptionsState;
@@ -237,20 +237,25 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   };
 
   const resetForm = () => {
-    setMassFormData({
-      fechaGasto: new Date().toISOString().split("T")[0],
-      tipo: "nomina",
-      factura: "",
-      cuenta: "",
-      valor: "",
-      proyecto: "",
-      area: "",
-      responsable: "",
-      observacion: "",
-    });
+    // Primero ocultamos las selecciones de empleados
     setEmployees([]);
     setSelectedEmployees(0);
-    setFormErrors({});
+
+    // Luego, después de un breve retraso, limpiamos el formulario
+    setTimeout(() => {
+      setMassFormData({
+        fechaGasto: new Date().toISOString().split("T")[0],
+        tipo: "nomina",
+        factura: "",
+        cuenta: "",
+        valor: "",
+        proyecto: "",
+        area: "",
+        responsable: "",
+        observacion: "",
+      });
+      setFormErrors({});
+    }, 100);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -370,7 +375,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     disabled
                   />
 
-                  <Datalist
+                  <Combobox
                     label="Proyecto"
                     name="proyecto"
                     id="proyecto"
@@ -379,6 +384,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     onChange={handleInputChange}
                     disabled={loading.projects}
                     error={formErrors.proyecto}
+                    loading={loading.projects}
                   />
 
                   <Select
@@ -392,7 +398,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     error={formErrors.area}
                   />
 
-                  <Datalist
+                  <Combobox
                     label="Cuenta"
                     name="cuenta"
                     id="cuenta"
@@ -458,6 +464,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                     onClick={resetForm}
                     disabled={loading.submit}
                   >
+                    <RefreshCw className="mr-2 h-4 w-4" />
                     Limpiar
                   </Button>
                   <Button
