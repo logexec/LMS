@@ -517,7 +517,21 @@ export function RequestsTable<
       globalFilter: tableState.globalFilter,
       pagination: tableState.pagination,
     },
-    meta: { updateData: handleUpdateData },
+    meta: {
+      updateData: handleUpdateData,
+      removeRow: (id: string) => {
+        setData((prevData) =>
+          prevData.filter(
+            (item) =>
+              !("unique_id" in item) || (item as RequestProps).unique_id !== id
+          )
+        );
+      },
+      refreshData: async () => {
+        const period = loadAllData ? "all" : "last_3_months";
+        await fetchData(period);
+      },
+    },
     onSortingChange: (updater) =>
       setTableState((prev) => ({
         ...prev,

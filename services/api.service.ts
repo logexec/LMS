@@ -342,6 +342,24 @@ export const apiService = {
     }
   },
 
+  deleteRequest: async (id: string) => {
+    try {
+      const response = await fetchWithAuth(`/requests/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorData = await response;
+        throw new Error(
+          errorData.error || `Error ${response.status}: ${response.statusText}`
+        );
+      }
+      return response;
+    } catch (error) {
+      console.error("Error in deleteRequest:", error);
+      throw error;
+    }
+  },
+
   // Funciones optimizadas para los dropdowns
   fetchAccounts: async (): Promise<AccountProps[]> => {
     // Prevenir duplicados

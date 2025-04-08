@@ -8,7 +8,7 @@ import {
   Project,
 } from "@/utils/types";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Loader, Trash } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import EditCell from "./EditCell";
+import apiService from "@/services/api.service";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  AlertDialogCancel,
+  AlertDialogDescription,
+} from "@radix-ui/react-alert-dialog";
+import { toast } from "sonner";
 
 interface ColumnHelpers {
   onStatusChange?: (id: number, status: Status) => Promise<void>;
@@ -45,6 +58,152 @@ interface ColumnHelpers {
   accounts?: AccountProps[];
   projects?: Project[];
 }
+
+const handleDeleteRecord = async (id: string, table: any) => {
+  try {
+    // Hacer la solicitud para eliminar el registro
+    const response = await apiService.deleteRequest(id);
+
+    if (response.ok) {
+      // La eliminación fue exitosa
+      toast.success(`${response.message}`);
+
+      // Optimistic update: Eliminar el registro de la tabla
+      if (table.options.meta?.removeRow) {
+        table.options.meta.removeRow(id);
+      }
+
+      // Cerrar el diálogo de AlertDialog de forma segura
+      const dialogElements = document.querySelectorAll('[role="dialog"]');
+      dialogElements.forEach((dialog) => {
+        // Buscar y hacer clic en cualquier botón con data-state="open" (botones de AlertDialog)
+        const openButtons = dialog.querySelectorAll('[data-state="open"]');
+        openButtons.forEach((button) => {
+          if (button instanceof HTMLElement) {
+            button.click();
+          }
+        });
+
+        // Si lo anterior no funcionó, intentar con el botón de cancelar específicamente
+        const cancelButton = dialog.querySelector(
+          "[data-radix-alert-dialog-cancel]"
+        );
+        if (cancelButton instanceof HTMLElement) {
+          cancelButton.click();
+        }
+      });
+
+      // Otra forma de asegurarnos que el diálogo se cierre es usando el evento ESC
+      const escEvent = new KeyboardEvent("keydown", {
+        key: "Escape",
+        code: "Escape",
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+      });
+      document.dispatchEvent(escEvent);
+    } else {
+      console.error(`No se pudo eliminar el registro ${id}:`, response.error);
+      toast.error(
+        `No se pudo eliminar el registro ${id}. Inténtalo nuevamente.`
+      );
+      // Refrescar datos si hay error y existe el método
+      if (table.options.meta?.refreshData) {
+        table.options.meta.refreshData();
+      }
+    }
+
+    return response;
+  } catch (error) {
+    console.error(error);
+    // Refrescar datos en caso de error
+    if (table.options.meta?.refreshData) {
+      table.options.meta.refreshData();
+    }
+    toast.error(`Error al eliminar el registro. Inténtalo nuevamente.`);
+  }
+};
+
+// Componente para la celda de acciones con su propio estado
+const ActionCell = ({
+  row,
+  table,
+  onDelete,
+  accounts = [],
+  projects = [],
+}: any) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete(row.original.unique_id, table);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="flex items-center justify-center">
+            <EditCell
+              row={row}
+              table={table}
+              accounts={accounts}
+              projects={projects}
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent className="bg-amber-600" side="left">
+          Editar
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger>
+          <AlertDialog>
+            <AlertDialogTrigger
+              className="p-1 bg-red-600 hover:bg-red-700 text-white text-center rounded"
+              asChild
+            >
+              <Trash size={30} />
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Borrar registro</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Se va a eliminar el registro {row.original.unique_id}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="w-full flex items-center justify-evenly gap-2">
+                <AlertDialogCancel className="w-full py-1.5 shadow-sm rounded border hover:bg-gray-100">
+                  Cancelar
+                </AlertDialogCancel>
+                <Button
+                  onClick={handleDelete}
+                  className="w-full rounded bg-red-600 hover:bg-red-700 text-center text-white"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <span className="flex flex-row items-center gap-2">
+                      <Loader className="animate-spin h-4 w-4" /> Eliminando...
+                    </span>
+                  ) : (
+                    "Sí, Eliminar"
+                  )}
+                </Button>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        </TooltipTrigger>
+        <TooltipContent side="left">
+          <p>Eliminar</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 // Columnas para RequestProps
 
@@ -78,16 +237,16 @@ export const getRequestColumns = (
   },
   {
     accessorKey: "unique_id",
-    header: () => <div className="w-[10ch] text-center">ID</div>,
+    header: () => <div className="w-[8ch] text-center">ID</div>,
     sortingFn: "alphanumeric",
     enableSorting: true,
   },
   {
     accessorKey: "updated_at",
-    header: () => <div className="text-center w-[15ch]">Fecha</div>,
+    header: () => <div className="text-center w-[12ch]">Fecha</div>,
     cell: ({ row }) => {
       return (
-        <p className="text-slate-500 font-medium w-full text-start">
+        <p className="text-slate-500 font-medium w-full text-center">
           {(row.getValue("updated_at") as string).split("T")[0]}
         </p>
       );
@@ -137,10 +296,10 @@ export const getRequestColumns = (
   },
   {
     accessorKey: "project",
-    header: () => <div className="w-[7ch] text-center">Proyecto</div>,
+    header: () => <div className="w-[8ch] text-center">Proyecto</div>,
     cell: ({ row }) => {
       return (
-        <p className="px-1 text-center">{row.getValue("project") || ""}</p>
+        <p className="px-1 text-start">{row.getValue("project") || "—"}</p>
       );
     },
     sortingFn: "alphanumeric",
@@ -159,13 +318,13 @@ export const getRequestColumns = (
   },
   {
     accessorKey: "vehicle_plate",
-    header: () => <div className="w-[12ch] text-center">Placa</div>,
+    header: () => <div className="w-[10ch] text-center">Placa</div>,
     cell: ({ row }) => {
       const vehicle_plate = row.getValue("vehicle_plate") as string;
       return (
         <div>
           {vehicle_plate ? (
-            <p className="text-center w-[12ch]">{vehicle_plate}</p>
+            <p className="text-center w-[10ch]">{vehicle_plate}</p>
           ) : (
             <p className="text-center">—</p>
           )}
@@ -177,12 +336,12 @@ export const getRequestColumns = (
   },
   {
     accessorKey: "vehicle_number",
-    header: () => <div className="w-[12ch] text-center">No. Transporte</div>,
+    header: () => <div className="w-[10ch] text-center">No. Transporte</div>,
     cell: ({ row }) => {
       return (
         <div>
           {row.getValue("vehicle_number") ? (
-            <p className="text-center w-[12ch]">
+            <p className="text-center w-[10ch]">
               {row.getValue("vehicle_number")}
             </p>
           ) : (
@@ -196,10 +355,10 @@ export const getRequestColumns = (
   },
   {
     accessorKey: "note",
-    header: () => <div className="min-w-[35ch] text-center">Observación</div>,
+    header: () => <div className="w-[27ch] text-center">Observación</div>,
     cell: ({ row }) => {
       return (
-        <p className="text-pretty text-justify overflow-ellipsis">
+        <p className="text-start truncate w-[80%]">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -207,7 +366,7 @@ export const getRequestColumns = (
                   {(row.getValue("note") as string) || "—"}
                 </span>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-white shadow dark:bg-slate-800 text-slate-700 dark:text-white font-medium">
                 {(row.getValue("note") as string) || "—"}
               </TooltipContent>
             </Tooltip>
@@ -220,25 +379,15 @@ export const getRequestColumns = (
   },
   {
     accessorKey: "options",
-    header: () => <div className="min-w-[8ch] text-center">Acciones</div>,
+    header: () => <div className="w-max text-center">Acciones</div>,
     cell: ({ row, table }) => (
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger>
-            <div className="flex items-center justify-center">
-              <EditCell
-                row={row}
-                table={table}
-                accounts={helpers.accounts || []}
-                projects={helpers.projects || []}
-              />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Editar</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <ActionCell
+        row={row}
+        table={table}
+        onDelete={handleDeleteRecord}
+        accounts={helpers.accounts || []}
+        projects={helpers.projects || []}
+      />
     ),
     enableSorting: false,
   },
