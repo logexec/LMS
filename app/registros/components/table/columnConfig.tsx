@@ -234,51 +234,57 @@ export const getRequestColumns = (
     ),
     enableSorting: false,
     enableHiding: false,
+    size: 40, // Ancho fijo pequeño
   },
   {
     accessorKey: "unique_id",
-    header: () => <div className="w-[8ch] text-center">ID</div>,
+    header: () => <div className="text-center">ID</div>,
     sortingFn: "alphanumeric",
     enableSorting: true,
+    size: 100, // Ancho fijo
   },
   {
     accessorKey: "updated_at",
-    header: () => <div className="text-center w-[12ch]">Fecha</div>,
+    header: () => <div className="text-center">Fecha</div>,
     cell: ({ row }) => {
       return (
-        <p className="text-slate-500 font-medium w-full text-center">
+        <p className="text-slate-500 font-medium text-center">
           {(row.getValue("updated_at") as string).split("T")[0]}
         </p>
       );
     },
     sortingFn: "datetime",
     enableSorting: true,
+    minSize: 220,
   },
   {
     accessorKey: "invoice_number",
-    header: () => <div className="w-[10ch] text-center">Factura</div>,
+    header: () => <div className="text-center">Factura</div>,
     cell: ({ row }) => {
       return <div>{row.getValue("invoice_number") || ""}</div>;
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    size: 120,
   },
   {
     accessorKey: "account_id",
-    header: () => (
-      <div className="min-w-[20ch] max-w-[65ch] text-center">Cuenta</div>
-    ),
+    header: () => <div className="text-center">Cuenta</div>,
     cell: ({ row }) => {
       return (
-        <p className="capitalize px-1">{row.getValue("account_id") || ""}</p>
+        <p className="capitalize truncate max-w-[180px]">
+          {row.getValue("account_id") || ""}
+        </p>
       );
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 150, // Ancho mínimo
+    maxSize: 180, // Ancho máximo
   },
   {
     accessorKey: "amount",
-    header: () => <div className="w-[7ch] text-center">Valor</div>,
+    header: () => <div className="text-center">Valor</div>,
     cell: ({ row }) => {
       const rawAmount = row.getValue("amount") as string | number;
       const amount =
@@ -293,69 +299,61 @@ export const getRequestColumns = (
     },
     sortingFn: "basic",
     enableSorting: true,
+    size: 180,
   },
   {
     accessorKey: "project",
-    header: () => <div className="w-[8ch] text-center">Proyecto</div>,
+    header: () => <div className="text-center">Proyecto</div>,
     cell: ({ row }) => {
-      return (
-        <p className="px-1 text-start">{row.getValue("project") || "—"}</p>
-      );
+      return <p className="text-start">{row.getValue("project") || "—"}</p>;
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    size: 150,
   },
   {
     accessorKey: "responsible_id",
-    header: () => (
-      <div className="min-w-64 max-w-sm text-center">Responsable</div>
-    ),
+    header: () => <div className="text-center">Responsable</div>,
     cell: ({ row }) => {
-      return <div>{row.getValue("responsible_id") || "—"}</div>;
-    },
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-  },
-  {
-    accessorKey: "vehicle_plate",
-    header: () => <div className="w-[10ch] text-center">Placa</div>,
-    cell: ({ row }) => {
-      const vehicle_plate = row.getValue("vehicle_plate") as string;
       return (
-        <div>
-          {vehicle_plate ? (
-            <p className="text-center w-[10ch]">{vehicle_plate}</p>
-          ) : (
-            <p className="text-center">—</p>
-          )}
+        <div className="truncate max-w-[180px]">
+          {row.getValue("responsible_id") || "—"}
         </div>
       );
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 180, // Ancho mínimo
+    maxSize: 220, // Ancho máximo
+  },
+  {
+    accessorKey: "vehicle_plate",
+    header: () => <div className="text-center">Placa</div>,
+    cell: ({ row }) => {
+      const vehicle_plate = row.getValue("vehicle_plate") as string;
+      return <p className="text-center">{vehicle_plate || "—"}</p>;
+    },
+    sortingFn: "alphanumeric",
+    enableSorting: true,
+    minSize: 50,
+    maxSize: 100,
   },
   {
     accessorKey: "vehicle_number",
     header: () => <div className="w-[10ch] text-center">No. Transporte</div>,
     cell: ({ row }) => {
       return (
-        <div>
-          {row.getValue("vehicle_number") ? (
-            <p className="text-center w-[10ch]">
-              {row.getValue("vehicle_number")}
-            </p>
-          ) : (
-            <p className="text-center">—</p>
-          )}
-        </div>
+        <p className="text-center">{row.getValue("vehicle_number") || "—"}</p>
       );
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 50,
+    maxSize: 100,
   },
   {
     accessorKey: "note",
-    header: () => <div className="w-[27ch] text-center">Observación</div>,
+    header: () => <div className="text-center">Observación</div>,
     cell: ({ row }) => {
       return (
         <p className="text-start truncate w-[80%]">
@@ -376,10 +374,12 @@ export const getRequestColumns = (
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 150,
+    maxSize: 220,
   },
   {
     accessorKey: "options",
-    header: () => <div className="w-max text-center">Acciones</div>,
+    header: "Acciones",
     cell: ({ row, table }) => (
       <ActionCell
         row={row}
@@ -390,6 +390,7 @@ export const getRequestColumns = (
       />
     ),
     enableSorting: false,
+    size: 250,
   },
 ];
 
@@ -430,10 +431,10 @@ export const getReposicionColumns = (
 ): ColumnDef<ReposicionProps>[] => [
   {
     accessorKey: "id",
-    header: () => <div className="max-w-[5ch] text-center">ID</div>,
+    header: () => <div className="w-full text-center">ID</div>,
     cell: ({ row }) => (
       <p
-        className={`text-slate-500 font-medium text-center ${
+        className={`text-slate-500 font-medium w-full text-center ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-70"
@@ -444,34 +445,36 @@ export const getReposicionColumns = (
     ),
     sortingFn: "basic",
     enableSorting: true,
+    size: 20,
   },
   {
     accessorKey: "fecha_reposicion",
-    header: () => <div className="text-center w-[10ch]">Fecha</div>,
+    header: () => <div className="w-full text-center">Fecha</div>,
     cell: ({ row }) => (
       <p
-        className={`text-slate-500 font-medium w-max px-1 ${
+        className={`text-slate-500 font-medium px-1 ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-50"
-        }`}
+        } text-center w-full flex items-center justify-center`}
       >
         {row.getValue<string>("fecha_reposicion").split("T")[0]}
       </p>
     ),
     sortingFn: "datetime",
     enableSorting: true,
+    size: 100,
   },
   {
     accessorKey: "total_reposicion",
-    header: () => <div className="w-[7ch] text-center">Total</div>,
+    header: () => <div className="w-full text-center">Total</div>,
     cell: ({ row }) => (
       <p
         className={`font-medium text-slate-900 w-max px-1 ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-50"
-        }`}
+        } text-center`}
       >
         $
         {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2 }).format(
@@ -481,10 +484,11 @@ export const getReposicionColumns = (
     ),
     sortingFn: "basic",
     enableSorting: true,
+    size: 100,
   },
   {
     accessorKey: "status",
-    header: () => <div className="w-[12ch] text-center">Estado</div>,
+    header: () => <div className="text-center">Estado</div>,
     cell: ({ row }) => {
       const id = row.original.id;
       const status = row.getValue("status") as Status;
@@ -510,7 +514,7 @@ export const getReposicionColumns = (
         </Select>
       ) : (
         <p
-          className={`font-semibold rounded-lg text-center ${
+          className={`font-semibold rounded-lg ${
             status === "pending"
               ? "text-orange-700 bg-orange-100 px-1.5"
               : status === "rejected"
@@ -518,7 +522,7 @@ export const getReposicionColumns = (
               : status === "review"
               ? "text-indigo-700 bg-indigo-100 px-1.5"
               : "text-emerald-700 bg-emerald-100 px-1.5 opacity-50"
-          }`}
+          } text-center`}
         >
           {status === "pending"
             ? "Pendiente"
@@ -532,13 +536,15 @@ export const getReposicionColumns = (
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 120,
+    maxSize: 180,
   },
   {
     accessorKey: "project",
-    header: () => <div className="w-[7ch] text-center">Proyecto</div>,
+    header: () => <div className="w-full text-center">Proyecto</div>,
     cell: ({ row }) => (
       <p
-        className={`text-slate-500 font-medium w-max px-1 ${
+        className={`text-slate-500 font-medium px-1 ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-50"
@@ -549,13 +555,15 @@ export const getReposicionColumns = (
     ),
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 150,
+    maxSize: 180,
   },
   {
     accessorKey: "month",
-    header: () => <div className="w-[15ch] text-center">Mes/Rol</div>,
+    header: () => <div className="w-full text-center">Mes/Rol</div>,
     cell: ({ row }) => (
       <p
-        className={`text-slate-500 font-medium w-max px-1 ${
+        className={`text-slate-500 font-medium px-1 ${
           (row.original.status === "rejected" ||
             row.original.status === "paid") &&
           "opacity-50"
@@ -563,17 +571,22 @@ export const getReposicionColumns = (
       >
         {row.original.status === "rejected" ||
         row.getValue("month") === "0000-00-00" ||
-        !row.getValue("month")
-          ? "No especificado"
-          : row.getValue("month")}
+        !row.getValue("month") ? (
+          <span className="flex items-center justify-center text-center">
+            —
+          </span>
+        ) : (
+          row.getValue("month")
+        )}
       </p>
     ),
     sortingFn: "alphanumeric",
     enableSorting: true,
+    size: 300,
   },
   {
     accessorKey: "when",
-    header: () => <div className="w-[15ch] text-center">Descontar en</div>,
+    header: () => <div className="w-full text-center">Descontar en</div>,
     cell: ({ row }) => (
       <p
         className={`capitalize ${
@@ -582,23 +595,29 @@ export const getReposicionColumns = (
           "opacity-50"
         }`}
       >
-        {!row.getValue("when") || row.original.status === "rejected"
-          ? "No especificado"
-          : row.getValue("when")}
+        {row.getValue("when") || (
+          <span className="flex items-center justify-center text-center">
+            —
+          </span>
+        )}
       </p>
     ),
     sortingFn: "alphanumeric",
     enableSorting: true,
+    minSize: 250,
+    maxSize: 350,
   },
   {
     id: "request_type",
     accessorKey: "request_type", // Esto puede quedarse aunque no se use directamente
-    header: () => <div className="w-[12ch] text-center">Tipo</div>,
+    header: () => <div className="w-full text-center">Tipo</div>,
     cell: ({ row }) => {
       const requests = row.original.requests || [];
+
       if (!requests.length) {
         return <p className="text-center opacity-50">—</p>;
       }
+
       const firstRequestId = requests[0].unique_id;
       const type = firstRequestId.startsWith("G")
         ? "Gasto"
@@ -644,12 +663,14 @@ export const getReposicionColumns = (
       return typeA.localeCompare(typeB);
     },
     enableSorting: true,
+    minSize: 250,
+    maxSize: 450,
   },
   {
     accessorKey: "note",
-    header: () => <div className="min-w-[40ch] text-center">Observación</div>,
+    header: () => <div className="w-full text-center">Observación</div>,
     cell: ({ row }) => (
-      <p className="text-pretty text-justify overflow-ellipsis">
+      <p className="truncate max-w-[90%]">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -663,23 +684,32 @@ export const getReposicionColumns = (
                 {row.getValue("note") || "—"}
               </span>
             </TooltipTrigger>
-            <TooltipContent>{row.getValue("note") || "—"}</TooltipContent>
+            <TooltipContent className="text-slate-800 bg-white shadow dark:text-slate-200 dark:bg-black border border-gray-300">
+              {row.getValue("note") || "—"}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </p>
     ),
     sortingFn: "alphanumeric",
     enableSorting: false,
+    minSize: 250,
+    maxSize: 450,
   },
   {
     accessorKey: "details",
-    header: () => <div className="w-[10ch] text-center">Detalles</div>,
-    cell: ({ row }) => <DetailsCell row={row} />,
+    header: () => <div className="w-full text-center">Detalles</div>,
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center w-full">
+        <DetailsCell row={row} />
+      </div>
+    ),
     enableSorting: false,
+    size: 100,
   },
   {
     id: "actions",
-    header: () => <div className="w-[356px] text-center">Acciones</div>,
+    header: () => <div className="w-full text-center">Acciones</div>,
     cell: ({ row }) => <ActionButtons row={row.original} />,
     enableSorting: false,
   },

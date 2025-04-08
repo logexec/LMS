@@ -364,65 +364,88 @@ const RequestDetailsTableComponent = ({
       {
         accessorKey: "unique_id",
         header: "ID",
-        cell: ({ row }) => <div>{row.original.unique_id}</div>,
+        cell: ({ row }) => (
+          <div className="text-center max-w-[40px]">
+            {row.original.unique_id}
+          </div>
+        ),
+        size: 40,
       },
       {
         accessorKey: "type",
         header: "Tipo",
         cell: ({ row }) => (
-          <div>{row.original.type === "discount" ? "Descuento" : "Gasto"}</div>
+          <div className="truncate text-center max-w-[80px]">
+            {row.original.type === "discount" ? "Descuento" : "Gasto"}
+          </div>
         ),
+        size: 80,
       },
       {
         accessorKey: "personnel_type",
         header: "Area",
         cell: ({ row }) => (
-          <div>
+          <div className="truncate text-center max-w-[80px]">
             {row.original.personnel_type === "nomina" ? "Nómina" : "Transporte"}
           </div>
         ),
+        size: 80,
       },
       {
         accessorKey: "request_date",
         header: "Fecha",
         cell: ({ row }) => (
-          <div>
+          <div className="truncate max-w-[150px]">
             {row.original.request_date &&
               new Date(row.original.request_date).toLocaleDateString("es-ES", {
                 day: "numeric",
-                month: "long",
+                month: "short",
                 year: "numeric",
               })}
           </div>
         ),
+        minSize: 50,
+        maxSize: 150,
       },
       {
         accessorKey: "month",
         header: "Mes/Rol",
         cell: ({ row }) => (
-          <div>
-            {row.original.month
-              ? row.original.month
-              : row.original.status === "in_reposition"
-              ? "Sin asignar"
-              : "No aplica"}
+          <div className="text-center truncate max-w-[130px]">
+            {row.original.month || "—"}
           </div>
         ),
+        minSize: 100,
+        maxSize: 130,
       },
       {
         accessorKey: "status",
         header: "Estado",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        minSize: 120,
+        maxSize: 180,
       },
       {
         accessorKey: "invoice_number",
         header: "Factura",
-        cell: ({ row }) => <div>{row.original.invoice_number}</div>,
+        cell: ({ row }) => (
+          <div className="truncate text-center max-w-[180px]">
+            {row.original.invoice_number}
+          </div>
+        ),
+        minSize: 120,
+        maxSize: 180,
       },
       {
         accessorKey: "account_id",
         header: "Cuenta",
-        cell: ({ row }) => <div>{row.original.account_id}</div>,
+        cell: ({ row }) => (
+          <div className="truncate max-w-[180px]">
+            {row.original.account_id}
+          </div>
+        ),
+        minSize: 120,
+        maxSize: 180,
       },
       {
         accessorKey: "amount",
@@ -435,6 +458,8 @@ const RequestDetailsTableComponent = ({
             ).toFixed(2)}
           </div>
         ),
+        minSize: 100,
+        maxSize: 140,
       },
       {
         accessorKey: "project",
@@ -442,44 +467,72 @@ const RequestDetailsTableComponent = ({
         cell: ({ row }) => (
           <div>{projectMap[row.original.project] || row.original.project}</div>
         ),
+        size: 100,
       },
       {
         accessorKey: "responsible_id",
         header: "Responsable",
-        cell: ({ row }) => <div>{row.original.responsible_id || ""}</div>,
+        cell: ({ row }) => (
+          <div className="max-w-[180px] truncate">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="text-left cursor-help">
+                  {row.original.responsible_id || "—"}
+                </TooltipTrigger>
+                <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
+                  {row.original.responsible_id || "—"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        ),
         enableHiding: !filteredRequests.some((r) => r.responsible_id),
+        minSize: 100,
+        maxSize: 180,
       },
       {
         accessorKey: "vehicle_plate",
         header: "Placa",
         cell: ({ row }) => (
-          <div>{row.original.vehicle_plate || "No encontrado"}</div>
+          <div className="truncate max-w-[100px] text-center">
+            {row.original.vehicle_plate || "—"}
+          </div>
         ),
         enableHiding: !filteredRequests.some((r) => r.vehicle_plate),
+        minSize: 50,
+        maxSize: 100,
       },
       {
         accessorKey: "vehicle_number",
         header: "No. Transporte",
         cell: ({ row }) => (
-          <div>{row.original.vehicle_number || "No encontrado"}</div>
+          <div className="truncate max-w-[100px] text-center">
+            {row.original.vehicle_number || "—"}
+          </div>
         ),
         enableHiding: !filteredRequests.some((r) => r.vehicle_number),
+        minSize: 50,
+        maxSize: 100,
       },
       {
         accessorKey: "note",
         header: "Observación",
         cell: ({ row }) => (
-          <div className="max-w-xs truncate">
+          <div className="max-w-[90px]truncate">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger className="text-left">
-                  {row.original.note}
+                <TooltipTrigger className="text-left cursor-help">
+                  {row.original.note || "—"}
                 </TooltipTrigger>
-                <TooltipContent>{row.original.note}</TooltipContent>
+                <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
+                  {row.original.note || "—"}
+                </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         ),
+        minSize: 50,
+        maxSize: 100,
       },
       {
         id: "actions",
@@ -507,6 +560,8 @@ const RequestDetailsTableComponent = ({
             </Tooltip>
           </TooltipProvider>
         ),
+        minSize: 80,
+        maxSize: 100,
       },
     ],
     [filteredRequests, projectMap, modalPreparing]
@@ -530,7 +585,7 @@ const RequestDetailsTableComponent = ({
       className="space-y-4"
     >
       <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-row gap-3 w-96">
+        <div className="flex flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -602,27 +657,30 @@ const RequestDetailsTableComponent = ({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          <TooltipProvider>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleRefreshData}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="shadow border border-gray-300 text-slate-700 bg-white dark:bg-black dark:text-slate-300">
+                Actualizar datos
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleRefreshData}
-                disabled={isRefreshing}
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Actualizar datos</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
 
-      <div className="max-w-[90vw] overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         <div className="max-h-[70vh] overflow-y-auto">
           <table className="w-full border-collapse min-w-max">
             <thead>
@@ -631,7 +689,7 @@ const RequestDetailsTableComponent = ({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-3 text-left text-sm font-semibold text-slate-600 whitespace-nowrap"
+                      className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap"
                     >
                       {header.isPlaceholder
                         ? null
@@ -671,12 +729,12 @@ const RequestDetailsTableComponent = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="border-b hover:bg-slate-50 transition-colors group"
+                      className="border-y hover:bg-slate-50 transition-colors group odd:bg-gray-100"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td
                           key={cell.id}
-                          className="px-4 py-3 whitespace-nowrap"
+                          className="px-4 py-1.5 whitespace-nowrap"
                         >
                           {flexRender(
                             cell.column.columnDef.cell,

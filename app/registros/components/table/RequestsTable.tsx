@@ -853,11 +853,11 @@ export function RequestsTable<
                       className={`transition-colors ${
                         row.getIsSelected()
                           ? "bg-slate-100 dark:bg-slate-900"
-                          : "even:bg-slate-100 even:dark:bg-slate-900"
+                          : "even:bg-gray-100/70 even:dark:bg-slate-900"
                       } hover:bg-slate-100 dark:hover:bg-slate-900`}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="py-3 px-4">
+                        <TableCell key={cell.id} className="py-0.5 px-4">
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
