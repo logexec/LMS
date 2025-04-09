@@ -15,7 +15,7 @@ import apiService from "@/services/api.service";
 import { toast } from "sonner"; // Ajusta según tu librería de notificaciones
 
 interface ExcelUploadSectionProps {
-  context: "discounts" | "expenses"; // Solo el contexto es obligatorio
+  context: "discounts" | "expenses" | "income"; // Solo el contexto es obligatorio
 }
 
 const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
@@ -66,10 +66,22 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
     }
   };
 
-  const handleDownloadTemplate = async () => {
+  const [templateType, setTemplateType] = useState<
+    "discounts" | "expenses" | "income"
+  >("discounts");
+
+  const handleDownloadTemplate = async (
+    context: "discounts" | "expenses" | "income"
+  ) => {
     setIsDownloading(true);
+    if (context === "expenses") {
+      setTemplateType("expenses");
+    } else if (context === "income" || context === "discounts") {
+      setTemplateType("discounts");
+    }
+    console.log("Template:", templateType);
     try {
-      const result = await apiService.downloadTemplate(context);
+      const result = await apiService.downloadTemplate(templateType);
       toast.success(result.message);
     } catch (error) {
       toast.error(
@@ -105,8 +117,12 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                 </h3>
                 <p className="text-sm text-slate-500">
                   Importa tus{" "}
-                  {context === "discounts" ? "descuentos" : "gastos"} desde un
-                  archivo Excel
+                  {context === "discounts"
+                    ? "descuentos"
+                    : context === "expenses"
+                    ? "gastos"
+                    : "ingresos"}{" "}
+                  desde un archivo Excel
                 </p>
               </div>
 
@@ -195,7 +211,11 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                 </h3>
                 <p className="text-sm text-slate-500">
                   Descarga la plantilla actualizada para importar{" "}
-                  {context === "discounts" ? "descuentos" : "gastos"}
+                  {context === "discounts"
+                    ? "descuentos"
+                    : context === "expenses"
+                    ? "gastos"
+                    : "ingresos"}
                 </p>
               </div>
 
@@ -204,7 +224,15 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        onClick={handleDownloadTemplate}
+                        onClick={() =>
+                          handleDownloadTemplate(
+                            context === "discounts"
+                              ? "discounts"
+                              : context === "expenses"
+                              ? "expenses"
+                              : "income"
+                          )
+                        }
                         disabled={isDownloading}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200"
                       >
@@ -223,7 +251,11 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                     </TooltipTrigger>
                     <TooltipContent>
                       Descarga la plantilla oficial para importar{" "}
-                      {context === "discounts" ? "descuentos" : "gastos"}
+                      {context === "discounts"
+                        ? "descuentos"
+                        : context === "expenses"
+                        ? "gastos"
+                        : "ingresos"}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

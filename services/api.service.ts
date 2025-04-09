@@ -212,11 +212,11 @@ export const apiService = {
   },
 
   // Descargar plantilla
-  downloadTemplate: async (context: "discounts" | "expenses") => {
+  downloadTemplate: async (context: "discounts" | "expenses" | "income") => {
     const endpoint =
-      context === "discounts"
-        ? "/download-discounts-template"
-        : "/download-expenses-template";
+      context === "expenses"
+        ? "/download-expenses-template"
+        : "/download-discounts-template";
 
     try {
       const response = await fetch(
@@ -246,7 +246,9 @@ export const apiService = {
       link.download =
         context === "discounts"
           ? "Plantilla_Descuentos.xlsx"
-          : "Plantilla_Gastos.xlsx";
+          : context === "expenses"
+          ? "Plantilla_Gastos.xlsx"
+          : "Plantilla_Ingresos.xlsx";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -259,7 +261,10 @@ export const apiService = {
     }
   },
   // Importar plantilla
-  importExcelData: async (file: File, context: "discounts" | "expenses") => {
+  importExcelData: async (
+    file: File,
+    context: "discounts" | "expenses" | "income"
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("context", context);

@@ -6,6 +6,7 @@ import { LoadingState, OptionsState } from "@/utils/types";
 import { getAuthToken } from "@/services/auth.service";
 import { useAuth } from "@/hooks/useAuth";
 import NormalDiscountForm from "./NormalDiscountForm";
+import ExcelUploadSection from "./ExcelUploadSection";
 
 const IngresosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -144,6 +145,17 @@ const IngresosForm = () => {
 
   return (
     <div className="container pb-8 space-y-8">
+      {/* Seccón de Excel */}
+      <motion.div
+        key="excel-upload"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ExcelUploadSection context="income" />
+      </motion.div>
+
+      {/* Seccón de Formularios */}
       <motion.div
         key="form-section"
         initial={{ opacity: 0, y: 20 }}
