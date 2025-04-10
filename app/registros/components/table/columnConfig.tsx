@@ -48,6 +48,7 @@ import {
   AlertDialogDescription,
 } from "@radix-ui/react-alert-dialog";
 import { toast } from "sonner";
+import { Permission } from "@/utils/constants";
 
 interface ColumnHelpers {
   onStatusChange?: (id: number, status: Status) => Promise<void>;
@@ -57,6 +58,7 @@ interface ColumnHelpers {
   projectMap?: Record<string, string>;
   accounts?: AccountProps[];
   projects?: Project[];
+  hasPermission?: (permission: string) => boolean;
 }
 
 const handleDeleteRecord = async (id: string, table: any) => {
@@ -427,225 +429,201 @@ const DetailsCell = ({ row }: { row: any }) => {
 
 // Columnas para ReposicionProps
 export const getReposicionColumns = (
-  helpers?: ColumnHelpers
-): ColumnDef<ReposicionProps>[] => [
-  {
-    accessorKey: "id",
-    header: () => <div className="w-full text-center">ID</div>,
-    cell: ({ row }) => (
-      <p
-        className={`text-slate-500 font-medium w-full text-center ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-70"
-        }`}
-      >
-        {row.original.id}
-      </p>
-    ),
-    sortingFn: "basic",
-    enableSorting: true,
-    size: 20,
-  },
-  {
-    accessorKey: "fecha_reposicion",
-    header: () => <div className="w-full text-center">Fecha</div>,
-    cell: ({ row }) => (
-      <p
-        className={`text-slate-500 font-medium px-1 ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-50"
-        } text-center w-full flex items-center justify-center`}
-      >
-        {row.getValue<string>("fecha_reposicion").split("T")[0]}
-      </p>
-    ),
-    sortingFn: "datetime",
-    enableSorting: true,
-    size: 100,
-  },
-  {
-    accessorKey: "total_reposicion",
-    header: () => <div className="w-full text-center">Total</div>,
-    cell: ({ row }) => (
-      <p
-        className={`font-medium text-slate-900 w-max px-1 ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-50"
-        } text-center`}
-      >
-        $
-        {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2 }).format(
-          row.getValue<number>("total_reposicion")
-        )}
-      </p>
-    ),
-    sortingFn: "basic",
-    enableSorting: true,
-    size: 100,
-  },
-  {
-    accessorKey: "status",
-    header: () => <div className="text-center">Estado</div>,
-    cell: ({ row }) => {
-      const id = row.original.id;
-      const status = row.getValue("status") as Status;
-      return helpers?.onStatusChange ? (
-        <Select
-          value={status}
-          onValueChange={async (newStatus: Status) => {
-            if (helpers.onStatusChange) {
-              await helpers.onStatusChange(id, newStatus);
-              // Optimistic update handled by parent
-            }
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pending">Pendiente</SelectItem>
-            <SelectItem value="rejected">Rechazado</SelectItem>
-            <SelectItem value="review">Revisar</SelectItem>
-            <SelectItem value="paid">Pagado</SelectItem>
-          </SelectContent>
-        </Select>
-      ) : (
+  helpers?: ColumnHelpers,
+  hasPermission?: (permission: string) => boolean // Recibir la función como argumento
+): ColumnDef<ReposicionProps>[] => {
+  const baseColumns: ColumnDef<ReposicionProps>[] = [
+    {
+      accessorKey: "id",
+      header: () => <div className="w-full text-center">ID</div>,
+      cell: ({ row }) => (
         <p
-          className={`font-semibold rounded-lg ${
-            status === "pending"
-              ? "text-orange-700 bg-orange-100 px-1.5"
-              : status === "rejected"
-              ? "text-red-700 bg-red-100 px-1.5 opacity-50"
-              : status === "review"
-              ? "text-indigo-700 bg-indigo-100 px-1.5"
-              : "text-emerald-700 bg-emerald-100 px-1.5 opacity-50"
+          className={`text-slate-500 font-medium w-full text-center ${
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-70"
+          }`}
+        >
+          {row.original.id}
+        </p>
+      ),
+      sortingFn: "basic",
+      enableSorting: true,
+      size: 20,
+    },
+    {
+      accessorKey: "fecha_reposicion",
+      header: () => <div className="w-full text-center">Fecha</div>,
+      cell: ({ row }) => (
+        <p
+          className={`text-slate-500 font-medium px-1 ${
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-50"
+          } text-center w-full flex items-center justify-center`}
+        >
+          {row.getValue<string>("fecha_reposicion").split("T")[0]}
+        </p>
+      ),
+      sortingFn: "datetime",
+      enableSorting: true,
+      size: 100,
+    },
+    {
+      accessorKey: "total_reposicion",
+      header: () => <div className="w-full text-center">Total</div>,
+      cell: ({ row }) => (
+        <p
+          className={`font-medium text-slate-900 w-max px-1 ${
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-50"
           } text-center`}
         >
-          {status === "pending"
-            ? "Pendiente"
-            : status === "rejected"
-            ? "Rechazado"
-            : status === "review"
-            ? "Revisar"
-            : "Pagado"}
+          $
+          {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2 }).format(
+            row.getValue<number>("total_reposicion")
+          )}
         </p>
-      );
+      ),
+      sortingFn: "basic",
+      enableSorting: true,
+      size: 100,
     },
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-    minSize: 120,
-    maxSize: 180,
-  },
-  {
-    accessorKey: "project",
-    header: () => <div className="w-full text-center">Proyecto</div>,
-    cell: ({ row }) => (
-      <p
-        className={`text-slate-500 font-medium px-1 ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-50"
-        }`}
-      >
-        {row.getValue<string>("project") || "Sin proyecto"}
-      </p>
-    ),
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-    minSize: 150,
-    maxSize: 180,
-  },
-  {
-    accessorKey: "month",
-    header: () => <div className="w-full text-center">Mes/Rol</div>,
-    cell: ({ row }) => (
-      <p
-        className={`text-slate-500 font-medium px-1 ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-50"
-        }`}
-      >
-        {row.original.status === "rejected" ||
-        row.getValue("month") === "0000-00-00" ||
-        !row.getValue("month") ? (
-          <span className="flex items-center justify-center text-center">
-            —
-          </span>
+    {
+      accessorKey: "status",
+      header: () => <div className="text-center">Estado</div>,
+      cell: ({ row }) => {
+        const id = row.original.id;
+        const status = row.getValue("status") as Status;
+        return helpers?.onStatusChange ? (
+          <Select
+            value={status}
+            onValueChange={async (newStatus: Status) => {
+              if (helpers.onStatusChange) {
+                await helpers.onStatusChange(id, newStatus);
+                // Optimistic update handled by parent
+              }
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pendiente</SelectItem>
+              <SelectItem value="rejected">Rechazado</SelectItem>
+              <SelectItem value="review">Revisar</SelectItem>
+              <SelectItem value="paid">Pagado</SelectItem>
+            </SelectContent>
+          </Select>
         ) : (
-          row.getValue("month")
-        )}
-      </p>
-    ),
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-    size: 300,
-  },
-  {
-    accessorKey: "when",
-    header: () => <div className="w-full text-center">Descontar en</div>,
-    cell: ({ row }) => (
-      <p
-        className={`capitalize ${
-          (row.original.status === "rejected" ||
-            row.original.status === "paid") &&
-          "opacity-50"
-        }`}
-      >
-        {row.getValue("when") || (
-          <span className="flex items-center justify-center text-center">
-            —
-          </span>
-        )}
-      </p>
-    ),
-    sortingFn: "alphanumeric",
-    enableSorting: true,
-    minSize: 250,
-    maxSize: 350,
-  },
-  {
-    id: "request_type",
-    accessorKey: "request_type", // Esto puede quedarse aunque no se use directamente
-    header: () => <div className="w-full text-center">Tipo</div>,
-    cell: ({ row }) => {
-      const requests = row.original.requests || [];
-
-      if (!requests.length) {
-        return <p className="text-center opacity-50">—</p>;
-      }
-
-      const firstRequestId = requests[0].unique_id;
-      const type = firstRequestId.startsWith("G")
-        ? "Gasto"
-        : firstRequestId.startsWith("D")
-        ? "Descuento"
-        : firstRequestId.startsWith("P")
-        ? "Préstamo"
-        : firstRequestId.startsWith("I")
-        ? "Ingreso"
-        : "Desconocido";
-      return (
+          <p
+            className={`font-semibold rounded-lg ${
+              status === "pending"
+                ? "text-orange-700 bg-orange-100 px-1.5"
+                : status === "rejected"
+                ? "text-red-700 bg-red-100 px-1.5 opacity-50"
+                : status === "review"
+                ? "text-indigo-700 bg-indigo-100 px-1.5"
+                : "text-emerald-700 bg-emerald-100 px-1.5 opacity-50"
+            } text-center`}
+          >
+            {status === "pending"
+              ? "Pendiente"
+              : status === "rejected"
+              ? "Rechazado"
+              : status === "review"
+              ? "Revisar"
+              : "Pagado"}
+          </p>
+        );
+      },
+      sortingFn: "alphanumeric",
+      enableSorting: true,
+      minSize: 120,
+      maxSize: 180,
+    },
+    {
+      accessorKey: "project",
+      header: () => <div className="w-full text-center">Proyecto</div>,
+      cell: ({ row }) => (
         <p
-          className={`text-start font-medium ${
+          className={`text-slate-500 font-medium px-1 ${
             (row.original.status === "rejected" ||
               row.original.status === "paid") &&
             "opacity-50"
           }`}
         >
-          {type}
+          {row.getValue<string>("project") || "Sin proyecto"}
         </p>
-      );
+      ),
+      sortingFn: "alphanumeric",
+      enableSorting: true,
+      minSize: 150,
+      maxSize: 180,
     },
-    sortingFn: (rowA, rowB) => {
-      const getRequestType = (row: any) => {
+    {
+      accessorKey: "month",
+      header: () => <div className="w-full text-center">Mes/Rol</div>,
+      cell: ({ row }) => (
+        <p
+          className={`text-slate-500 font-medium px-1 ${
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-50"
+          }`}
+        >
+          {row.original.status === "rejected" ||
+          row.getValue("month") === "0000-00-00" ||
+          !row.getValue("month") ? (
+            <span className="flex items-center justify-center text-center">
+              —
+            </span>
+          ) : (
+            row.getValue("month")
+          )}
+        </p>
+      ),
+      sortingFn: "alphanumeric",
+      enableSorting: true,
+      size: 300,
+    },
+    {
+      accessorKey: "when",
+      header: () => <div className="w-full text-center">Descontar en</div>,
+      cell: ({ row }) => (
+        <p
+          className={`capitalize ${
+            (row.original.status === "rejected" ||
+              row.original.status === "paid") &&
+            "opacity-50"
+          }`}
+        >
+          {row.getValue("when") || (
+            <span className="flex items-center justify-center text-center">
+              —
+            </span>
+          )}
+        </p>
+      ),
+      sortingFn: "alphanumeric",
+      enableSorting: true,
+      minSize: 250,
+      maxSize: 350,
+    },
+    {
+      id: "request_type",
+      accessorKey: "request_type", // Esto puede quedarse aunque no se use directamente
+      header: () => <div className="w-full text-center">Tipo</div>,
+      cell: ({ row }: any) => {
         const requests = row.original.requests || [];
-        if (!requests.length) return "—"; // Valor por defecto para filas sin requests
+
+        if (!requests.length) {
+          return <p className="text-center opacity-50">—</p>;
+        }
+
         const firstRequestId = requests[0].unique_id;
-        return firstRequestId.startsWith("G")
+        const type = firstRequestId.startsWith("G")
           ? "Gasto"
           : firstRequestId.startsWith("D")
           ? "Descuento"
@@ -654,66 +632,98 @@ export const getReposicionColumns = (
           : firstRequestId.startsWith("I")
           ? "Ingreso"
           : "Desconocido";
-      };
+        return (
+          <p
+            className={`text-start font-medium ${
+              (row.original.status === "rejected" ||
+                row.original.status === "paid") &&
+              "opacity-50"
+            }`}
+          >
+            {type}
+          </p>
+        );
+      },
+      sortingFn: (rowA, rowB) => {
+        const getRequestType = (row: any) => {
+          const requests = row.original.requests || [];
+          if (!requests.length) return "—"; // Valor por defecto para filas sin requests
+          const firstRequestId = requests[0].unique_id;
+          return firstRequestId.startsWith("G")
+            ? "Gasto"
+            : firstRequestId.startsWith("D")
+            ? "Descuento"
+            : firstRequestId.startsWith("P")
+            ? "Préstamo"
+            : firstRequestId.startsWith("I")
+            ? "Ingreso"
+            : "Desconocido";
+        };
 
-      const typeA = getRequestType(rowA);
-      const typeB = getRequestType(rowB);
+        const typeA = getRequestType(rowA);
+        const typeB = getRequestType(rowB);
 
-      // Compara los valores como strings
-      return typeA.localeCompare(typeB);
+        // Compara los valores como strings
+        return typeA.localeCompare(typeB);
+      },
+      enableSorting: true,
+      minSize: 250,
+      maxSize: 450,
     },
-    enableSorting: true,
-    minSize: 250,
-    maxSize: 450,
-  },
-  {
-    accessorKey: "note",
-    header: () => <div className="w-full text-center">Observación</div>,
-    cell: ({ row }) => (
-      <p className="truncate max-w-[90%]">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className={`text-pretty cursor-default ${
-                  (row.original.status === "rejected" ||
-                    row.original.status === "paid") &&
-                  "opacity-50"
-                }`}
-              >
+    {
+      accessorKey: "note",
+      header: () => <div className="w-full text-center">Observación</div>,
+      cell: ({ row }) => (
+        <p className="truncate max-w-[90%]">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={`text-pretty cursor-default ${
+                    (row.original.status === "rejected" ||
+                      row.original.status === "paid") &&
+                    "opacity-50"
+                  }`}
+                >
+                  {row.getValue("note") || "—"}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="text-slate-800 bg-white shadow dark:text-slate-200 dark:bg-black border border-gray-300">
                 {row.getValue("note") || "—"}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="text-slate-800 bg-white shadow dark:text-slate-200 dark:bg-black border border-gray-300">
-              {row.getValue("note") || "—"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </p>
-    ),
-    sortingFn: "alphanumeric",
-    enableSorting: false,
-    minSize: 250,
-    maxSize: 450,
-  },
-  {
-    accessorKey: "details",
-    header: () => <div className="w-full text-center">Detalles</div>,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center w-full">
-        <DetailsCell row={row} />
-      </div>
-    ),
-    enableSorting: false,
-    size: 100,
-  },
-  {
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </p>
+      ),
+      sortingFn: "alphanumeric",
+      enableSorting: false,
+      minSize: 250,
+      maxSize: 450,
+    },
+    {
+      accessorKey: "details",
+      header: () => <div className="w-full text-center">Detalles</div>,
+      cell: ({ row }: any) => (
+        <div className="flex items-center justify-center w-full">
+          <DetailsCell row={row} />
+        </div>
+      ),
+      enableSorting: false,
+      size: 100,
+    },
+  ];
+  const actionsColumn: ColumnDef<ReposicionProps> = {
     id: "actions",
     header: () => <div className="w-full text-center">Acciones</div>,
     cell: ({ row }) => <ActionButtons row={row.original} />,
     enableSorting: false,
-  },
-];
+  };
+
+  if (hasPermission?.(Permission.MANAGE_REPOSITIONS)) {
+    return [...baseColumns, actionsColumn];
+  }
+  return baseColumns;
+};
 
 // Función genérica para obtener columnas
 export function getColumns<T extends RequestProps | ReposicionProps>(

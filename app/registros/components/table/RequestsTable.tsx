@@ -63,6 +63,8 @@ import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
 import { Switch } from "@/components/ui/switch";
 import apiService from "@/services/api.service";
+import { useAuth } from "@/hooks/useAuth"; // Importar useAuth
+
 interface MappableData {
   project?: string | number;
   project_name?: string;
@@ -257,6 +259,7 @@ export function RequestsTable<
   onCreateReposicion,
   onUpdateReposicion,
 }: DataTableProps<TData>) {
+  const { hasPermission } = useAuth(); // Obtener hasPermission desde useAuth
   const [data, setData] = useState<TData[]>([]);
   const [tableState, setTableState] = useState<TableState>({
     sorting: [],
@@ -273,7 +276,7 @@ export function RequestsTable<
     accountMap: {} as Record<string, string>,
     responsibleMap: {} as Record<string, string>,
     vehicleMap: {} as Record<string, string>,
-    projectMap: {} as Record<string, string>, // Mantenemos por si se necesita en otro lugar
+    projectMap: {} as Record<string, string>,
   });
 
   const hasFetchedRef = useRef(false);
@@ -370,8 +373,9 @@ export function RequestsTable<
           id,
           name,
         })),
+        hasPermission,
       }),
-    [mode, dataMaps, onStatusChange]
+    [mode, dataMaps, onStatusChange, hasPermission]
   );
 
   const buildQueryUrl = useCallback(
