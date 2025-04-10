@@ -107,7 +107,7 @@ export const sidenavLinks: NavLink[] = [
         label: "Reposiciones",
         url: "/registros/reposiciones",
         icon: GrMoney,
-        requiredPermissions: [Permission.VIEW_REPOSITIONS],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
       },
       {
         label: "Reposiciones de Ingresos",
