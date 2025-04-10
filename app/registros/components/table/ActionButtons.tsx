@@ -14,7 +14,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CircleX, Edit, HandCoins } from "lucide-react";
+import {
+  CircleX,
+  //  Edit,
+  HandCoins,
+} from "lucide-react";
 import UndoableToast from "../UndoableToast";
 
 const statusConfigs: Partial<
@@ -36,13 +40,13 @@ const statusConfigs: Partial<
     hoverColor: "hover:bg-green-600",
     variant: "default",
   },
-  review: {
-    icon: <Edit size={24} />,
-    label: "Revisar",
-    color: "border-indigo-200 text-indigo-700",
-    hoverColor: "hover:bg-indigo-50 hover:text-indigo-600",
-    variant: "outline",
-  },
+  // review: {
+  //   icon: <Edit size={24} />,
+  //   label: "Revisar",
+  //   color: "border-indigo-200 text-indigo-700",
+  //   hoverColor: "hover:bg-indigo-50 hover:text-indigo-600",
+  //   variant: "outline",
+  // },
   rejected: {
     icon: <CircleX size={24} />,
     label: "Rechazar",
@@ -66,13 +70,13 @@ const getStatusMessages = (status: Status) => {
       action: "Rechazar",
       toast: "Reposición rechazada",
     },
-    [Status.review]: {
-      title: "Enviar a Revisión",
-      description:
-        "¿Estás seguro de que deseas enviar esta reposición a revisión?",
-      action: "Enviar a revisión",
-      toast: "Reposición enviada a revisión",
-    },
+    // [Status.review]: {
+    //   title: "Enviar a Revisión",
+    //   description:
+    //     "¿Estás seguro de que deseas enviar esta reposición a revisión?",
+    //   action: "Enviar a revisión",
+    //   toast: "Reposición enviada a revisión",
+    // },
   };
   return messages[status as keyof typeof messages];
 };
@@ -139,12 +143,12 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
           };
           break;
         case Status.rejected:
-        case Status.review:
-          updateData = {
-            status: newStatus,
-            note: editData.note,
-          };
-          break;
+        // case Status.review:
+        //   updateData = {
+        //     status: newStatus,
+        //     note: editData.note,
+        //   };
+        //   break;
         default:
           updateData = { status: newStatus };
       }
@@ -192,9 +196,8 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
               : ""
           }`}
           disabled={
-            row.status === "rejected" ||
-            row.status === "paid" ||
-            (status === Status.review && row.status === Status.review)
+            row.status === "rejected" || row.status === "paid"
+            // || (status === Status.review && row.status === Status.review)
           }
         >
           {statusConfigs[status]!.icon}
@@ -247,7 +250,8 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
 
   return (
     <div className="flex gap-2">
-      {(["paid", "review", "rejected"] as Status[]).map((status, idx) => (
+      {/* {(["paid", "review", "rejected"] as Status[]).map((status, idx) => ( */}
+      {(["paid", "rejected"] as Status[]).map((status, idx) => (
         <div key={idx}>{renderDialog(status)}</div>
       ))}
     </div>
