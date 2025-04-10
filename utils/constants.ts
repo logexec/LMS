@@ -83,7 +83,7 @@ export const sidenavLinks: NavLink[] = [
         label: "Nuevo Registro",
         url: "/registros/nuevo",
         icon: SquarePlus,
-        requiredPermissions: [Permission.EDIT_INCOME],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
       },
       {
         label: "Descuentos",
