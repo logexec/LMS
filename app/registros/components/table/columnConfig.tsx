@@ -717,17 +717,6 @@ export const getReposicionColumns = (
     cell: ({ row }) => <ActionButtons row={row.original} />,
     enableSorting: false,
   };
-
-  console.log("helpers.hasPermission:", helpers?.hasPermission);
-  console.log(
-    "Permiso manage_repositions:",
-    helpers?.hasPermission?.(Permission.MANAGE_REPOSITIONS)
-  );
-  console.log(
-    "Permiso edit_repositions:",
-    helpers?.hasPermission?.(Permission.EDIT_REPOSITIONS)
-  );
-
   if (
     helpers?.hasPermission?.(Permission.EDIT_REPOSITIONS) ||
     helpers?.hasPermission?.(Permission.MANAGE_REPOSITIONS)
