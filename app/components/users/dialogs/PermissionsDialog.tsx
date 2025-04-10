@@ -12,29 +12,42 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-const permissionMap: { [key: string]: { id: string; label: string } } = {
-  manage_users: { id: "1", label: "Administrar Usuarios" },
-  view_users: { id: "2", label: "Ver Usuarios" },
-  create_users: { id: "3", label: "Crear Usuarios" },
-  edit_users: { id: "4", label: "Editar Usuarios" },
-  delete_users: { id: "5", label: "Eliminar Usuarios" },
-  register_income: { id: "6", label: "Registrar Ingresos" },
-  view_income: { id: "7", label: "Ver Ingresos" },
-  edit_income: { id: "8", label: "Editar Ingresos" },
-  view_discounts: { id: "9", label: "Ver Descuentos" },
-  manage_discounts: { id: "10", label: "Administrar Descuentos" },
-  view_expenses: { id: "11", label: "Ver Gastos" },
+export const permissionMap: { [key: string]: { id: string; label: string } } = {
+  view_users: { id: "1", label: "Ver Usuarios" },
+  edit_users: { id: "2", label: "Editar Usuarios" },
+  manage_users: { id: "3", label: "Administrar Usuarios" },
+
+  view_income: { id: "4", label: "Ver Ingresos" },
+  edit_income: { id: "5", label: "Editar Ingresos" },
+  manage_income: { id: "6", label: "Administrar Ingresos" },
+
+  view_discounts: { id: "7", label: "Ver Descuentos" },
+  edit_discounts: { id: "8", label: "Editar Descuentos" },
+  manage_discounts: { id: "9", label: "Administrar Descuentos" },
+
+  view_expenses: { id: "10", label: "Ver Gastos" },
+  edit_expenses: { id: "11", label: "Editar Gastos" },
   manage_expenses: { id: "12", label: "Administrar Gastos" },
+
   view_requests: { id: "13", label: "Ver Solicitudes" },
-  manage_requests: { id: "14", label: "Administrar Solicitudes" },
-  view_reports: { id: "15", label: "Ver Reportes" },
-  manage_reports: { id: "16", label: "Administrar Reportes" },
-  manage_special_income: { id: "17", label: "Administrar Ingresos Especiales" },
-  view_budget: { id: "18", label: "Ver Presupuesto" },
-  manage_budget: { id: "19", label: "Administrar Presupuesto" },
-  manage_provisions: { id: "20", label: "Administrar Provisiones" },
-  manage_support: { id: "21", label: "Administrar Soporte" },
+  edit_requests: { id: "14", label: "Editar Solicitudes" },
+  manage_requests: { id: "15", label: "Administrar Solicitudes" },
+
+  view_repositions: { id: "16", label: "Ver Reposiciones" },
+  edit_repositions: { id: "17", label: "Editar Reposiciones" },
+  manage_repositions: { id: "18", label: "Administrar Reposiciones" },
+
+  view_budget: { id: "19", label: "Ver Presupuesto" },
+  edit_budget: { id: "20", label: "Editar Presupuesto" },
+  manage_budget: { id: "21", label: "Administrar Presupuesto" },
+
   view_provisions: { id: "22", label: "Ver Provisiones" },
+  edit_provisions: { id: "23", label: "Editar Provisiones" },
+  manage_provisions: { id: "24", label: "Administrar Provisiones" },
+
+  view_support: { id: "25", label: "Ver Soporte" },
+  edit_support: { id: "26", label: "Editar Soporte" },
+  manage_support: { id: "27", label: "Administrar Soporte" },
 };
 
 const formatPermissionName = (permission: string): string => {
