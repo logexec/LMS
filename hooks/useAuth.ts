@@ -43,6 +43,7 @@ export const useAuth = () => {
     if (Array.isArray(permission)) {
       return permission.every((p) => checkSinglePermission(p));
     }
+
     return checkSinglePermission(permission);
   };
 
