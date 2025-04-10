@@ -41,6 +41,7 @@ export enum Permission {
   VIEW_REQUESTS = "view_requests",
   MANAGE_REQUESTS = "manage_requests",
   VIEW_REPOSITIONS = "view_repositions",
+  EDIT_REPOSITIONS = "edit_repositions",
   MANAGE_REPOSITIONS = "manage_repositions",
   VIEW_BUDGET = "view_budget",
   MANAGE_BUDGET = "manage_budget",
@@ -82,7 +83,7 @@ export const sidenavLinks: NavLink[] = [
         label: "Nuevo Registro",
         url: "/registros/nuevo",
         icon: SquarePlus,
-        requiredPermissions: [Permission.EDIT_INCOME],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
       },
       {
         label: "Descuentos",
