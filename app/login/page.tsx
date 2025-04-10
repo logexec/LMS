@@ -24,7 +24,6 @@ const LoginPage = () => {
 
     try {
       await login(email, password, rememberMe);
-      toast.success("¡Autenticación exitosa!");
       window.location.href = "/";
     } catch (error) {
       toast.error(

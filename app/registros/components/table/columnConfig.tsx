@@ -429,8 +429,7 @@ const DetailsCell = ({ row }: { row: any }) => {
 
 // Columnas para ReposicionProps
 export const getReposicionColumns = (
-  helpers?: ColumnHelpers,
-  hasPermission?: (permission: string) => boolean // Recibir la función como argumento
+  helpers?: ColumnHelpers
 ): ColumnDef<ReposicionProps>[] => {
   const baseColumns: ColumnDef<ReposicionProps>[] = [
     {
@@ -719,19 +718,20 @@ export const getReposicionColumns = (
     enableSorting: false,
   };
 
+  console.log("helpers.hasPermission:", helpers?.hasPermission);
+  console.log(
+    "Permiso manage_repositions:",
+    helpers?.hasPermission?.(Permission.MANAGE_REPOSITIONS)
+  );
+  console.log(
+    "Permiso edit_repositions:",
+    helpers?.hasPermission?.(Permission.EDIT_REPOSITIONS)
+  );
+
   if (
-    hasPermission?.(Permission.EDIT_REPOSITIONS) ||
-    hasPermission?.(Permission.MANAGE_REPOSITIONS)
+    helpers?.hasPermission?.(Permission.EDIT_REPOSITIONS) ||
+    helpers?.hasPermission?.(Permission.MANAGE_REPOSITIONS)
   ) {
-    console.log("hasPermission:", hasPermission);
-    console.log(
-      "Permiso manage_repositions:",
-      hasPermission?.(Permission.MANAGE_REPOSITIONS)
-    );
-    console.log(
-      "Permiso edit_repositions:",
-      hasPermission?.(Permission.EDIT_REPOSITIONS)
-    );
     return [...baseColumns, actionsColumn];
   }
 

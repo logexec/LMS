@@ -365,6 +365,7 @@ export function RequestsTable<
       getColumns<TData>(mode, {
         ...dataMaps,
         onStatusChange,
+        hasPermission,
         accounts: Object.entries(dataMaps.accountMap).map(([id, name]) => ({
           id,
           name,
@@ -373,7 +374,6 @@ export function RequestsTable<
           id,
           name,
         })),
-        hasPermission,
       }),
     [mode, dataMaps, onStatusChange, hasPermission]
   );
