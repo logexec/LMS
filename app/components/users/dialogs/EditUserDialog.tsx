@@ -102,24 +102,24 @@ const permissionCategories: PermissionCategories = {
     label: "Presupuesto",
     permissions: [
       { id: 19, name: "view_budget", label: "Ver Presupuesto" },
-      { id: 19, name: "edit_budget", label: "Editar Presupuesto" },
-      { id: 20, name: "manage_budget", label: "Administrar Presupuesto" },
+      { id: 20, name: "edit_budget", label: "Editar Presupuesto" },
+      { id: 21, name: "manage_budget", label: "Administrar Presupuesto" },
     ],
   },
   provisions: {
     label: "Provisiones",
     permissions: [
-      { id: 21, name: "view_provisions", label: "Ver Provisiones" }, // Corregido
-      { id: 22, name: "edit_provisions", label: "Editar Provisiones" }, // Corregido
-      { id: 23, name: "manage_provisions", label: "Administrar Provisiones" }, // Corregido
+      { id: 22, name: "view_provisions", label: "Ver Provisiones" }, // Corregido
+      { id: 23, name: "edit_provisions", label: "Editar Provisiones" }, // Corregido
+      { id: 24, name: "manage_provisions", label: "Administrar Provisiones" }, // Corregido
     ],
   },
   support: {
     label: "Soporte",
     permissions: [
-      { id: 24, name: "view_support", label: "Ver Soporte" },
-      { id: 25, name: "edit_support", label: "Editar Soporte" },
-      { id: 26, name: "manage_support", label: "Administrar Soporte" },
+      { id: 25, name: "view_support", label: "Ver Soporte" },
+      { id: 26, name: "edit_support", label: "Editar Soporte" },
+      { id: 27, name: "manage_support", label: "Administrar Soporte" },
     ],
   },
 };
