@@ -127,7 +127,7 @@ const Sidenav = () => {
                 src={logo.src}
                 alt="LogeX logo"
                 className="object-contain"
-                sizes="(max-width: 760px) 100cw, 150px"
+                sizes="(max-width: 760px) 100vw, 150px"
               />
             </Link>
           </motion.div>

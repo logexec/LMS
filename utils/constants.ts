@@ -6,10 +6,11 @@ import {
   PiggyBank,
   Receipt,
   Banknote,
+  HandHelping,
+  CircleDollarSign,
 } from "lucide-react";
 import { GrSubtractCircle, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
-import { HandHelping } from "lucide-react";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -27,28 +28,50 @@ export interface NavLink {
   hidden?: boolean;
 }
 
+export enum Permission {
+  VIEW_USERS = "view_users",
+  MANAGE_USERS = "manage_users",
+  VIEW_INCOME = "view_income",
+  EDIT_INCOME = "edit_income",
+  MANAGE_INCOME = "manage_income",
+  VIEW_DISCOUNTS = "view_discounts",
+  MANAGE_DISCOUNTS = "manage_discounts",
+  VIEW_EXPENSES = "view_expenses",
+  MANAGE_EXPENSES = "manage_expenses",
+  VIEW_REQUESTS = "view_requests",
+  MANAGE_REQUESTS = "manage_requests",
+  VIEW_REPOSITIONS = "view_repositions",
+  MANAGE_REPOSITIONS = "manage_repositions",
+  VIEW_BUDGET = "view_budget",
+  MANAGE_BUDGET = "manage_budget",
+  VIEW_PROVISIONS = "view_provisions",
+  MANAGE_PROVISIONS = "manage_provisions",
+  MANAGE_SPECIAL_INCOME = "manage_special_income",
+  MANAGE_SUPPORT = "manage_support",
+}
+
 export const sidenavLinks: NavLink[] = [
   {
     category: "Administración General",
-    requiredPermissions: ["manage_users"],
+    requiredPermissions: [Permission.MANAGE_USERS],
     links: [
       {
         label: "Usuarios",
         url: "/usuarios",
         icon: LuUsers,
-        requiredPermissions: ["manage_users", "view_users"],
+        requiredPermissions: [Permission.VIEW_USERS],
       },
       {
         label: "Cuentas",
         url: "/cuentas",
         icon: PiggyBank,
-        requiredPermissions: ["manage_users", "view_users"],
+        requiredPermissions: [Permission.VIEW_USERS],
       },
       {
         label: "Órdenes de Compra",
         url: "/ordenes-compra",
         icon: Receipt,
-        requiredPermissions: ["manage_users", "view_users"],
+        requiredPermissions: [Permission.VIEW_USERS],
       },
     ],
   },
@@ -59,88 +82,61 @@ export const sidenavLinks: NavLink[] = [
         label: "Nuevo Registro",
         url: "/registros/nuevo",
         icon: SquarePlus,
-        requiredPermissions: ["register_income"],
+        requiredPermissions: [Permission.EDIT_INCOME],
       },
       {
         label: "Descuentos",
         url: "/registros/descuentos",
         icon: GrSubtractCircle,
-        requiredPermissions: ["view_discounts", "manage_discounts"],
+        requiredPermissions: [Permission.VIEW_DISCOUNTS],
       },
       {
         label: "Gastos",
         url: "/registros/gastos",
         icon: GiPayMoney,
-        requiredPermissions: ["view_expenses", "manage_expenses"],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
       },
       {
         label: "Ingresos",
         url: "/registros/ingresos",
         icon: Banknote,
-        requiredPermissions: ["view_expenses", "manage_expenses"],
+        requiredPermissions: [Permission.EDIT_INCOME],
       },
       {
         label: "Reposiciones",
         url: "/registros/reposiciones",
         icon: GrMoney,
-        requiredPermissions: [
-          "view_expenses",
-          "manage_expenses",
-          "view_requests",
-          "manage_requests",
-        ],
+        requiredPermissions: [Permission.VIEW_REPOSITIONS],
+      },
+      {
+        label: "Reposiciones de Ingresos",
+        url: "/registros/reposiciones-de-ingresos",
+        icon: CircleDollarSign,
+        requiredPermissions: [Permission.EDIT_INCOME],
       },
     ],
   },
-  // {
-  //   category: "Gestión",
-  //   links: [
-  //     {
-  //       label: "Solicitudes",
-  //       url: "/gestion/solicitudes",
-  //       icon: VscRequestChanges,
-  //       requiredPermissions: ["view_requests", "manage_requests"],
-  //     },
-  //     {
-  //       label: "Reportes Personales",
-  //       url: "/gestion/reportes-personales",
-  //       icon: GrDocumentUser,
-  //       requiredPermissions: ["view_reports", "manage_reports"],
-  //     },
-  //   ],
-  // },
-  // {
-  //   category: "Ingresos Especiales",
-  //   requiredPermissions: ["manage_special_income"],
-  //   links: [
-  //     {
-  //       label: "Inicio",
-  //       url: "/ingresos-especiales",
-  //       icon: LayoutDashboard,
-  //     },
-  //   ],
-  // },
   {
     category: "Finanzas",
-    requiredPermissions: ["manage_provisions"],
+    requiredPermissions: [Permission.MANAGE_BUDGET],
     links: [
       {
         label: "Presupuesto",
         url: "/finanzas/presupuesto",
         icon: Landmark,
-        requiredPermissions: ["view_budget", "manage_budget"],
+        requiredPermissions: [Permission.VIEW_BUDGET],
       },
       {
         label: "Provisiones",
         url: "/finanzas/provisiones",
         icon: Wallet,
-        requiredPermissions: ["manage_provisions"],
+        requiredPermissions: [Permission.VIEW_PROVISIONS],
       },
     ],
   },
   {
     category: "Soporte",
-    requiredPermissions: ["manage_support"],
+    requiredPermissions: [Permission.MANAGE_SUPPORT],
     links: [
       {
         label: "Tickets",

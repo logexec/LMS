@@ -377,7 +377,11 @@ export function RequestsTable<
   const buildQueryUrl = useCallback(
     (period: "last_3_months" | "all") => {
       const params = new URLSearchParams({ period });
-      if (type && mode === "requests") params.append("type", type);
+      if (type) {
+        if (mode === "requests" || mode === "reposiciones") {
+          params.append("type", type);
+        }
+      }
       return `/${mode}?${params.toString()}`;
     },
     [mode, type]

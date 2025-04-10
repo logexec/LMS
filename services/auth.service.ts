@@ -212,8 +212,8 @@ export const login = async (
       };
 
       if (remember) {
-        // 10 horas en días
-        options.expires = 10 / 24;
+        // 24 horas en días
+        options.expires = 24 / 24;
       }
 
       Cookies.set("jwt-token", data.jwt_token, options);

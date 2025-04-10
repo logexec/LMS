@@ -36,7 +36,7 @@ import { apiService } from "@/services/api.service";
 
 // Interfaces y tipos
 interface PermissionData {
-  id: string;
+  id: number;
   name: string;
   label: string;
 }
@@ -53,72 +53,73 @@ const permissionCategories: PermissionCategories = {
   users: {
     label: "Usuarios",
     permissions: [
-      { id: "1", name: "manage_users", label: "Administrar Usuarios" },
-      { id: "2", name: "view_users", label: "Ver Usuarios" },
-      { id: "3", name: "create_users", label: "Crear Usuarios" },
-      { id: "4", name: "edit_users", label: "Editar Usuarios" },
-      { id: "5", name: "delete_users", label: "Eliminar Usuarios" },
+      { id: 1, name: "view_users", label: "Ver Usuarios" },
+      { id: 2, name: "edit_users", label: "Editar Usuarios" },
+      { id: 3, name: "manage_users", label: "Administrar Usuarios" },
     ],
   },
   income: {
     label: "Ingresos",
     permissions: [
-      { id: "6", name: "register_income", label: "Registrar Ingresos" },
-      { id: "7", name: "view_income", label: "Ver Ingresos" },
-      { id: "8", name: "edit_income", label: "Editar Ingresos" },
-      {
-        id: "17",
-        name: "manage_special_income",
-        label: "Administrar Ingresos Especiales",
-      },
+      { id: 4, name: "view_income", label: "Ver Ingresos" },
+      { id: 5, name: "edit_income", label: "Editar Ingresos" },
+      { id: 6, name: "manage_income", label: "Administrar Ingresos" },
     ],
   },
   discounts: {
     label: "Descuentos",
     permissions: [
-      { id: "9", name: "view_discounts", label: "Ver Descuentos" },
-      { id: "10", name: "manage_discounts", label: "Administrar Descuentos" },
+      { id: 7, name: "view_discounts", label: "Ver Descuentos" },
+      { id: 8, name: "edit_discounts", label: "Editar Descuentos" },
+      { id: 9, name: "manage_discounts", label: "Administrar Descuentos" },
     ],
   },
   expenses: {
     label: "Gastos",
     permissions: [
-      { id: "11", name: "view_expenses", label: "Ver Gastos" },
-      { id: "12", name: "manage_expenses", label: "Administrar Gastos" },
+      { id: 10, name: "view_expenses", label: "Ver Gastos" },
+      { id: 11, name: "edit_expenses", label: "Editar Gastos" },
+      { id: 12, name: "manage_expenses", label: "Administrar Gastos" },
     ],
   },
   requests: {
     label: "Solicitudes",
     permissions: [
-      { id: "13", name: "view_requests", label: "Ver Solicitudes" },
-      { id: "14", name: "manage_requests", label: "Administrar Solicitudes" },
+      { id: 13, name: "view_requests", label: "Ver Solicitudes" },
+      { id: 14, name: "edit_requests", label: "Editar Solicitudes" },
+      { id: 15, name: "manage_requests", label: "Administrar Solicitudes" },
     ],
   },
-  reports: {
-    label: "Reportes",
+  repositions: {
+    label: "Reposiciones",
     permissions: [
-      { id: "15", name: "view_reports", label: "Ver Reportes" },
-      { id: "16", name: "manage_reports", label: "Administrar Reportes" },
+      { id: 16, name: "view_repositions", label: "Ver Reposiciones" },
+      { id: 17, name: "edit_repositions", label: "Editar Reposiciones" },
+      { id: 18, name: "manage_repositions", label: "Administrar Reposiciones" },
     ],
   },
   budget: {
     label: "Presupuesto",
     permissions: [
-      { id: "18", name: "view_budget", label: "Ver Presupuesto" },
-      { id: "19", name: "manage_budget", label: "Administrar Presupuesto" },
+      { id: 19, name: "view_budget", label: "Ver Presupuesto" },
+      { id: 19, name: "edit_budget", label: "Editar Presupuesto" },
+      { id: 20, name: "manage_budget", label: "Administrar Presupuesto" },
     ],
   },
   provisions: {
     label: "Provisiones",
     permissions: [
-      { id: "20", name: "view_provisions", label: "Ver Provisiones" },
-      { id: "21", name: "manage_provisions", label: "Administrar Provisiones" },
+      { id: 21, name: "view_provisions", label: "Ver Provisiones" }, // Corregido
+      { id: 22, name: "edit_provisions", label: "Editar Provisiones" }, // Corregido
+      { id: 23, name: "manage_provisions", label: "Administrar Provisiones" }, // Corregido
     ],
   },
   support: {
     label: "Soporte",
     permissions: [
-      { id: "22", name: "manage_support", label: "Administrar Soporte" },
+      { id: 24, name: "view_support", label: "Ver Soporte" },
+      { id: 25, name: "edit_support", label: "Editar Soporte" },
+      { id: 26, name: "manage_support", label: "Administrar Soporte" },
     ],
   },
 };
@@ -129,7 +130,7 @@ interface Role {
 }
 
 interface Permission {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -155,7 +156,7 @@ interface UserFormData {
   email: string;
   role_id: string;
   dob: string;
-  permissions: string[];
+  permissions: number[];
   projectIds: string[];
 }
 
@@ -197,6 +198,20 @@ export const EditUserDialog = ({
 
   const calendarPopoverRef = useRef<HTMLButtonElement>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        role_id: user.role_id || "",
+        dob: user.dob || "",
+        permissions: user.permissions.map((p) => p.id) || [],
+        projectIds: user.projects.map((p) => p.id) || [],
+      });
+      setSelectedDate(user.dob ? new Date(user.dob) : undefined);
+    }
+  }, [isOpen, user]);
 
   // Procesar roles para garantizar que sea un array
   const processedRoles = Array.isArray(roles)
@@ -282,11 +297,7 @@ export const EditUserDialog = ({
   // Manejar cambio de rol
   const handleRoleChange = (value: string) => {
     setFormData((prev) => ({ ...prev, role_id: value }));
-
-    // Limpiar error
-    if (errors.role_id) {
-      setErrors((prev) => ({ ...prev, role_id: "" }));
-    }
+    if (errors.role_id) setErrors((prev) => ({ ...prev, role_id: "" }));
   };
 
   // Manejar selección de fecha
@@ -306,7 +317,7 @@ export const EditUserDialog = ({
   };
 
   // Manejar toggle de permisos
-  const handlePermissionToggle = (permissionId: string) => {
+  const handlePermissionToggle = (permissionId: number) => {
     setFormData((prev) => ({
       ...prev,
       permissions: prev.permissions.includes(permissionId)
@@ -355,9 +366,14 @@ export const EditUserDialog = ({
   // Manejar envío del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (validateForm()) {
-      onSubmit(formData);
+      const submissionData = {
+        ...formData,
+        permissions: formData.permissions.map((id) => id),
+        projectIds: formData.projectIds.map((id) => id),
+      };
+      console.log("Datos enviados al backend:", submissionData);
+      onSubmit(submissionData);
     } else {
       toast.error("Por favor completa todos los campos requeridos");
     }

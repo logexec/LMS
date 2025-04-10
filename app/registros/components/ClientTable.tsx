@@ -146,6 +146,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
       ) : (
         <RequestsTable<ReposicionProps>
           mode={mode}
+          type={type}
           onUpdateReposicion={handleUpdateReposicion}
         />
       )}
