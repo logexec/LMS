@@ -17,6 +17,7 @@ export const useAuth = () => {
   };
 
   const hasPermission = (permission: string | string[]): boolean => {
+    console.log("Permiso solicitado:", permission);
     if (!context.user?.permissions) return false;
 
     const userPermissions = context.user.permissions.map((p) => p.name);
@@ -43,6 +44,7 @@ export const useAuth = () => {
     if (Array.isArray(permission)) {
       return permission.every((p) => checkSinglePermission(p));
     }
+
     return checkSinglePermission(permission);
   };
 

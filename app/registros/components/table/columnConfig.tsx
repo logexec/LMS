@@ -719,9 +719,22 @@ export const getReposicionColumns = (
     enableSorting: false,
   };
 
-  if (hasPermission?.(Permission.MANAGE_REPOSITIONS)) {
+  if (
+    hasPermission?.(Permission.EDIT_REPOSITIONS) ||
+    hasPermission?.(Permission.MANAGE_REPOSITIONS)
+  ) {
+    console.log("hasPermission:", hasPermission);
+    console.log(
+      "Permiso manage_repositions:",
+      hasPermission?.(Permission.MANAGE_REPOSITIONS)
+    );
+    console.log(
+      "Permiso edit_repositions:",
+      hasPermission?.(Permission.EDIT_REPOSITIONS)
+    );
     return [...baseColumns, actionsColumn];
   }
+
   return baseColumns;
 };
 
