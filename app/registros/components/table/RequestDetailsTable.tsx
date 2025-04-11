@@ -681,7 +681,7 @@ const RequestDetailsTableComponent = ({
       </div>
 
       <div className="w-full overflow-x-auto">
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[70vh] max-w-[90vw] overflow-auto">
           <table className="w-full border-collapse min-w-max">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
