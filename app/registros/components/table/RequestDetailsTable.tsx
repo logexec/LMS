@@ -43,6 +43,7 @@ import { Dialog } from "@/components/ui/dialog";
 import apiService from "@/services/api.service";
 import {
   ColumnDef,
+  ColumnSizingState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -119,6 +120,7 @@ const RequestDetailsTableComponent = ({
   const [modalPreparing, setModalPreparing] = useState(false);
 
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   // Función para eliminar duplicados
   const removeDuplicates = <T extends Record<string, any>>(
@@ -385,6 +387,7 @@ const RequestDetailsTableComponent = ({
           </TooltipProvider>
         ),
         size: 40,
+        enableResizing: false,
         enableSorting: true,
         sortingFn: "alphanumeric",
       },
@@ -397,6 +400,7 @@ const RequestDetailsTableComponent = ({
           </div>
         ),
         size: 80,
+        enableResizing: false,
       },
       {
         accessorKey: "personnel_type",
@@ -407,6 +411,7 @@ const RequestDetailsTableComponent = ({
           </div>
         ),
         size: 80,
+        enableResizing: true,
       },
       {
         accessorKey: "request_date",
@@ -423,6 +428,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 50,
         maxSize: 150,
+        size: 100,
+        enableResizing: true,
         enableSorting: true,
         sortingFn: "datetime",
       },
@@ -434,8 +441,10 @@ const RequestDetailsTableComponent = ({
             {row.original.month || "—"}
           </div>
         ),
-        minSize: 100,
+        minSize: 80,
         maxSize: 130,
+        size: 100,
+        enableResizing: true,
         enableSorting: true,
         sortingFn: "datetime",
       },
@@ -443,8 +452,10 @@ const RequestDetailsTableComponent = ({
         accessorKey: "status",
         header: "Estado",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
-        minSize: 120,
+        minSize: 100,
         maxSize: 180,
+        size: 120,
+        enableResizing: true,
       },
       {
         accessorKey: "invoice_number",
@@ -454,37 +465,49 @@ const RequestDetailsTableComponent = ({
             {row.original.invoice_number}
           </div>
         ),
-        minSize: 120,
+        minSize: 100,
         maxSize: 180,
+        size: 120,
+        enableResizing: true,
         enableSorting: true,
         sortingFn: "auto",
       },
       {
         accessorKey: "account_id",
         header: "Cuenta",
-        cell: ({ row }) => (
-          <div className="truncate max-w-[180px]">
+        cell: ({ row, column }) => (
+          <div
+            className="truncate max-w-[420px]"
+            style={{ width: column.getSize() }}
+          >
             {row.original.account_id}
           </div>
         ),
-        minSize: 120,
-        maxSize: 180,
+        minSize: 100,
+        maxSize: 420,
+        size: 120,
+        enableResizing: true,
         enableSorting: true,
         sortingFn: "text",
       },
       {
         accessorKey: "amount",
         header: "Monto",
-        cell: ({ row }) => (
-          <div className="font-semibold text-red-700">
+        cell: ({ row, column }) => (
+          <div
+            className="font-semibold text-red-700"
+            style={{ width: column.getSize() }}
+          >
             {(typeof row.original.amount === "string"
               ? parseFloat(row.original.amount || "0")
               : row.original.amount || 0
             ).toFixed(2)}
           </div>
         ),
-        minSize: 100,
+        minSize: 80,
         maxSize: 140,
+        size: 100,
+        enableResizing: true,
         enableSorting: true,
         sortingFn: "auto",
       },
@@ -500,8 +523,11 @@ const RequestDetailsTableComponent = ({
       {
         accessorKey: "responsible_id",
         header: "Responsable",
-        cell: ({ row }) => (
-          <div className="max-w-[180px] truncate">
+        cell: ({ row, column }) => (
+          <div
+            className="max-w-[380px] truncate"
+            style={{ width: column.getSize() }}
+          >
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger className="text-left cursor-help">
@@ -516,7 +542,8 @@ const RequestDetailsTableComponent = ({
         ),
         enableHiding: !filteredRequests.some((r) => r.responsible_id),
         minSize: 100,
-        maxSize: 180,
+        maxSize: 380,
+        enableResizing: true,
       },
       {
         accessorKey: "vehicle_plate",
@@ -535,25 +562,31 @@ const RequestDetailsTableComponent = ({
       {
         accessorKey: "vehicle_number",
         header: "No. Transporte",
-        cell: ({ row }) => (
-          <div className="truncate max-w-[100px] text-center">
+        cell: ({ row, column }) => (
+          <div
+            className="truncate max-w-[250px] text-center"
+            style={{ width: column.getSize() }}
+          >
             {row.original.vehicle_number || "—"}
           </div>
         ),
         enableHiding: !filteredRequests.some((r) => r.vehicle_number),
         minSize: 50,
-        maxSize: 100,
+        maxSize: 250,
         enableSorting: true,
         sortingFn: "auto",
       },
       {
         accessorKey: "note",
         header: "Observación",
-        cell: ({ row }) => (
-          <div className="max-w-[220px] truncate">
+        cell: ({ row, column }) => (
+          <div
+            className="max-w-[850px] truncate"
+            style={{ width: column.getSize() }}
+          >
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger className="text-left cursor-help truncate max-w-[220px]">
+                <TooltipTrigger className="text-left cursor-help truncate max-w-[850px]">
                   {row.original.note || "—"}
                 </TooltipTrigger>
                 <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
@@ -564,7 +597,8 @@ const RequestDetailsTableComponent = ({
           </div>
         ),
         minSize: 80,
-        maxSize: 220,
+        maxSize: 850,
+        size: 220,
         enableSorting: true,
         sortingFn: "text",
         enableResizing: true,
@@ -597,6 +631,7 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 80,
         maxSize: 100,
+        enableResizing: false,
         enableSorting: false,
       },
     ],
@@ -609,9 +644,12 @@ const RequestDetailsTableComponent = ({
     columns,
     state: {
       sorting,
+      columnSizing,
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    onColumnSizingChange: setColumnSizing,
+    columnResizeMode: "onChange",
     getSortedRowModel: getSortedRowModel(), // <- importante!
   });
   const handleOpenModal = (e: React.MouseEvent) => {
@@ -729,25 +767,37 @@ const RequestDetailsTableComponent = ({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap cursor-pointer select-none"
+                      colSpan={header.colSpan}
+                      style={{ width: header.getSize() }}
+                      className="relative group px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap cursor-pointer select-none"
                       onClick={header.column.getToggleSortingHandler()}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
+                      <div className="flex items-center justify-center gap-1">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {header.column.getIsSorted() === "asc" && (
+                          <SortAsc className="inline-block h-4 w-4" />
+                        )}
+                        {header.column.getIsSorted() === "desc" && (
+                          <SortDesc className="inline-block h-4 w-4" />
+                        )}
+                      </div>
+
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className="absolute right-0 top-0 h-full w-1 bg-slate-400 opacity-0 group-hover:opacity-100 cursor-col-resize transition"
+                        />
                       )}
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === "asc" ? (
-                          <SortAsc className="inline-block ml-1 h-4 w-4" />
-                        ) : (
-                          <SortDesc className="inline-block ml-1 h-4 w-4" />
-                        )
-                      ) : null}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
+
             <tbody>
               <AnimatePresence mode="sync">
                 {isLoading ? (
