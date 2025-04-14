@@ -303,8 +303,6 @@ export const apiService = {
         body: formData,
       });
 
-      console.log("createLoan response status:", response.status);
-
       if (!response.ok) {
         const errorText: any = await response.text();
         console.log("Error response from backend:", errorText);

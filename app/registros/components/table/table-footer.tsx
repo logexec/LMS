@@ -525,15 +525,6 @@ export function RequestsTable<
     manualFiltering: false,
   });
 
-  useEffect(() => {
-    console.log("Table State Updated:", {
-      globalFilter: tableState.globalFilter,
-      rowSelection,
-      filteredRows: table.getFilteredRowModel().rows.length,
-      selectedRows: table.getSelectedRowModel().rows.length,
-    });
-  }, [tableState.globalFilter, rowSelection, table]);
-
   const handleSendRequests = async (
     requestIds: string[],
     attachment: File
