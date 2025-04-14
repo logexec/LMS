@@ -550,10 +550,10 @@ const RequestDetailsTableComponent = ({
         accessorKey: "note",
         header: "Observación",
         cell: ({ row }) => (
-          <div className="max-w-[90px] truncate">
+          <div className="max-w-[220px] truncate">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger className="text-left cursor-help truncate max-w-[90px]">
+                <TooltipTrigger className="text-left cursor-help truncate max-w-[220px]">
                   {row.original.note || "—"}
                 </TooltipTrigger>
                 <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
@@ -563,8 +563,8 @@ const RequestDetailsTableComponent = ({
             </TooltipProvider>
           </div>
         ),
-        minSize: 50,
-        maxSize: 100,
+        minSize: 80,
+        maxSize: 220,
         enableSorting: true,
         sortingFn: "text",
       },
