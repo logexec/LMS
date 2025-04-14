@@ -525,12 +525,15 @@ const RequestDetailsTableComponent = ({
         header: "Responsable",
         cell: ({ row, column }) => (
           <div
-            className="max-w-[380px] truncate"
+            className="truncate w-[100px] max-w-[380px]"
             style={{ width: column.getSize() }}
           >
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger className="text-left cursor-help">
+                <TooltipTrigger
+                  className="text-left cursor-help truncate w-[100px] max-w-[380px]"
+                  style={{ width: column.getSize() }}
+                >
                   {row.original.responsible_id || "—"}
                 </TooltipTrigger>
                 <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
@@ -581,12 +584,12 @@ const RequestDetailsTableComponent = ({
         header: "Observación",
         cell: ({ row, column }) => (
           <div
-            className="max-w-[850px] truncate"
+            className="truncate max-w-[850px]"
             style={{ width: column.getSize() }}
           >
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger className="text-left cursor-help truncate max-w-[850px]">
+                <TooltipTrigger className="text-left cursor-help truncate w-[220px] max-w-[850px]">
                   {row.original.note || "—"}
                 </TooltipTrigger>
                 <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
