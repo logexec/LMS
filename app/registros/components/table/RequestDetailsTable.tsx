@@ -567,6 +567,7 @@ const RequestDetailsTableComponent = ({
         maxSize: 220,
         enableSorting: true,
         sortingFn: "text",
+        enableResizing: true,
       },
       {
         id: "actions",
