@@ -216,7 +216,9 @@ export const apiService = {
     const endpoint =
       context === "expenses"
         ? "/download-expenses-template"
-        : "/download-discounts-template";
+        : context === "discounts"
+        ? "/download-discounts-template"
+        : "/download-discounts-template?isIncome=true";
 
     try {
       const response = await fetch(
