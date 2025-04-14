@@ -84,24 +84,22 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
       debounce(async (proyecto: string, area: string) => {
         if (!proyecto) {
           toast.error("Debes seleccionar un proyecto");
-          console.log("No fetch: proyecto vacío", { proyecto });
+          console.error("No fetch: proyecto vacío", { proyecto });
           return;
         }
         if (!area) {
           toast.error("Debes seleccionar un área");
-          console.log("No fetch: área vacía", { area });
+          console.error("No fetch: área vacía", { area });
           return;
         }
 
         setIsLoading(true);
         try {
           const url = `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`;
-          console.log("Fetching from:", url);
 
           const response = await fetchWithAuth(
             url.replace(process.env.NEXT_PUBLIC_API_URL || "", "")
           );
-          console.log("Response data:", response);
 
           // Convertir el objeto en un arreglo, excluyendo 'ok'
           const employeesArray: EmployeeResponse[] = Object.values(
@@ -141,10 +139,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   );
 
   useEffect(() => {
-    console.log("useEffect triggered with:", {
-      proyecto: massFormData.proyecto,
-      area: massFormData.area,
-    });
     if (massFormData.proyecto && massFormData.area) {
       fetchEmployees(massFormData.proyecto, massFormData.area);
     }

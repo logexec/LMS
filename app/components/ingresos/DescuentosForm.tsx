@@ -156,8 +156,6 @@ const DescuentosForm = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Descuento registrado:", data);
         toast.success(`Registro ingresado exitosamente`);
       }
     } catch (error) {

@@ -126,7 +126,6 @@ const EditModal = ({
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    console.log(`Handling select change for ${name} with value:`, value); // Debug log
     setFormData((prev) => ({
       ...prev,
       [name]: value,

@@ -66,22 +66,15 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
     }
   };
 
-  const [templateType, setTemplateType] = useState<
-    "discounts" | "expenses" | "income"
-  >("discounts");
-
   const handleDownloadTemplate = async (
     context: "discounts" | "expenses" | "income"
   ) => {
     setIsDownloading(true);
-    if (context === "expenses") {
-      setTemplateType("expenses");
-    } else if (context === "income" || context === "discounts") {
-      setTemplateType("discounts");
-    }
-    console.log("Template:", templateType);
     try {
-      const result = await apiService.downloadTemplate(templateType);
+      const result = await apiService.downloadTemplate(
+        // context === "expenses" ? "expenses" : "discounts"
+        context
+      );
       toast.success(result.message);
     } catch (error) {
       toast.error(
@@ -224,15 +217,15 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        onClick={() =>
+                        onClick={() => {
                           handleDownloadTemplate(
                             context === "discounts"
                               ? "discounts"
                               : context === "expenses"
                               ? "expenses"
                               : "income"
-                          )
-                        }
+                          );
+                        }}
                         disabled={isDownloading}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200"
                       >

@@ -54,14 +54,9 @@ const UserProfileComponent = ({
         const response = await apiService.getProjects();
         const projectsData = Array.isArray(response) ? response : [];
 
-        console.log("userProjects:", assignedProjects);
-        console.log("projectsData:", projectsData);
-
         const filteredProjects = projectsData.filter(
           (project) => assignedProjects.includes(project.id) // Correcta comparación
         );
-
-        console.log("Filtered:", filteredProjects);
 
         return filteredProjects.map((project: Project) => ({
           ...project,

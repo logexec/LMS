@@ -83,11 +83,6 @@ export default function EditRecord({
     try {
       setIsSubmitting(true);
 
-      // Log solo en desarrollo
-      if (process.env.NODE_ENV !== "production") {
-        console.log("Submitting values:", values);
-      }
-
       // Preparar los datos para enviar
       const updatedData: Partial<RequestProps> = {
         request_date: format(values.request_date, "yyyy-MM-dd"),
