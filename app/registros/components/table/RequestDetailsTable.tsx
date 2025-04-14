@@ -9,6 +9,8 @@ import {
   Search,
   Edit2,
   Loader2,
+  SortAsc,
+  SortDesc,
 } from "lucide-react";
 import {
   AccountProps,
@@ -43,6 +45,8 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -113,6 +117,8 @@ const RequestDetailsTableComponent = ({
   const [selectedRow, setSelectedRow] = useState<RequestProps | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [modalPreparing, setModalPreparing] = useState(false);
+
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   // Función para eliminar duplicados
   const removeDuplicates = <T extends Record<string, any>>(
@@ -365,11 +371,22 @@ const RequestDetailsTableComponent = ({
         accessorKey: "unique_id",
         header: "ID",
         cell: ({ row }) => (
-          <div className="text-center max-w-[40px]">
-            {row.original.unique_id}
-          </div>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="text-center trunate max-w-[40px]">
+                  {row.original.unique_id}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="">{row.original.unique_id}</div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ),
         size: 40,
+        enableSorting: true,
+        sortingFn: "alphanumeric",
       },
       {
         accessorKey: "type",
@@ -406,6 +423,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 50,
         maxSize: 150,
+        enableSorting: true,
+        sortingFn: "datetime",
       },
       {
         accessorKey: "month",
@@ -417,6 +436,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 100,
         maxSize: 130,
+        enableSorting: true,
+        sortingFn: "datetime",
       },
       {
         accessorKey: "status",
@@ -435,6 +456,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 120,
         maxSize: 180,
+        enableSorting: true,
+        sortingFn: "auto",
       },
       {
         accessorKey: "account_id",
@@ -446,6 +469,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 120,
         maxSize: 180,
+        enableSorting: true,
+        sortingFn: "text",
       },
       {
         accessorKey: "amount",
@@ -460,6 +485,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 100,
         maxSize: 140,
+        enableSorting: true,
+        sortingFn: "auto",
       },
       {
         accessorKey: "project",
@@ -468,6 +495,7 @@ const RequestDetailsTableComponent = ({
           <div>{projectMap[row.original.project] || row.original.project}</div>
         ),
         size: 100,
+        enableSorting: false,
       },
       {
         accessorKey: "responsible_id",
@@ -501,6 +529,8 @@ const RequestDetailsTableComponent = ({
         enableHiding: !filteredRequests.some((r) => r.vehicle_plate),
         minSize: 50,
         maxSize: 100,
+        enableSorting: true,
+        sortingFn: "auto",
       },
       {
         accessorKey: "vehicle_number",
@@ -513,6 +543,8 @@ const RequestDetailsTableComponent = ({
         enableHiding: !filteredRequests.some((r) => r.vehicle_number),
         minSize: 50,
         maxSize: 100,
+        enableSorting: true,
+        sortingFn: "auto",
       },
       {
         accessorKey: "note",
@@ -533,6 +565,8 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 50,
         maxSize: 100,
+        enableSorting: true,
+        sortingFn: "text",
       },
       {
         id: "actions",
@@ -562,6 +596,7 @@ const RequestDetailsTableComponent = ({
         ),
         minSize: 80,
         maxSize: 100,
+        enableSorting: false,
       },
     ],
     [filteredRequests, projectMap, modalPreparing]
@@ -571,9 +606,13 @@ const RequestDetailsTableComponent = ({
   const table = useReactTable({
     data: filteredRequests,
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(), // <- importante!
   });
-
   const handleOpenModal = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -689,14 +728,20 @@ const RequestDetailsTableComponent = ({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap"
+                      className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap cursor-pointer select-none"
+                      onClick={header.column.getToggleSortingHandler()}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {header.column.getIsSorted() ? (
+                        header.column.getIsSorted() === "asc" ? (
+                          <SortAsc className="inline-block ml-1 h-4 w-4" />
+                        ) : (
+                          <SortDesc className="inline-block ml-1 h-4 w-4" />
+                        )
+                      ) : null}
                     </th>
                   ))}
                 </tr>
