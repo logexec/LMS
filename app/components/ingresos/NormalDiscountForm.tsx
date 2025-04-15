@@ -1,19 +1,51 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { ChangeEvent, FormEvent } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { useCallback, useEffect } from "react";
-import Input from "../Input";
-import Select from "../Select";
-import {
-  LoadingState,
-  OptionsState,
-  NormalFormData,
-  AccountProps,
-} from "@/utils/types";
+import React, { useCallback, useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { AlertCircle, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { getAuthToken } from "@/services/auth.service";
+import apiService from "@/services/api.service";
 import debounce from "lodash/debounce";
+import { LoadingState, OptionsState, AccountProps } from "@/utils/types";
 import {
   Card,
   CardContent,
@@ -21,84 +53,95 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { getAuthToken } from "@/services/auth.service";
-import apiService from "@/services/api.service";
-import Combobox from "@/components/ui/combobox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface NormalDiscountFormProps {
+const formSchema = z.object({
+  fechaGasto: z.coerce.date(),
+  tipo: z.string().min(1, "Debes seleccionar un tipo"),
+  proyecto: z.string().min(2, "El proyecto es obligatorio"),
+  cuenta: z.string().min(2, "La cuenta es obligatoria"),
+  responsable: z.string().optional(),
+  vehicle_plate: z.string().optional(),
+  vehicle_number: z.string().optional(),
+  factura: z
+    .string()
+    .min(3, "El número de factura debe tener al menos 3 caracteres")
+    .max(10, "El número de factura no puede tener más de 10 caracteres"),
+  valor: z.string().min(3, "El valor debe tener al menos 3 dígitos"),
+  observacion: z.string().min(1, "Debes escribir una observación"),
+});
+
+interface MyFormProps {
   options: OptionsState;
-  loading: LoadingState;
+  loading?: LoadingState;
   type: "discount" | "income";
   onSubmit: (data: FormData) => Promise<void>;
-  onReset?: () => void;
 }
 
-const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
+export default function NormalDiscountForm({
   options,
-  loading,
-  onSubmit,
   type,
-}) => {
-  const [normalFormData, setNormalFormData] = React.useState<NormalFormData>({
-    fechaGasto: new Date().toISOString().split("T")[0],
-    tipo: "",
-    factura: "",
-    cuenta: "",
-    valor: "",
-    proyecto: "",
-    responsable: "",
-    vehicle_plate: "",
-    vehicle_number: "",
-    observacion: "",
-  });
-
-  const [localOptions, setLocalOptions] = React.useState<OptionsState>({
-    projects: options.projects, // Usar los proyectos que vienen de props
+  onSubmit,
+}: MyFormProps) {
+  const [localOptions, setLocalOptions] = useState<OptionsState>({
+    projects: options.projects,
     responsibles: [],
     transports: [],
     accounts: [],
-    areas: options.areas, // Usar las áreas que vienen de props
+    areas: options.areas,
   });
 
-  const [localLoading, setLocalLoading] = React.useState<LoadingState>({
-    submit: loading.submit,
-    projects: loading.projects,
-    responsibles: false,
-    transports: false,
-    accounts: false,
-    areas: loading.areas,
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(false);
+  const [isLoadingResponsibles, setIsLoadingResponsibles] =
+    useState<boolean>(false);
+  const [isLoadingVehicles, setIsLoadingVehicles] = useState<boolean>(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      fechaGasto: new Date(),
+      tipo: "",
+      proyecto: "",
+      cuenta: "",
+      responsable: "",
+      vehicle_plate: "",
+      vehicle_number: "",
+      factura: "",
+      valor: "0",
+      observacion: "",
+    },
   });
 
-  const [formValid, setFormValid] = React.useState(false);
-  const [formErrors, setFormErrors] = React.useState<Record<string, string>>(
-    {}
-  );
-
-  // Actualizar localOptions cuando cambien las props
+  // Autoscroll al error
   useEffect(() => {
-    setLocalOptions((prevOptions) => ({
-      ...prevOptions,
-      projects: options.projects,
-      areas: options.areas,
-    }));
+    const errorField = Object.keys(form.formState.errors)[0];
+    if (errorField) {
+      const el = document.querySelector(`[name="${errorField}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [form.formState.errors]);
+
+  useEffect(() => {
+    setIsLoadingProjects(true);
+
+    const timeout = setTimeout(() => {
+      setLocalOptions((prevOptions) => ({
+        ...prevOptions,
+        projects: options.projects,
+        areas: options.areas,
+      }));
+      setIsLoadingProjects(false);
+    }, 300); // lo suficiente para permitir un render son 200ms
+
+    return () => clearTimeout(timeout);
   }, [options.projects, options.areas]);
 
-  // Actualizar localLoading cuando cambien las props
-  useEffect(() => {
-    setLocalLoading((prevLoading) => ({
-      ...prevLoading,
-      submit: loading.submit,
-      projects: loading.projects,
-      areas: loading.areas,
-    }));
-  }, [loading.submit, loading.projects, loading.areas]);
-
   const fetchAccounts = useCallback(async (tipo: string) => {
-    setLocalLoading((prev) => ({ ...prev, accounts: true }));
     try {
+      setIsLoading(true);
+      setIsLoadingAccounts(true);
       const response = await apiService.getAccounts(tipo, "discount");
       if (!response.ok) throw new Error("Error al cargar las cuentas");
 
@@ -121,16 +164,17 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
       );
       console.error(error);
     } finally {
-      setLocalLoading((prev) => ({ ...prev, accounts: false }));
+      setIsLoading(false);
+      setIsLoadingAccounts(false);
     }
   }, []);
 
   const fetchResponsibles = useCallback(
     debounce(async (proyecto: string) => {
       if (!proyecto) return;
-
-      setLocalLoading((prev) => ({ ...prev, responsibles: true }));
       try {
+        setIsLoading(true);
+        setIsLoadingResponsibles(true);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
           {
@@ -161,15 +205,17 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
             : "Error al cargar responsables"
         );
       } finally {
-        setLocalLoading((prev) => ({ ...prev, responsibles: false }));
+        setIsLoading(false);
+        setIsLoadingResponsibles(false);
       }
     }, 300),
     []
   );
 
   const fetchTransports = useCallback(async () => {
-    setLocalLoading((prev) => ({ ...prev, transports: true }));
     try {
+      setIsLoading(true);
+      setIsLoadingVehicles(true);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/transports`,
         {
@@ -198,190 +244,65 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
           : "Error al cargar los transportes"
       );
     } finally {
-      setLocalLoading((prev) => ({ ...prev, transports: false }));
+      setIsLoading(false);
+      setIsLoadingVehicles(false);
     }
   }, []);
 
   useEffect(() => {
-    if (normalFormData.tipo) {
-      fetchAccounts(normalFormData.tipo);
+    const tipo = form.watch("tipo");
+    if (tipo) {
+      fetchAccounts(tipo);
     }
-  }, [normalFormData.tipo, fetchAccounts]);
+  }, [form.watch("tipo"), fetchAccounts]);
 
   useEffect(() => {
-    if (normalFormData.proyecto && normalFormData.tipo) {
-      fetchResponsibles(normalFormData.proyecto);
+    const proyecto = form.watch("proyecto");
+    const tipo = form.watch("tipo");
+    if (proyecto && tipo) {
+      fetchResponsibles(proyecto);
     }
-  }, [normalFormData.proyecto, normalFormData.tipo, fetchResponsibles]);
+  }, [form.watch("proyecto"), form.watch("tipo"), fetchResponsibles]);
 
   useEffect(() => {
-    if (normalFormData.tipo === "transportista") {
+    const tipo = form.watch("tipo");
+    if (tipo === "transportista") {
       fetchTransports();
     }
-  }, [normalFormData.tipo]);
-
-  const validateField = (name: string, value: string): boolean => {
-    const newErrors = { ...formErrors };
-
-    switch (name) {
-      case "tipo":
-        newErrors[name] =
-          typeof value === "string" && value.length < 1
-            ? "Debes seleccionar un tipo"
-            : "";
-        break;
-      case "fechaGasto":
-        newErrors[name] =
-          typeof value === "string" && value.length < 10
-            ? "Debes seleccionar una fecha"
-            : "";
-        break;
-      case "valor":
-        newErrors[name] =
-          typeof value === "string" && parseFloat(value) <= 0
-            ? "El valor debe ser mayor a 0"
-            : "";
-        break;
-      case "factura":
-        newErrors[name] =
-          typeof value === "string" && value.length < 3
-            ? "El número de factura debe tener al menos 3 caracteres"
-            : typeof value === "string" && value.length > 10
-            ? "El número de factura no puede tener más de 10 caracteres"
-            : "";
-        break;
-      case "proyecto":
-        newErrors[name] =
-          typeof value === "string" && value.length < 2
-            ? "El proyecto es obligatorio"
-            : "";
-        break;
-      case "cuenta":
-        newErrors[name] =
-          typeof value === "string" && value.length < 2
-            ? "La cuenta es obligatoria"
-            : "";
-        break;
-      case "observacion":
-        newErrors[name] =
-          typeof value === "string" && value.trim().length < 1
-            ? "Debes escribir una observación"
-            : "";
-        break;
-      case "vehicle_plate":
-        if (
-          normalFormData.tipo === "transportista" &&
-          typeof value === "string" &&
-          value.length < 1
-        ) {
-          newErrors[name] = "Debes seleccionar una placa";
-        } else {
-          newErrors[name] = "";
-        }
-        break;
-      case "responsable":
-        if (
-          normalFormData.tipo === "nomina" &&
-          typeof value === "string" &&
-          value.length < 1
-        ) {
-          newErrors[name] = "Debes seleccionar un responsable";
-        } else {
-          newErrors[name] = "";
-        }
-        break;
-    }
-
-    setFormErrors(newErrors);
-    const isValid = !Object.values(newErrors).some((error) => error !== "");
-    setFormValid(isValid);
-
-    return isValid;
-  };
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNormalFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    validateField(name, value);
-  };
-
-  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setNormalFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    validateField(name, value);
-  };
+  }, [form.watch("tipo"), fetchTransports]);
 
   const resetForm = () => {
-    // Primero limpiar los valores y luego restablecer el estado del formulario
-    setTimeout(() => {
-      setNormalFormData({
-        fechaGasto: new Date().toISOString().split("T")[0],
-        tipo: "",
-        factura: "",
-        cuenta: "",
-        valor: "",
-        proyecto: "",
-        responsable: "",
-        vehicle_plate: "",
-        vehicle_number: "",
-        observacion: "",
-      });
-      setFormErrors({});
-      setFormValid(false);
-    }, 100);
+    form.reset();
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Validación final antes de enviar
-    const hasErrors = Object.keys(normalFormData).some(
-      (key) => !validateField(key, normalFormData[key as keyof NormalFormData]!)
-    );
-
-    if (hasErrors) {
-      toast.error("Por favor, corrije los errores antes de continuar.");
-      return;
-    }
-
-    setLocalLoading((prev) => ({ ...prev, submit: true }));
-
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      setIsLoading(true);
       const formData = new FormData();
-      formData.append("request_date", normalFormData.fechaGasto);
+      formData.append("request_date", format(values.fechaGasto, "yyyy-MM-dd"));
       formData.append("type", type === "discount" ? "discount" : "income");
       formData.append("status", "pending");
-      formData.append("invoice_number", normalFormData.factura);
-      formData.append("account_id", normalFormData.cuenta);
-      formData.append("amount", normalFormData.valor);
-      formData.append("project", normalFormData.proyecto);
-      if (normalFormData.responsable) {
-        formData.append("responsible_id", normalFormData.responsable);
+      formData.append("invoice_number", values.factura.toString());
+      formData.append("account_id", values.cuenta);
+      formData.append("amount", values.valor.toString());
+      formData.append("project", values.proyecto);
+      if (values.responsable) {
+        formData.append("responsible_id", values.responsable);
       }
-      if (normalFormData.vehicle_plate) {
-        formData.append("vehicle_plate", normalFormData.vehicle_plate);
+      if (values.vehicle_plate) {
+        formData.append("vehicle_plate", values.vehicle_plate);
       }
-      if (normalFormData.vehicle_number) {
-        formData.append("vehicle_number", normalFormData.vehicle_number);
+      if (values.vehicle_number) {
+        formData.append("vehicle_number", values.vehicle_number);
       }
-      formData.append("note", normalFormData.observacion);
-      formData.append("personnel_type", normalFormData.tipo);
+      formData.append("note", values.observacion);
+      formData.append("personnel_type", values.tipo);
 
       await onSubmit(formData);
       toast.success(
         type === "discount"
           ? "Descuento registrado correctamente"
-          : type === "income"
-          ? "Ingreso registrado correctamente"
-          : type === "expense"
-          ? "Gasto registrado correctamente"
-          : "Registro realizado correctamente"
+          : "Ingreso registrado correctamente"
       );
       resetForm();
     } catch (error) {
@@ -391,309 +312,528 @@ const NormalDiscountForm: React.FC<NormalDiscountFormProps> = ({
           : "Hubo un error al registrar el descuento"
       );
     } finally {
-      setLocalLoading((prev) => ({ ...prev, submit: false }));
+      setIsLoading(false);
     }
   };
 
   const today = new Date();
-  // Obtener el 29 del mes pasado
   const firstAllowedDate = new Date(
     today.getFullYear(),
     today.getMonth() - 1,
     29
   );
-
-  // Obtener el 28 del mes actual
   const lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 28);
 
-  const minDate = firstAllowedDate.toISOString().split("T")[0];
-  const maxDate = lastAllowedDate.toISOString().split("T")[0];
-
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>
-          Registro de {type === "income" ? "Ingreso" : "Descuento"}
-        </CardTitle>
-        <CardDescription>
-          Completa todos los campos requeridos para registrar un nuevo{" "}
-          {type === "income" ? "ingreso" : "descuento"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Importante</AlertTitle>
-              <AlertDescription>
-                Todos los campos son obligatorios y deben ser completados
-                correctamente.
-              </AlertDescription>
-            </Alert>
-          </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Formulario de Descuentos</CardTitle>
+          <CardDescription>
+            Completa todos los datos requeridos para registrar un nuevo
+            descuento.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 items-center">
+              <Alert className="border-indigo-200 dark:border-indigo-800">
+                <AlertDescription className="flex items-center space-x-4">
+                  <AlertCircle className="h-4 w-4 flex mt-[3px]" />
+                  <span>
+                    Los campos son obligatorios y deben ser completados.
+                  </span>
+                </AlertDescription>
+              </Alert>
+            </div>
 
-          <div className="md:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Input
-                  required
-                  id="fechaGasto"
-                  name="fechaGasto"
-                  currentDate={true}
-                  label={
-                    type === "discount"
-                      ? "Fecha del Descuento"
-                      : "Fecha del Ingreso"
-                  }
-                  type="date"
-                  value={normalFormData.fechaGasto}
-                  onChange={handleInputChange}
-                  minDate={minDate}
-                  maxDate={maxDate}
-                  error={formErrors.fechaGasto}
-                />
+            <div className="md:col-span-2">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-2 mx-auto -mt-4"
+                >
+                  <div className="grid grid-cols-12 gap-4 items-center">
+                    <div className="col-span-4">
+                      <FormField
+                        control={form.control}
+                        name="fechaGasto"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Fecha del Descuento</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Selecciona una Fecha</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-auto p-0"
+                                align="start"
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  disabled={(date) =>
+                                    date < firstAllowedDate ||
+                                    date > lastAllowedDate
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <Select
-                  label="Tipo"
-                  name="tipo"
-                  id="tipo"
-                  required
-                  options={[
-                    { value: "nomina", label: "Nómina" },
-                    { value: "transportista", label: "Transportista" },
-                  ]}
-                  onChange={handleSelectChange}
-                  value={normalFormData.tipo}
-                  disabled={localLoading.submit}
-                  error={formErrors.tipo}
-                />
+                    <div className="col-span-4">
+                      <FormField
+                        control={form.control}
+                        name="tipo"
+                        render={({ field }) => (
+                          <FormItem className="-mt-[10px]">
+                            <FormLabel>Tipo</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={isLoading}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="-- Selecciona --" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="nomina">Nómina</SelectItem>
+                                <SelectItem value="transportista">
+                                  Transportista
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <AnimatePresence mode="wait">
-                  {normalFormData.tipo && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Combobox
-                        label="Proyecto"
+                    <div className="col-span-4">
+                      <FormField
+                        control={form.control}
                         name="proyecto"
-                        id="proyecto"
-                        required
-                        options={localOptions.projects}
-                        onChange={handleInputChange}
-                        value={normalFormData.proyecto}
-                        disabled={localLoading.projects}
-                        error={formErrors.proyecto}
-                        loading={localLoading.projects}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Proyecto</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn(
+                                      "w-full justify-between",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                    disabled={isLoadingProjects}
+                                  >
+                                    {field.value
+                                      ? localOptions.projects.find(
+                                          (project) =>
+                                            project.value === field.value
+                                        )?.label
+                                      : "-- Selecciona --"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0">
+                                <Command>
+                                  <CommandInput placeholder="Buscar proyecto..." />
+                                  <CommandList>
+                                    <CommandEmpty>
+                                      No se pudieron cargar los proyectos.
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                      {localOptions.projects.map((project) => (
+                                        <CommandItem
+                                          value={project.label}
+                                          key={project.value}
+                                          onSelect={() => {
+                                            form.setValue(
+                                              "proyecto",
+                                              project.value
+                                            );
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              project.value === field.value
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                          />
+                                          {project.label}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+                  </div>
 
-                <AnimatePresence mode="wait">
-                  {normalFormData.tipo && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Combobox
-                        label="Cuenta"
-                        name="cuenta"
-                        id="cuenta"
-                        required
-                        options={localOptions.accounts}
-                        onChange={handleInputChange}
-                        value={normalFormData.cuenta}
-                        disabled={localLoading.accounts}
-                        error={formErrors.cuenta}
-                        loading={localLoading.accounts}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {normalFormData.tipo === "nomina" && (
-                  <AnimatePresence mode="wait">
-                    {normalFormData.tipo && (
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Combobox
-                          label="Responsable"
-                          name="responsable"
-                          id="responsable"
-                          required
-                          options={localOptions.responsibles}
-                          onChange={handleInputChange}
-                          value={normalFormData.responsable}
-                          disabled={localLoading.responsibles}
-                          error={formErrors.responsable}
-                          loading={localLoading.responsibles}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                )}
-
-                {normalFormData.tipo === "transportista" && (
-                  <AnimatePresence mode="wait">
-                    {normalFormData.tipo && (
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Combobox
-                          label="Placa"
-                          name="vehicle_plate"
-                          id="vehicle_plate"
-                          required
-                          options={localOptions.transports}
-                          onChange={handleInputChange}
-                          value={normalFormData.vehicle_plate}
-                          disabled={localLoading.transports}
-                          error={formErrors.vehicle_plate}
-                          loading={localLoading.transports}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                )}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Input
-                    label="No. Transporte"
-                    name="vehicle_number"
-                    id="vehicle_number"
-                    type="text"
-                    onChange={handleInputChange}
-                    value={normalFormData.vehicle_number}
-                    disabled={localLoading.transports}
-                    error={formErrors.vehicle_number}
-                  />
-                </motion.div>
-
-                <AnimatePresence mode="wait">
-                  {normalFormData.tipo && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Input
-                        required
-                        id="factura"
-                        name="factura"
-                        label="Número de Factura"
-                        type="number"
-                        maxLength={10}
-                        value={normalFormData.factura}
-                        onChange={handleInputChange}
-                        error={formErrors.factura}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence mode="wait">
-                  {normalFormData.tipo && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Input
-                        required
-                        id="valor"
-                        name="valor"
-                        label={`Valor del ${
-                          type === "income" ? "Ingreso" : "Descuento"
-                        }`}
-                        type="number"
-                        value={normalFormData.valor}
-                        onChange={handleInputChange}
-                        error={formErrors.valor}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence mode="wait">
-                  {normalFormData.tipo && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Input
-                        required
-                        id="observacion"
-                        name="observacion"
-                        label="Observación"
-                        type="text"
-                        value={normalFormData.observacion}
-                        onChange={handleInputChange}
-                        error={formErrors.observacion}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              <div className="flex justify-end space-x-4 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={resetForm}
-                  disabled={localLoading.submit}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Limpiar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={localLoading.submit || !formValid}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  {localLoading.submit ? (
+                  {form.watch("tipo") && (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Procesando...
-                    </>
-                  ) : type === "discount" ? (
-                    "Registrar Descuento"
-                  ) : (
-                    "Registrar Ingreso"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+                      <div className="grid grid-cols-12 gap-4 items-center">
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name="cuenta"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Cuenta</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className={cn(
+                                          "w-full justify-between",
+                                          !field.value &&
+                                            "text-muted-foreground"
+                                        )}
+                                        disabled={isLoadingAccounts}
+                                      >
+                                        {field.value
+                                          ? localOptions.accounts.find(
+                                              (account) =>
+                                                account.value === field.value
+                                            )?.label
+                                          : "-- Selecciona --"}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-full p-0">
+                                    <Command>
+                                      <CommandInput placeholder="Buscar cuenta..." />
+                                      <CommandList>
+                                        <CommandEmpty>
+                                          No se encontraron cuentas.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                          {localOptions.accounts.map(
+                                            (account) => (
+                                              <CommandItem
+                                                value={account.label}
+                                                key={account.value}
+                                                onSelect={() => {
+                                                  form.setValue(
+                                                    "cuenta",
+                                                    account.value
+                                                  );
+                                                }}
+                                              >
+                                                <Check
+                                                  className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    account.value ===
+                                                      field.value
+                                                      ? "opacity-100"
+                                                      : "opacity-0"
+                                                  )}
+                                                />
+                                                {account.label}
+                                              </CommandItem>
+                                            )
+                                          )}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
-export default NormalDiscountForm;
+                        {form.watch("tipo") === "nomina" && (
+                          <div className="col-span-4">
+                            <FormField
+                              control={form.control}
+                              name="responsable"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel>Responsable</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          variant="outline"
+                                          role="combobox"
+                                          className={cn(
+                                            "w-full justify-between",
+                                            !field.value &&
+                                              "text-muted-foreground"
+                                          )}
+                                          disabled={isLoadingResponsibles}
+                                        >
+                                          {field.value
+                                            ? localOptions.responsibles.find(
+                                                (responsible) =>
+                                                  responsible.value ===
+                                                  field.value
+                                              )?.label
+                                            : "-- Selecciona --"}
+                                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0">
+                                      <Command>
+                                        <CommandInput placeholder="Buscar responsable..." />
+                                        <CommandList>
+                                          <CommandEmpty>
+                                            No se encontraron responsables.
+                                          </CommandEmpty>
+                                          <CommandGroup>
+                                            {localOptions.responsibles.map(
+                                              (responsible) => (
+                                                <CommandItem
+                                                  value={responsible.label}
+                                                  key={responsible.value}
+                                                  onSelect={() => {
+                                                    form.setValue(
+                                                      "responsable",
+                                                      responsible.value
+                                                    );
+                                                  }}
+                                                >
+                                                  <Check
+                                                    className={cn(
+                                                      "mr-2 h-4 w-4",
+                                                      responsible.value ===
+                                                        field.value
+                                                        ? "opacity-100"
+                                                        : "opacity-0"
+                                                    )}
+                                                  />
+                                                  {responsible.label}
+                                                </CommandItem>
+                                              )
+                                            )}
+                                          </CommandGroup>
+                                        </CommandList>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        )}
+
+                        {form.watch("tipo") === "transportista" && (
+                          <div className="col-span-4">
+                            <FormField
+                              control={form.control}
+                              name="vehicle_plate"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel>Placa</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          variant="outline"
+                                          role="combobox"
+                                          className={cn(
+                                            "w-full justify-between",
+                                            !field.value &&
+                                              "text-muted-foreground"
+                                          )}
+                                          disabled={isLoadingVehicles}
+                                        >
+                                          {field.value
+                                            ? localOptions.transports.find(
+                                                (transport) =>
+                                                  transport.value ===
+                                                  field.value
+                                              )?.label
+                                            : "-- Selecciona --"}
+                                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0">
+                                      <Command>
+                                        <CommandInput placeholder="Buscar placa..." />
+                                        <CommandList>
+                                          <CommandEmpty>
+                                            No se encontró ninguna placa.
+                                          </CommandEmpty>
+                                          <CommandGroup>
+                                            {localOptions.transports.map(
+                                              (transport) => (
+                                                <CommandItem
+                                                  value={transport.label}
+                                                  key={transport.value}
+                                                  onSelect={() => {
+                                                    form.setValue(
+                                                      "vehicle_plate",
+                                                      transport.value
+                                                    );
+                                                  }}
+                                                >
+                                                  <Check
+                                                    className={cn(
+                                                      "mr-2 h-4 w-4",
+                                                      transport.value ===
+                                                        field.value
+                                                        ? "opacity-100"
+                                                        : "opacity-0"
+                                                    )}
+                                                  />
+                                                  {transport.label}
+                                                </CommandItem>
+                                              )
+                                            )}
+                                          </CommandGroup>
+                                        </CommandList>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        )}
+
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name="vehicle_number"
+                            render={({ field }) => (
+                              <FormItem className="-mt-[10px]">
+                                <FormLabel>No. Transporte</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder=""
+                                    type="number"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-12 gap-4 items-center">
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name="factura"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Factura</FormLabel>
+                                <FormControl>
+                                  <Input required type="number" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name="valor"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Valor</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    required
+                                    step="0.01"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name="observacion"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Observación</FormLabel>
+                                <FormControl>
+                                  <Input type="text" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex flex-row space-x-3 items-center justify-end mt-2">
+                    <Button
+                      type="button"
+                      className="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 border"
+                      onClick={resetForm}
+                    >
+                      {" "}
+                      <RefreshCw className="mr-2 h-4 w-4" /> Limpiar
+                    </Button>
+                    <Button type="submit" disabled={isLoading}>
+                      Registrar
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

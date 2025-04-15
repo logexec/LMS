@@ -94,7 +94,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="bg-white">
+      <Card className="bg-white dark:bg-black">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Sección de carga */}
@@ -105,7 +105,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
               transition={{ delay: 0.2 }}
             >
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                   Carga de Excel
                 </h3>
                 <p className="text-sm text-slate-500">
@@ -125,8 +125,8 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                   transition-colors duration-200 ease-in-out
                   ${
                     dragActive
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-slate-200 hover:border-slate-300"
+                      ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950"
+                      : "border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700"
                   }
                 `}
                 onDragEnter={handleDrag}
@@ -160,14 +160,14 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                   </div>
 
                   <div className="text-center">
-                    <p className="text-sm font-medium text-slate-700">
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       {isUploading
                         ? "Procesando archivo..."
                         : "Arrastra tu archivo aquí o"}
                     </p>
                     {!isUploading && (
                       <label className="mt-2 inline-block">
-                        <span className="text-sm font-medium text-emerald-600 hover:text-emerald-500 cursor-pointer">
+                        <span className="text-sm font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 cursor-pointer">
                           selecciona un archivo
                         </span>
                         <input
@@ -199,7 +199,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
               transition={{ delay: 0.3 }}
             >
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                   ¿Necesitas la plantilla?
                 </h3>
                 <p className="text-sm text-slate-500">
@@ -227,7 +227,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                           );
                         }}
                         disabled={isDownloading}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-200"
                       >
                         {isDownloading ? (
                           <>

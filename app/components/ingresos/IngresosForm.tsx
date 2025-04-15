@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -28,7 +27,6 @@ const IngresosForm = () => {
 
   const auth = useAuth();
 
-  // Fetch inicial de datos
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading((prev) => ({
@@ -37,6 +35,7 @@ const IngresosForm = () => {
         areas: true,
         accounts: true,
       }));
+
       const assignedProjectIds = auth.hasProjects();
 
       try {
@@ -64,9 +63,9 @@ const IngresosForm = () => {
           }),
         ]);
 
-        if (!projectsRes.ok) throw new Error("Error al cargar proyectos");
-        if (!areasRes.ok) throw new Error("Error al cargar áreas");
-        if (!accountsRes.ok) throw new Error("Error al cargar las cuentas");
+        if (!projectsRes.ok || !areasRes.ok || !accountsRes.ok) {
+          throw new Error("Error al cargar datos iniciales");
+        }
 
         const [projectsData, areasData, accountsData] = await Promise.all([
           projectsRes.json(),
@@ -77,17 +76,15 @@ const IngresosForm = () => {
         setOptions((prev) => ({
           ...prev,
           accounts: accountsData.data.map(
-            (account: { name: string; id: string }) => ({
-              label: account.name,
-              value: account.id,
+            (acc: { name: string; id: string }) => ({
+              label: acc.name,
+              value: acc.name, // o acc.id, si es lo que usas
             })
           ),
-          projects: projectsData.map(
-            (project: { name: string; id: string }) => ({
-              label: project.name,
-              value: project.id,
-            })
-          ),
+          projects: projectsData.map((proj: { name: string; id: string }) => ({
+            label: proj.name,
+            value: proj.id,
+          })),
           areas: areasData.map((area: { name: string; id: string }) => ({
             label: area.name,
             value: area.id,
@@ -95,9 +92,14 @@ const IngresosForm = () => {
         }));
       } catch (error) {
         toast.error("Error al cargar datos iniciales");
-        console.error("Error al cargar datos iniciales:", error);
+        console.error(error);
       } finally {
-        setLoading((prev) => ({ ...prev, projects: false, areas: false }));
+        setLoading((prev) => ({
+          ...prev,
+          projects: false,
+          areas: false,
+          accounts: false,
+        }));
       }
     };
 
@@ -123,7 +125,6 @@ const IngresosForm = () => {
       }
 
       toast.success("Ingreso registrado con éxito");
-      resetForm();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al procesar el ingreso"
@@ -133,19 +134,9 @@ const IngresosForm = () => {
     }
   };
 
-  const resetForm = () => {
-    setOptions((prev) => ({
-      ...prev,
-      projects: [],
-      responsibles: [],
-      transports: [],
-      accounts: [],
-    }));
-  };
-
   return (
     <div className="container pb-8 space-y-8">
-      {/* Seccón de Excel */}
+      {/* Sección de Excel */}
       <motion.div
         key="excel-upload"
         initial={{ opacity: 0, y: 20 }}
@@ -155,7 +146,7 @@ const IngresosForm = () => {
         <ExcelUploadSection context="income" />
       </motion.div>
 
-      {/* Seccón de Formularios */}
+      {/* Sección del Formulario */}
       <motion.div
         key="form-section"
         initial={{ opacity: 0, y: 20 }}
@@ -175,22 +166,12 @@ const IngresosForm = () => {
                 options={options}
                 loading={loading}
                 onSubmit={handleNormalSubmit}
-                onReset={resetForm}
                 type="income"
               />
             </motion.div>
           </AnimatePresence>
         </div>
       </motion.div>
-
-      {/* Feedback global */}
-      <div
-        className="fixed bottom-0 right-0 p-6 pointer-events-none"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <AnimatePresence />
-      </div>
     </div>
   );
 };

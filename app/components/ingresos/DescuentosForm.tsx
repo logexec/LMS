@@ -227,22 +227,22 @@ const DescuentosForm = () => {
                 Selecciona el tipo de operación que deseas registrar
               </p>
             </div>
-            <TabsList className="bg-slate-100 p-1">
+            <TabsList className="bg-slate-100 dark:bg-slate-900 p-1">
               <TabsTrigger
                 value="normal"
-                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-black dark:data-[state=active]:text-slate-100"
               >
                 Individual
               </TabsTrigger>
               <TabsTrigger
                 value="masivo"
-                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-black dark:data-[state=active]:text-slate-100"
               >
                 Masivo
               </TabsTrigger>
               <TabsTrigger
                 value="loans"
-                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-black dark:data-[state=active]:text-slate-100"
               >
                 Préstamos
               </TabsTrigger>
