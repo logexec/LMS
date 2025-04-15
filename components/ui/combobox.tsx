@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown, AlertCircle, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Option = {
   value: string | number;
@@ -40,6 +40,7 @@ type ComboboxProps = {
   error?: string;
   loading?: boolean;
   width?: string;
+  icon?: React.ReactNode; // Añadida la propiedad para íconos
 };
 
 const Combobox: React.FC<ComboboxProps> = ({
@@ -56,6 +57,7 @@ const Combobox: React.FC<ComboboxProps> = ({
   error,
   loading,
   width = "w-full",
+  icon, // Nuevo prop para íconos
 }) => {
   const [open, setOpen] = useState(false);
   const [displayValue, setDisplayValue] = useState<string>("");
@@ -87,10 +89,19 @@ const Combobox: React.FC<ComboboxProps> = ({
     <div className={`relative mb-6 ${className}`}>
       <label
         htmlFor={id}
-        className="block text-xs font-medium absolute left-2 -top-2 px-1 bg-white z-10"
+        className={cn(
+          "text-xs font-medium absolute left-2 -top-2 px-1 bg-white dark:bg-slate-950 z-10 flex items-center gap-1",
+          error
+            ? "text-red-500 dark:text-red-400"
+            : "text-slate-700 dark:text-slate-300"
+        )}
       >
+        {icon && (
+          <span className="text-rose-500 dark:text-rose-400">{icon}</span>
+        )}
         {label} {required && <span className="text-red-500">*</span>}
       </label>
+
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -100,12 +111,19 @@ const Combobox: React.FC<ComboboxProps> = ({
             aria-expanded={open}
             id={id}
             className={cn(
-              `justify-between ${width} h-10 border border-gray-300 rounded-md focus:border-primary focus:ring focus:ring-primary-lighter focus:outline-none`,
-              !value && "text-muted-foreground",
-              error && "border-red-500 focus:border-red-500 focus:ring-red-200",
+              `justify-between ${width} h-10 border border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-950 focus:ring-1 focus:ring-rose-500 dark:focus:ring-rose-400 focus:outline-none`,
+              !value && "text-slate-500 dark:text-slate-400",
+              error &&
+                "border-red-500 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-900",
+              icon && "pl-9", // Espacio para el ícono
               className
             )}
           >
+            {icon && (
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-rose-500 dark:text-rose-400">
+                {icon}
+              </span>
+            )}
             <span className="truncate max-w-[80%] text-left">
               {displayValue || placeholder}
             </span>
@@ -116,9 +134,15 @@ const Combobox: React.FC<ComboboxProps> = ({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className={`p-0 ${width}`}>
-          <Command>
-            <CommandInput placeholder={`Buscar ${label.toLowerCase()}...`} />
+
+        <PopoverContent
+          className={`p-0 ${width} border border-slate-200 dark:border-slate-800 shadow-md`}
+        >
+          <Command className="rounded-lg border-0">
+            <CommandInput
+              placeholder={`Buscar ${label.toLowerCase()}...`}
+              className="border-none focus:ring-0"
+            />
             <CommandList>
               <CommandEmpty>No se encontraron resultados.</CommandEmpty>
               <CommandGroup>
@@ -128,11 +152,11 @@ const Combobox: React.FC<ComboboxProps> = ({
                     value={option.label}
                     disabled={option.optionDisabled || disabled}
                     onSelect={() => handleSelect(option.label)}
-                    className={option.className}
+                    className={cn("text-sm cursor-pointer", option.className)}
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-4 w-4",
+                        "mr-2 h-4 w-4 text-rose-500 dark:text-rose-400",
                         option.value === value ? "opacity-100" : "opacity-0"
                       )}
                     />
@@ -148,10 +172,11 @@ const Combobox: React.FC<ComboboxProps> = ({
       <AnimatePresence>
         {error && (
           <motion.div
-            className="flex items-center mt-1 text-red-500"
+            className="flex items-center mt-1 text-red-500 dark:text-red-400"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
           >
             <AlertCircle className="mr-1" size={16} />
             <span className="text-xs">{error}</span>

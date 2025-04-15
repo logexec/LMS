@@ -192,115 +192,152 @@ const DescuentosForm = () => {
     }
   };
 
+  // Variantes de animación para una transición más fluida
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        duration: 0.4,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+  };
+
+  const tabContentVariants = {
+    initial: { opacity: 0, x: -10 },
+    animate: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.3, ease: "easeOut" },
+    },
+    exit: { opacity: 0, x: 10, transition: { duration: 0.2 } },
+  };
+
   return (
-    <div className="container pb-8 space-y-8">
-      {/* Sección de Excel */}
+    <div className="container pb-8 max-w-screen-2xl mx-auto px-4 sm:px-6">
       <motion.div
-        key="excel-upload"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="space-y-8"
       >
-        <ExcelUploadSection context="discounts" />
-      </motion.div>
-
-      {/* Sección de Formularios */}
-      <motion.div
-        key="form-section"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-        className="mt-8"
-      >
-        <Tabs
-          defaultValue="normal"
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
+        {/* Sección de Excel */}
+        <motion.div
+          key="excel-upload"
+          variants={itemVariants}
+          className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div className="space-y-1 mb-4 sm:mb-0">
-              <h2 className="text-2xl font-bold tracking-tight">
-                Registrar Descuentos y Préstamos
-              </h2>
-              <p className="text-sm text-slate-500">
-                Selecciona el tipo de operación que deseas registrar
-              </p>
+          <ExcelUploadSection context="discounts" />
+        </motion.div>
+
+        {/* Sección de Formularios */}
+        <motion.div
+          key="form-section"
+          variants={itemVariants}
+          className="mt-8 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800"
+        >
+          <Tabs
+            defaultValue="normal"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="space-y-1 mb-4 sm:mb-0">
+                <h2 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300">
+                  Registrar Descuentos y Préstamos
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Selecciona el tipo de operación que deseas registrar
+                </p>
+              </div>
+              <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                <TabsTrigger
+                  value="normal"
+                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                >
+                  Individual
+                </TabsTrigger>
+                <TabsTrigger
+                  value="masivo"
+                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                >
+                  Masivo
+                </TabsTrigger>
+                <TabsTrigger
+                  value="loans"
+                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                >
+                  Préstamos
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <TabsList className="bg-slate-100 dark:bg-slate-900 p-1">
-              <TabsTrigger
-                value="normal"
-                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-black dark:data-[state=active]:text-slate-100"
-              >
-                Individual
-              </TabsTrigger>
-              <TabsTrigger
-                value="masivo"
-                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-black dark:data-[state=active]:text-slate-100"
-              >
-                Masivo
-              </TabsTrigger>
-              <TabsTrigger
-                value="loans"
-                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-black dark:data-[state=active]:text-slate-100"
-              >
-                Préstamos
-              </TabsTrigger>
-            </TabsList>
-          </div>
 
-          <AnimatePresence mode="wait">
-            {activeTab === "normal" && (
-              <motion.div
-                key="normal-form"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-              >
-                <NormalDiscountForm
-                  options={options}
-                  loading={loading}
-                  onSubmit={handleNormalSubmit}
-                  type="discount"
-                />
-              </motion.div>
-            )}
+            <div className="p-6">
+              <AnimatePresence mode="wait">
+                {activeTab === "normal" && (
+                  <motion.div
+                    key="normal-form"
+                    variants={tabContentVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                  >
+                    <NormalDiscountForm
+                      options={options}
+                      loading={loading}
+                      onSubmit={handleNormalSubmit}
+                      type="discount"
+                    />
+                  </motion.div>
+                )}
 
-            {activeTab === "masivo" && (
-              <motion.div
-                key="mass-form"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-              >
-                <MassDiscountForm
-                  options={options}
-                  loading={loading}
-                  onSubmit={handleMassSubmit}
-                />
-              </motion.div>
-            )}
+                {activeTab === "masivo" && (
+                  <motion.div
+                    key="mass-form"
+                    variants={tabContentVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                  >
+                    <MassDiscountForm
+                      options={options}
+                      loading={loading}
+                      onSubmit={handleMassSubmit}
+                    />
+                  </motion.div>
+                )}
 
-            {activeTab === "loans" && (
-              <motion.div
-                key="loan-form"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-              >
-                <LoanForm options={options} loading={loading} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Tabs>
+                {activeTab === "loans" && (
+                  <motion.div
+                    key="loan-form"
+                    variants={tabContentVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                  >
+                    <LoanForm options={options} loading={loading} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </Tabs>
+        </motion.div>
       </motion.div>
 
       {/* Feedback global */}
       <div
-        className="fixed bottom-0 right-0 p-6 pointer-events-none"
+        className="fixed bottom-6 right-6 p-6 pointer-events-none z-50"
         aria-live="polite"
         aria-atomic="true"
       >
