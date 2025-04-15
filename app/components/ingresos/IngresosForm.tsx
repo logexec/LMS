@@ -104,7 +104,7 @@ const IngresosForm = () => {
     };
 
     fetchInitialData();
-  }, []);
+  }, [auth]);
 
   const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
