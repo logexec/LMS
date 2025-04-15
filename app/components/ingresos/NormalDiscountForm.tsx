@@ -98,6 +98,8 @@ export default function NormalDiscountForm({
     useState<boolean>(false);
   const [isLoadingVehicles, setIsLoadingVehicles] = useState<boolean>(false);
 
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -168,6 +170,11 @@ export default function NormalDiscountForm({
       setIsLoadingAccounts(false);
     }
   }, []);
+
+  useEffect(() => {
+    form.resetField("cuenta");
+    fetchAccounts(form.watch("tipo"));
+  }, [form.watch("tipo")]);
 
   const fetchResponsibles = useCallback(
     debounce(async (proyecto: string) => {
@@ -278,6 +285,7 @@ export default function NormalDiscountForm({
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("request_date", format(values.fechaGasto, "yyyy-MM-dd"));
       formData.append("type", type === "discount" ? "discount" : "income");
@@ -313,6 +321,7 @@ export default function NormalDiscountForm({
       );
     } finally {
       setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -416,7 +425,6 @@ export default function NormalDiscountForm({
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
-                              disabled={isLoading}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -508,7 +516,12 @@ export default function NormalDiscountForm({
                   </div>
 
                   {form.watch("tipo") && (
-                    <>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                    >
                       <div className="grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-4">
                           <FormField
@@ -524,13 +537,15 @@ export default function NormalDiscountForm({
                                         variant="outline"
                                         role="combobox"
                                         className={cn(
-                                          "w-full justify-between",
+                                          "w-full justify-between truncate",
                                           !field.value &&
                                             "text-muted-foreground"
                                         )}
                                         disabled={isLoadingAccounts}
                                       >
-                                        {field.value
+                                        {isLoadingAccounts
+                                          ? "Cargando cuentas..."
+                                          : field.value
                                           ? localOptions.accounts.find(
                                               (account) =>
                                                 account.value === field.value
@@ -599,13 +614,21 @@ export default function NormalDiscountForm({
                                           variant="outline"
                                           role="combobox"
                                           className={cn(
-                                            "w-full justify-between",
+                                            "w-full justify-between truncate",
                                             !field.value &&
                                               "text-muted-foreground"
                                           )}
-                                          disabled={isLoadingResponsibles}
+                                          disabled={
+                                            isLoadingResponsibles ||
+                                            form.watch("proyecto") ===
+                                              undefined ||
+                                            form.watch("proyecto") === null ||
+                                            form.watch("proyecto") === ""
+                                          }
                                         >
-                                          {field.value
+                                          {isLoadingResponsibles
+                                            ? "Cargando personal..."
+                                            : field.value
                                             ? localOptions.responsibles.find(
                                                 (responsible) =>
                                                   responsible.value ===
@@ -680,9 +703,17 @@ export default function NormalDiscountForm({
                                             !field.value &&
                                               "text-muted-foreground"
                                           )}
-                                          disabled={isLoadingVehicles}
+                                          disabled={
+                                            isLoadingVehicles ||
+                                            form.watch("proyecto") ===
+                                              undefined ||
+                                            form.watch("proyecto") === null ||
+                                            form.watch("proyecto") === ""
+                                          }
                                         >
-                                          {field.value
+                                          {isLoadingVehicles
+                                            ? "Obteniendo Placas..."
+                                            : field.value
                                             ? localOptions.transports.find(
                                                 (transport) =>
                                                   transport.value ===
@@ -812,7 +843,7 @@ export default function NormalDiscountForm({
                           />
                         </div>
                       </div>
-                    </>
+                    </motion.div>
                   )}
 
                   <div className="flex flex-row space-x-3 items-center justify-end mt-2">
@@ -820,6 +851,7 @@ export default function NormalDiscountForm({
                       type="button"
                       className="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 border"
                       onClick={resetForm}
+                      disabled={isSubmitting}
                     >
                       {" "}
                       <RefreshCw className="mr-2 h-4 w-4" /> Limpiar
