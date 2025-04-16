@@ -498,6 +498,7 @@ const RequestDetailsTableComponent = ({
             className="font-semibold text-red-700"
             style={{ width: column.getSize() }}
           >
+            $
             {(typeof row.original.amount === "string"
               ? parseFloat(row.original.amount || "0")
               : row.original.amount || 0
