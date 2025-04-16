@@ -170,68 +170,68 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   };
 
   // Función para cargar empleados basados en proyecto y área
-  const fetchEmployees = useMemo(
-    () =>
-      debounce(async (proyecto: string, area: string) => {
-        if (!proyecto) {
-          toast.error("Debes seleccionar un proyecto");
-          return;
-        }
-        if (!area) {
-          toast.error("Debes seleccionar un área");
-          return;
-        }
+  // const fetchEmployees = useMemo(
+  //   () =>
+  //     debounce(async (proyecto: string, area: string) => {
+  //       if (!proyecto) {
+  //         toast.error("Debes seleccionar un proyecto");
+  //         return;
+  //       }
+  //       if (!area) {
+  //         toast.error("Debes seleccionar un área");
+  //         return;
+  //       }
 
-        setIsLoading(true);
-        try {
-          const url = `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`;
+  //       setIsLoading(true);
+  //       try {
+  //         const url = `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`;
 
-          const response = await fetchWithAuth(
-            url.replace(process.env.NEXT_PUBLIC_API_URL || "", "")
-          );
+  //         const response = await fetchWithAuth(
+  //           url.replace(process.env.NEXT_PUBLIC_API_URL || "", "")
+  //         );
 
-          // Convertir el objeto en un arreglo
-          const employeesArray: EmployeeResponse[] = Object.values(
-            response
-          ).filter(
-            (item): item is EmployeeResponse =>
-              item !== null &&
-              typeof item === "object" &&
-              "id" in item &&
-              "nombre_completo" in item
-          );
+  //         // Convertir el objeto en un arreglo
+  //         const employeesArray: EmployeeResponse[] = Object.values(
+  //           response
+  //         ).filter(
+  //           (item): item is EmployeeResponse =>
+  //             item !== null &&
+  //             typeof item === "object" &&
+  //             "id" in item &&
+  //             "nombre_completo" in item
+  //         );
 
-          if (employeesArray.length === 0) {
-            toast.warning(
-              "No se encontraron responsables para este proyecto y área."
-            );
-            return; // No cambiar al paso de empleados si no hay resultados
-          }
+  //         if (employeesArray.length === 0) {
+  //           toast.warning(
+  //             "No se encontraron responsables para este proyecto y área."
+  //           );
+  //           return; // No cambiar al paso de empleados si no hay resultados
+  //         }
 
-          const mappedEmployees: Employee[] = employeesArray.map((emp) => ({
-            id: emp.nombre_completo,
-            name: emp.nombre_completo,
-            area: emp.area,
-            project: emp.proyecto,
-            selected: false,
-          }));
+  //         const mappedEmployees: Employee[] = employeesArray.map((emp) => ({
+  //           id: emp.nombre_completo,
+  //           name: emp.nombre_completo,
+  //           area: emp.area,
+  //           project: emp.proyecto,
+  //           selected: false,
+  //         }));
 
-          setEmployees(mappedEmployees);
-          console.log("Empleados cargados:", mappedEmployees.length);
+  //         setEmployees(mappedEmployees);
+  //         console.log("Empleados cargados:", mappedEmployees.length);
 
-          // Cambiamos a la vista de empleados si tenemos empleados para mostrar
-          if (mappedEmployees.length > 0) {
-            setFormStep("employees");
-          }
-        } catch (error) {
-          console.error("Error fetching employees:", error);
-          toast.error("Error al cargar los empleados");
-        } finally {
-          setIsLoading(false);
-        }
-      }, 300),
-    []
-  );
+  //         // Cambiamos a la vista de empleados si tenemos empleados para mostrar
+  //         if (mappedEmployees.length > 0) {
+  //           setFormStep("employees");
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching employees:", error);
+  //         toast.error("Error al cargar los empleados");
+  //       } finally {
+  //         setIsLoading(false);
+  //       }
+  //     }, 300),
+  //   []
+  // );
 
   // Handler para el cambio de selección en MassDiscountTable
   const handleSelectionChange = (employeeId: string) => {
@@ -308,34 +308,30 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
 
   // Función para procesar el envío del formulario
   const onSubmitForm = async (values: z.infer<typeof massDiscountSchema>) => {
-    const selectedEmps = employees.filter((emp) => emp.selected);
-
-    if (selectedEmps.length === 0) {
+    const selectedEmployees = employees.filter((emp) => emp.selected);
+    if (selectedEmployees.length === 0) {
       toast.error("Debes seleccionar al menos un empleado");
       return;
     }
 
     setIsLoading(true);
-    console.log(`Procesando ${selectedEmps.length} empleados seleccionados`);
 
     try {
       const amountPerEmployee = (
-        parseFloat(values.valor) / selectedEmps.length
+        parseFloat(values.valor) / selectedEmployees.length
       ).toFixed(2);
 
-      console.log(`Monto por empleado: $${amountPerEmployee}`);
+      console.log("Empleados seleccionados:", selectedEmployees);
+      console.log(
+        `Procesando ${selectedEmployees.length} empleados, $${amountPerEmployee} cada uno`
+      );
 
-      // Procesamos cada empleado por separado
-      for (const employee of selectedEmps) {
-        console.log(
-          `Procesando empleado: ${employee.name} (ID: ${employee.id})`
-        );
-
+      for (const employee of selectedEmployees) {
         const formData = new FormData();
         formData.append("request_date", values.fechaGasto);
         formData.append("type", "discount");
         formData.append("status", "pending");
-        formData.append("invoice_number", values.factura);
+        formData.append("invoice_number", `${values.factura}-${employee.id}`); // Hacer único
         formData.append("account_id", values.cuenta);
         formData.append("amount", amountPerEmployee);
         formData.append("project", values.proyecto);
@@ -343,20 +339,81 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
         formData.append("note", values.observacion);
         formData.append("personnel_type", "nomina");
 
-        // Procesamos un empleado a la vez en lugar de Promise.all
-        await onSubmit(formData);
-        console.log(`Empleado ${employee.name} procesado correctamente`);
+        console.log(`Enviando datos para empleado: ${employee.name}`);
+        try {
+          await onSubmit(formData);
+          console.log(`Registro creado para ${employee.name}`);
+        } catch (error) {
+          console.error(`Error al procesar empleado ${employee.name}:`, error);
+          toast.error(`Error al procesar el descuento para ${employee.name}`);
+        }
       }
 
-      toast.success(`${selectedEmps.length} registros creados con éxito`);
+      toast.success("Registros creados con éxito");
       resetForm();
     } catch (error) {
       toast.error("Error al procesar los descuentos");
-      console.error("Error processing discounts:", error);
+      console.error("Error general:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Corregir el mapeo de empleados en fetchEmployees
+  const fetchEmployees = useMemo(
+    () =>
+      debounce(async (proyecto: string, area: string) => {
+        if (!proyecto || !area) {
+          toast.error("Debes seleccionar un proyecto y un área");
+          return;
+        }
+
+        setIsLoading(true);
+        try {
+          const url = `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`;
+          const response = await fetchWithAuth(
+            url.replace(process.env.NEXT_PUBLIC_API_URL || "", "")
+          );
+
+          const employeesArray: EmployeeResponse[] = Object.values(
+            response
+          ).filter(
+            (item): item is EmployeeResponse =>
+              item !== null &&
+              typeof item === "object" &&
+              "id" in item &&
+              "nombre_completo" in item
+          );
+
+          if (employeesArray.length === 0) {
+            toast.warning(
+              "No se encontraron responsables para este proyecto y área."
+            );
+            return;
+          }
+
+          const mappedEmployees: Employee[] = employeesArray.map((emp) => ({
+            id: emp.nombre_completo, // Usar el ID real
+            name: emp.nombre_completo,
+            area: emp.area,
+            project: emp.proyecto,
+            selected: false,
+          }));
+
+          setEmployees(mappedEmployees);
+          console.log("Empleados cargados:", mappedEmployees);
+          if (mappedEmployees.length > 0) {
+            setFormStep("employees");
+          }
+        } catch (error) {
+          console.error("Error fetching employees:", error);
+          toast.error("Error al cargar los empleados");
+        } finally {
+          setIsLoading(false);
+        }
+      }, 300),
+    []
+  );
 
   // Verificar si la información básica es válida
   const isBasicInfoValid = useMemo(() => {
