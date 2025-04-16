@@ -275,7 +275,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                           )}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-lg">
+                      <TooltipContent className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-lg text-slate-700 dark:text-slate-300">
                         Descarga la plantilla oficial para importar{" "}
                         {contextLabel}
                       </TooltipContent>
