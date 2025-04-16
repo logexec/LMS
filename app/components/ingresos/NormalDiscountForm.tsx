@@ -860,10 +860,10 @@ export default function NormalDiscountForm({
                                         </CommandEmpty>
                                         <CommandGroup>
                                           {localOptions.accounts.map(
-                                            (account) => (
+                                            (account, idx) => (
                                               <CommandItem
                                                 value={account.label}
-                                                key={account.value}
+                                                key={idx}
                                                 onSelect={() => {
                                                   form.setValue(
                                                     "cuenta",
