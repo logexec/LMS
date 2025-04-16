@@ -84,10 +84,8 @@ export function SubmitFile({
         <AlertDialogContent className="w-full max-w-4xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Subir Archivo</AlertDialogTitle>
-            <AlertDialogDescription>
-              <p className="font-medium text-slate-600">
-                Arrastra o selecciona un archivo para adjuntar a la solicitud.
-              </p>
+            <AlertDialogDescription className="font-medium text-slate-600">
+              Arrastra o selecciona un archivo para adjuntar a la solicitud.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div

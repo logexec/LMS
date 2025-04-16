@@ -1,52 +1,105 @@
 "use client";
-import React, { useState } from "react";
-import ModalStatus from "../../components/ModalStatus";
-import "./registro.component.css";
+
 import DescuentosForm from "../../components/ingresos/DescuentosForm";
 import GastosForm from "../../components/ingresos/GastosForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IngresosForm from "@/app/components/ingresos/IngresosForm";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
 const RegistroPage: React.FC = () => {
-  const [modalStatus] = useState({
-    isOpen: false,
-    type: "success",
-    text: "",
-    suggestion: "",
-  });
+  const [activeTab, setActiveTab] = useState("discount");
 
+  const tabContentVariants = {
+    initial: { opacity: 0, x: -10 },
+    animate: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.3, ease: "easeOut" },
+    },
+    exit: { opacity: 0, x: 10, transition: { duration: 0.2 } },
+  };
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+  };
   return (
-    <div className="grid grid-rows-[auto_auto_1fr] w-full h-full">
-      {modalStatus.isOpen && (
-        <ModalStatus
-          success={modalStatus.type === "success"}
-          error={modalStatus.type === "error"}
-          text={modalStatus.text}
-          suggestion={modalStatus.suggestion}
-        />
-      )}
+    <motion.div key="form-section" variants={itemVariants}>
+      <Tabs
+        defaultValue="discount"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-t-xl bg-gradient-to-r from-gray-50 to-slate-100 dark:from-gray-950 dark:to-slate-900 border-t border-x">
+          <h3 className="text-lg font-bold">Categoría</h3>
+          <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+            <TabsTrigger
+              value="discount"
+              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+            >
+              Descuentos
+            </TabsTrigger>
+            <TabsTrigger
+              value="expense"
+              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+            >
+              Gastos
+            </TabsTrigger>
+            <TabsTrigger
+              value="income"
+              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+            >
+              Ingresos
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-      <Tabs defaultValue="discount">
-        <TabsList>
-          <TabsTrigger value="discount">Descuentos</TabsTrigger>
-          <TabsTrigger value="expense">Gastos</TabsTrigger>
-          <TabsTrigger value="income">Ingresos Especiales</TabsTrigger>
-        </TabsList>
+        <div className="p-6 border-x border-b rounded-b-xl shadow-sm">
+          <AnimatePresence mode="wait">
+            {activeTab === "discount" && (
+              <motion.div
+                key="normal-form"
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <DescuentosForm />
+              </motion.div>
+            )}
 
-        <TabsContent value="discount">
-          <DescuentosForm />
-        </TabsContent>
+            {activeTab === "expense" && (
+              <motion.div
+                key="expense"
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <GastosForm />
+              </motion.div>
+            )}
 
-        <TabsContent value="expense">
-          <GastosForm />
-        </TabsContent>
-
-        <TabsContent value="income">
-          <IngresosForm />
-        </TabsContent>
+            {activeTab === "income" && (
+              <motion.div
+                key="loan-form"
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <IngresosForm />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </Tabs>
-      {/* TODO: Agregar notificaciones  */}
-    </div>
+    </motion.div>
   );
 };
 

@@ -625,6 +625,7 @@ export default function LoanForm({
                         className="h-2 rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-500 ease-out"
                         style={{
                           width: `${calculateProgress()}%`,
+                          maxWidth: "100%",
                         }}
                       ></div>
                     </div>

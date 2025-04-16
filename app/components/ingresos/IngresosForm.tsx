@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { LoadingState, OptionsState } from "@/utils/types";
@@ -26,6 +26,7 @@ const IngresosForm = () => {
   });
 
   const auth = useAuth();
+  const assignedProjectIds = useMemo(() => auth.hasProjects(), []);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -35,8 +36,6 @@ const IngresosForm = () => {
         areas: true,
         accounts: true,
       }));
-
-      const assignedProjectIds = auth.hasProjects();
 
       try {
         const [projectsRes, areasRes, accountsRes] = await Promise.all([
@@ -78,12 +77,12 @@ const IngresosForm = () => {
           accounts: accountsData.data.map(
             (acc: { name: string; id: string }) => ({
               label: acc.name,
-              value: acc.name, // o acc.id, si es lo que usas
+              value: acc.name,
             })
           ),
           projects: projectsData.map((proj: { name: string; id: string }) => ({
             label: proj.name,
-            value: proj.id,
+            value: proj.name,
           })),
           areas: areasData.map((area: { name: string; id: string }) => ({
             label: area.name,
@@ -102,9 +101,8 @@ const IngresosForm = () => {
         }));
       }
     };
-
     fetchInitialData();
-  }, [auth]);
+  }, []);
 
   const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
