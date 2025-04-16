@@ -126,7 +126,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
             <motion.div variants={itemVariants} className="space-y-4">
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-                  <UploadCloud className="w-5 h-5 mr-2 text-rose-500 dark:text-rose-400" />
+                  <UploadCloud className="w-5 h-5 mr-2 text-emerald-500 dark:text-emerald-400" />
                   Carga de Excel
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -141,8 +141,8 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                   transition-all duration-300 ease-in-out
                   ${
                     dragActive
-                      ? "border-rose-500 bg-rose-50/70 dark:bg-rose-950/30"
-                      : "border-slate-200 hover:border-rose-300 dark:border-slate-800 dark:hover:border-rose-800"
+                      ? "border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30"
+                      : "border-slate-200 hover:border-emerald-300 dark:border-slate-800 dark:hover:border-emerald-800"
                   }
                 `}
                 onDragEnter={handleDrag}
@@ -163,10 +163,10 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                           className="flex flex-col items-center"
                         >
                           <div className="relative">
-                            <div className="absolute inset-0 bg-rose-100 dark:bg-rose-900/20 rounded-full blur-md"></div>
-                            <Loader2 className="h-12 w-12 text-rose-500 dark:text-rose-400 animate-spin relative z-10" />
+                            <div className="absolute inset-0 bg-emerald-100 dark:bg-emerald-900/20 rounded-full blur-md"></div>
+                            <Loader2 className="h-12 w-12 text-emerald-500 dark:text-emerald-400 animate-spin relative z-10" />
                           </div>
-                          <span className="mt-4 text-sm font-medium text-rose-600 dark:text-rose-400">
+                          <span className="mt-4 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                             Procesando archivo...
                           </span>
                         </motion.div>
@@ -179,8 +179,8 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                           transition={{ duration: 0.2 }}
                           className="flex flex-col items-center"
                         >
-                          <div className="p-3 bg-rose-100 dark:bg-rose-900/20 rounded-full">
-                            <FileSpreadsheet className="h-10 w-10 text-rose-500 dark:text-rose-400" />
+                          <div className="p-3 bg-emerald-100 dark:bg-emerald-900/20 rounded-full">
+                            <FileSpreadsheet className="h-10 w-10 text-emerald-500 dark:text-emerald-400" />
                           </div>
                         </motion.div>
                       )}
@@ -199,7 +199,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                           o
                         </span>
                         <label className="mt-2 inline-block">
-                          <span className="mx-1 text-sm font-medium text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 cursor-pointer transition-colors">
+                          <span className="mx-1 text-sm font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 cursor-pointer transition-colors">
                             selecciona un archivo
                           </span>
                           <input
@@ -231,7 +231,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
             >
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-                  <Sheet className="w-5 h-5 mr-2 text-rose-500 dark:text-rose-400" />
+                  <Sheet className="w-5 h-5 mr-2 text-emerald-500 dark:text-emerald-400" />
                   ¿Necesitas la plantilla?
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -243,8 +243,8 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
               <div className="mt-8 bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-100 dark:border-slate-800">
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center text-slate-700 dark:text-slate-300">
-                    <div className="bg-rose-100 dark:bg-rose-900/20 p-2 rounded-full mr-4">
-                      <FileSpreadsheet className="h-6 w-6 text-rose-500 dark:text-rose-400" />
+                    <div className="bg-emerald-100 dark:bg-emerald-900/20 p-2 rounded-full mr-4">
+                      <FileSpreadsheet className="h-6 w-6 text-emerald-500 dark:text-emerald-400" />
                     </div>
                     <div>
                       <p className="font-medium">Plantilla de {contextLabel}</p>
@@ -260,7 +260,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                         <Button
                           onClick={() => handleDownloadTemplate(context)}
                           disabled={isDownloading}
-                          className="w-full mt-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white border-0 transition-all duration-200 shadow-sm"
+                          className="w-full mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white border-0 transition-all duration-200 shadow-sm"
                         >
                           {isDownloading ? (
                             <div className="flex items-center justify-center">
@@ -285,11 +285,11 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
 
                 <div className="mt-6 text-sm text-slate-500 dark:text-slate-400">
                   <p className="flex items-center">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mr-2"></span>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span>
                     Plantilla verificada y actualizada
                   </p>
                   <p className="flex items-center mt-1">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mr-2"></span>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span>
                     Incluye todos los campos necesarios
                   </p>
                 </div>
