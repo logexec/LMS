@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 import { useEffect } from "react";
 
 export default function GlobalError({
@@ -18,7 +20,7 @@ export default function GlobalError({
 
   return (
     <html>
-      <body className="flex flex-col items-center justify-center h-screen text-center">
+      <body className="block h-screen w-screen items-center justify-center text-center">
         {is403 ? (
           <>
             <h2 className="text-4xl font-bold text-red-600">
@@ -29,19 +31,17 @@ export default function GlobalError({
             </p>
           </>
         ) : (
-          <>
-            <h2 className="text-4xl font-bold text-red-600">
-              Ha ocurrido un error
+          <div className="bg-white dark:bg-slate-900 h-full w-full flex flex-col items-center justify-center mx-auto">
+            <AlertTriangle className="mx-auto text-amber-500 size-28" />
+            <h2 className="text-4xl my-4 font-bold text-red-600">
+              Se ha producido un error
             </h2>
-            <p className="mt-4 text-lg">{error.message}</p>
-          </>
+            <p className="mt-8 text-lg">{error.message}</p>
+          </div>
         )}
-        <button
-          onClick={() => reset()}
-          className="mt-6 px-4 py-2 bg-gray-800 text-white rounded"
-        >
+        <Button onClick={() => reset()} className="mt-6 text-xl">
           Reintentar
-        </button>
+        </Button>
       </body>
     </html>
   );
