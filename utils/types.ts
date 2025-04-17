@@ -28,7 +28,7 @@ export interface RequestProps extends BaseEntity {
   account_name?: string;
   project_name?: string;
   amount: number;
-  project: string;
+  project: string | string[];
   responsible_id: string | null;
   vehicle_plate: string | null;
   vehicle_number: string | null;

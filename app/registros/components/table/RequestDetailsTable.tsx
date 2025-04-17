@@ -270,9 +270,15 @@ const RequestDetailsTableComponent = ({
           );
         }
         if (request.project) {
-          const projectName = request.project;
+          const projectName = Array.isArray(request.project)
+            ? request.project.join(" ")
+            : request.project.includes(",")
+            ? request.project.split(",").join(" ")
+            : request.project;
+
           valuesToSearch.push(projectName);
         }
+
         if (request.responsible_id) {
           const responsibleName = request.responsible_id;
           valuesToSearch.push(responsibleName);
@@ -515,9 +521,25 @@ const RequestDetailsTableComponent = ({
       {
         accessorKey: "project",
         header: "Proyecto",
-        cell: ({ row }) => (
-          <div>{projectMap[row.original.project] || row.original.project}</div>
-        ),
+        cell: ({ row }) => {
+          const rawProject = row.original.project;
+
+          const projects = Array.isArray(rawProject)
+            ? rawProject
+            : typeof rawProject === "string" && rawProject.includes(",")
+            ? rawProject.split(",")
+            : [rawProject];
+
+          return (
+            <div className="flex flex-wrap gap-1">
+              {projects.map((proj, index) => (
+                <Badge key={index} className="bg-blue-100 text-blue-800">
+                  {proj}
+                </Badge>
+              ))}
+            </div>
+          );
+        },
         size: 100,
         enableSorting: false,
       },

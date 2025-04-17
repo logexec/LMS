@@ -149,7 +149,7 @@ const ActionCell = ({
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger>
-          <div className="flex items-center justify-center">
+          <div className="inline-block items-center justify-center w-min mx-1">
             <EditCell
               row={row}
               table={table}
@@ -158,7 +158,7 @@ const ActionCell = ({
             />
           </div>
         </TooltipTrigger>
-        <TooltipContent className="bg-amber-600" side="left">
+        <TooltipContent className="bg-amber-600" side="top">
           Editar
         </TooltipContent>
       </Tooltip>
@@ -166,7 +166,7 @@ const ActionCell = ({
         <TooltipTrigger>
           <AlertDialog>
             <AlertDialogTrigger
-              className="p-1 bg-red-600 hover:bg-red-700 text-white text-center rounded"
+              className="p-1 bg-red-600 hover:bg-red-700 text-white text-center rounded inline-block w-min mx-1"
               asChild
             >
               <Trash size={30} />
@@ -199,9 +199,7 @@ const ActionCell = ({
             </AlertDialogContent>
           </AlertDialog>
         </TooltipTrigger>
-        <TooltipContent side="left">
-          <p>Eliminar</p>
-        </TooltipContent>
+        <TooltipContent side="top">Eliminar</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
@@ -392,7 +390,7 @@ export const getRequestColumns = (
       />
     ),
     enableSorting: false,
-    size: 250,
+    size: 350,
   },
 ];
 
@@ -545,17 +543,38 @@ export const getReposicionColumns = (
     {
       accessorKey: "project",
       header: () => <div className="w-full text-center">Proyecto</div>,
-      cell: ({ row }) => (
-        <p
-          className={`text-slate-500 font-medium px-1 ${
-            (row.original.status === "rejected" ||
-              row.original.status === "paid") &&
-            "opacity-50"
-          }`}
-        >
-          {row.getValue<string>("project") || "Sin proyecto"}
-        </p>
-      ),
+      cell: ({ row }) => {
+        const rawProject = row.getValue<string>("project");
+        const status = row.original.status;
+
+        const isDimmed = status === "rejected" || status === "paid";
+
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p
+                  className={`max-w-[160px] truncate text-center px-1 text-slate-500 font-medium cursor-default ${
+                    isDimmed ? "opacity-50" : ""
+                  }`}
+                >
+                  {rawProject.includes(",")
+                    ? rawProject.replace(",", ", ")
+                    : rawProject}
+                </p>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className="bg-white dark:bg-black text-slate-800 dark:text-slate-200 border rounded"
+              >
+                {rawProject.includes(",")
+                  ? rawProject.replace(",", ", ")
+                  : rawProject}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
       sortingFn: "alphanumeric",
       enableSorting: true,
       minSize: 150,
