@@ -46,7 +46,7 @@ interface FormDataType {
   invoice_number: string;
   account_id: string; // Realmente contiene el nombre de la cuenta
   amount: string;
-  project: string; // Contiene el nombre del proyecto
+  project: string | string[]; // Contiene el nombre del proyecto
   responsible_id: string; // Contiene el nombre completo del responsable
   vehicle_plate: string;
   vehicle_number: string;
