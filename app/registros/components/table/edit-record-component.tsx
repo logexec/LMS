@@ -74,7 +74,9 @@ export default function EditRecord({
         ? String(row.original.account_id)
         : "",
       amount: Number(row.original.amount) || 0,
-      project: row.original.project || "",
+      project: Array.isArray(row.original.project)
+        ? row.original.project[0] // tomamos solo el primero
+        : row.original.project || "",
       note: row.original.note || "",
     },
   });
