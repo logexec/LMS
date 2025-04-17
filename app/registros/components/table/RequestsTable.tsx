@@ -66,7 +66,7 @@ import apiService from "@/services/api.service";
 import { useAuth } from "@/hooks/useAuth"; // Importar useAuth
 
 interface MappableData {
-  project?: string | number;
+  project?: string | number | string[];
   project_name?: string;
   account?: { id: string | number; name: string } | string | number; // Puede ser objeto o ID
   responsible?:
