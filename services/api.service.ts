@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { fetchWithAuth, fetchWithAuthFormData } from "@/services/auth.service";
+import {
+  fetchWithAuth,
+  fetchWithAuthFormData,
+  getAuthToken,
+} from "@/services/auth.service";
 import {
   AccountProps,
   RequestProps,
@@ -15,10 +19,40 @@ const fetchInProgress = {
   vehicles: false,
 };
 
+export async function checkApiStatus() {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/serverstatus`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        credentials: "include",
+      }
+    );
+
+    if (response.status === 503) {
+      if (!window.location.pathname.includes("maintenance")) {
+        window.location.href = `/maintenance`;
+      }
+    }
+    if (response.ok) {
+      if (window.location.pathname.includes("maintenance")) {
+        window.location.href = "/registros/nuevo";
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export const apiService = {
   // Users
   getUsers: async () => {
     try {
+      checkApiStatus();
       const response = await fetchWithAuth(`/users`);
       // Si la respuesta es un objeto con claves numéricas, lo convertimos a arreglo
       if (
@@ -73,6 +107,7 @@ export const apiService = {
   // Projects
   getProjects: async (projectIds?: string[]) => {
     try {
+      checkApiStatus();
       const queryParams = projectIds?.length
         ? `?projects=${projectIds.join(",")}`
         : "";
@@ -109,6 +144,7 @@ export const apiService = {
 
   updateUserProjects: async (userId: string, projectIds: string[]) => {
     try {
+      checkApiStatus();
       return await fetchWithAuth(`/users/${userId}/projects`, {
         method: "POST",
         body: JSON.stringify({ projectIds }),
@@ -121,6 +157,7 @@ export const apiService = {
 
   getRepositionFile: async (repositionId: string) => {
     try {
+      checkApiStatus();
       const response = await fetchWithAuth(
         `/reposiciones/${repositionId}/file`
       );
@@ -161,6 +198,7 @@ export const apiService = {
   },
 
   getAccounts: (accountType?: string, accountAffects?: string) => {
+    checkApiStatus();
     const queryParams = new URLSearchParams();
 
     if (accountType) {
@@ -200,12 +238,14 @@ export const apiService = {
 
   //Sistema_onix
   getPersonnel: () => {
+    checkApiStatus();
     return fetchWithAuth(`/responsibles?fields=id,nombre_completo`, {
       credentials: "include",
     });
   },
 
   updateData: () => {
+    checkApiStatus();
     return fetchWithAuth(`/update-data`, {
       credentials: "include",
     });
@@ -213,6 +253,7 @@ export const apiService = {
 
   // Descargar plantilla
   downloadTemplate: async (context: "discounts" | "expenses" | "income") => {
+    checkApiStatus();
     const endpoint =
       context === "expenses"
         ? "/download-expenses-template"
@@ -267,6 +308,7 @@ export const apiService = {
     file: File,
     context: "discounts" | "expenses" | "income"
   ) => {
+    checkApiStatus();
     const formData = new FormData();
     formData.append("file", file);
     formData.append("context", context);
@@ -300,6 +342,7 @@ export const apiService = {
   // Préstamos
   createLoan: async (formData: FormData) => {
     try {
+      checkApiStatus();
       const response = await fetchWithAuthFormData("/loans", {
         method: "POST",
         body: formData,
@@ -328,6 +371,7 @@ export const apiService = {
 
   updateRequest: async (id: string, data: Partial<RequestProps>) => {
     try {
+      checkApiStatus();
       const response = await fetchWithAuth(`/requests/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
@@ -349,6 +393,7 @@ export const apiService = {
 
   deleteRequest: async (id: string) => {
     try {
+      checkApiStatus();
       const response = await fetchWithAuth(`/requests/${id}`, {
         method: "DELETE",
       });
@@ -367,6 +412,7 @@ export const apiService = {
 
   // Funciones optimizadas para los dropdowns
   fetchAccounts: async (): Promise<AccountProps[]> => {
+    checkApiStatus();
     // Prevenir duplicados
     if (fetchInProgress.accounts) {
       console.log("Fetch accounts already in progress, skipping");
@@ -432,6 +478,7 @@ export const apiService = {
   },
 
   fetchResponsibles: async (): Promise<ResponsibleProps[]> => {
+    checkApiStatus();
     // Prevenir duplicados
     if (fetchInProgress.responsibles) {
       console.log("Fetch responsibles already in progress, skipping");
@@ -499,6 +546,7 @@ export const apiService = {
   },
 
   fetchVehicles: async (): Promise<TransportProps[]> => {
+    checkApiStatus();
     // Prevenir duplicados
     if (fetchInProgress.vehicles) {
       console.log("Fetch vehicles already in progress, skipping");
