@@ -9,7 +9,7 @@ import logo from "@/public/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { InRepositionRequests } from "./Requests";
+import { RepositionRequests } from "./Requests";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const useMediaQuery = (query: string) => {
@@ -31,7 +31,7 @@ const Sidenav = () => {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const path = usePathname();
   const { hasPermission } = useAuth();
-  const notification = InRepositionRequests();
+  const notification = RepositionRequests();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
