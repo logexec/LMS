@@ -383,12 +383,12 @@ const RequestDetailsTableComponent = ({
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger>
-                <div className="text-center trunate max-w-[40px]">
+                <div className="text-center max-w-[40px] truncate">
                   {row.original.unique_id}
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <div className="">{row.original.unique_id}</div>
+                <div>{row.original.unique_id}</div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
