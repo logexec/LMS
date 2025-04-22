@@ -11,6 +11,7 @@ import Sidenav from "@/app/components/Sidenav";
 import Navigation from "@/app/components/Navigation";
 import Loader from "@/app/Loader";
 import LoginPage from "@/app/login/page";
+import { DataProvider } from "./DataContext";
 const queryClient = new QueryClient();
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -89,9 +90,11 @@ export default function AppContent({
       enableSystem
       disableTransitionOnChange
     >
-      <AnimatePresence mode="wait">
-        <DashboardLayout>{children}</DashboardLayout>
-      </AnimatePresence>
+      <DataProvider>
+        <AnimatePresence mode="wait">
+          <DashboardLayout>{children}</DashboardLayout>
+        </AnimatePresence>
+      </DataProvider>
     </ThemeProvider>
   );
 }

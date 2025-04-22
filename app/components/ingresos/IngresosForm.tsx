@@ -1,10 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { LoadingState, OptionsState } from "@/utils/types";
-import { getAuthToken } from "@/services/auth.service";
-import { useAuth } from "@/hooks/useAuth";
+import { LoadingState } from "@/utils/types";
+import { useData } from "@/contexts/DataContext";
 import NormalDiscountForm from "./NormalDiscountForm";
 import ExcelUploadSection from "./ExcelUploadSection";
 
@@ -18,92 +16,8 @@ const IngresosForm = () => {
     areas: false,
   });
 
-  const [options, setOptions] = useState<OptionsState>({
-    projects: [],
-    responsibles: [],
-    transports: [],
-    accounts: [],
-    areas: [],
-  });
-
-  const auth = useAuth();
-  const assignedProjectIds = useMemo(() => auth.hasProjects(), []);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading((prev) => ({
-        ...prev,
-        projects: true,
-        areas: true,
-        accounts: true,
-      }));
-
-      try {
-        const [projectsRes, areasRes, accountsRes] = await Promise.all([
-          fetch(
-            `${
-              process.env.NEXT_PUBLIC_API_URL
-            }/projects?projects=${assignedProjectIds.join(",")}`,
-            {
-              headers: { Authorization: `Bearer ${getAuthToken()}` },
-              credentials: "include",
-            }
-          ),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/areas`, {
-            headers: {
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
-            headers: {
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }),
-        ]);
-
-        if (!projectsRes.ok || !areasRes.ok || !accountsRes.ok) {
-          throw new Error("Error al cargar datos iniciales");
-        }
-
-        const [projectsData, areasData, accountsData] = await Promise.all([
-          projectsRes.json(),
-          areasRes.json(),
-          accountsRes.json(),
-        ]);
-
-        setOptions((prev) => ({
-          ...prev,
-          accounts: accountsData.data.map(
-            (acc: { name: string; id: string }) => ({
-              label: acc.name,
-              value: acc.name,
-            })
-          ),
-          projects: projectsData.map((proj: { name: string; id: string }) => ({
-            label: proj.name,
-            value: proj.name,
-          })),
-          areas: areasData.map((area: { name: string; id: string }) => ({
-            label: area.name,
-            value: area.id,
-          })),
-        }));
-      } catch (error) {
-        toast.error("Error al cargar datos iniciales");
-        console.error(error);
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          projects: false,
-          areas: false,
-          accounts: false,
-        }));
-      }
-    };
-    fetchInitialData();
-  }, []);
+  // Usar el contexto de datos global en lugar de mantener estado local de opciones
+  const { options } = useData();
 
   const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));

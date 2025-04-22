@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import debounce from "lodash/debounce";
 
 // UI Components
 import {
@@ -61,11 +60,10 @@ import {
 
 // Services & Utils
 import { getAuthToken } from "@/services/auth.service";
-import apiService from "@/services/api.service";
-import { useAuth } from "@/hooks/useAuth";
-import { AccountProps, Option } from "@/utils/types";
+import { LoadingState } from "@/utils/types";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useData } from "@/contexts/DataContext";
 
 // Form Schema
 const formSchema = z.object({
@@ -140,27 +138,24 @@ const GastosForm: React.FC<GastosFormProps> = ({
   },
 }) => {
   // States
-  const [localOptions, setLocalOptions] = React.useState<{
-    accounts: Option[];
-    projects: Option[];
-    responsibles: Option[];
-    transports: Option[];
-  }>({
-    accounts: [],
-    projects: [],
-    responsibles: [],
-    transports: [],
-  });
-
-  const [localLoading, setLocalLoading] = React.useState({
+  const [localLoading, setLocalLoading] = useState<LoadingState>({
     submit: false,
-    accounts: false,
     projects: false,
     responsibles: false,
     transports: false,
+    accounts: false,
+    areas: false,
   });
 
-  const [showAdditionalFields, setShowAdditionalFields] = React.useState(false);
+  const [showAdditionalFields, setShowAdditionalFields] = useState(false);
+
+  // Usar el contexto de datos global
+  const {
+    options,
+    loading: contextLoading,
+    fetchAccounts,
+    fetchResponsibles,
+  } = useData();
 
   // Form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -187,120 +182,10 @@ const GastosForm: React.FC<GastosFormProps> = ({
   );
   const lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 28);
 
-  // Authentication
-  const auth = useAuth();
-
-  // Fetch projects
-  const fetchProjects = useCallback(async () => {
-    setLocalLoading((prev) => ({ ...prev, projects: true }));
-    const assignedProjectIds = auth.hasProjects();
-
-    try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/projects?projects=${assignedProjectIds.join(",")}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) throw new Error("Error al cargar proyectos");
-
-      const data = await response.json();
-      setLocalOptions((prev) => ({
-        ...prev,
-        projects: data.map((project: { name: string; id: string }) => ({
-          label: project.name,
-          value: project.name,
-        })),
-      }));
-    } catch (error) {
-      toast.error("Error al cargar proyectos");
-      console.error("Error al cargar proyectos:", error);
-    } finally {
-      setLocalLoading((prev) => ({ ...prev, projects: false }));
-    }
+  // Fetch cuentas cuando se carga el componente
+  useEffect(() => {
+    fetchAccounts("nomina", "expense");
   }, []);
-
-  // Fetch accounts
-  const cache = new Map();
-
-  const fetchAccounts = useCallback(async () => {
-    if (cache.has("accounts")) {
-      setLocalOptions((prev) => ({ ...prev, accounts: cache.get("accounts") }));
-      return;
-    }
-
-    setLocalLoading((prev) => ({ ...prev, accounts: true }));
-    try {
-      const response = await apiService.getAccounts("nomina", "expense");
-      if (!response.ok) throw new Error("Error al cargar las cuentas");
-
-      const data = await response.data;
-      const activeAccounts = data.filter(
-        (account: AccountProps) => account.account_status === "active"
-      );
-      const accounts = activeAccounts.map(
-        (account: { name: string; id: string }) => ({
-          label: account.name,
-          value: account.name,
-        })
-      );
-
-      cache.set("accounts", accounts);
-      setLocalOptions((prev) => ({ ...prev, accounts }));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al cargar las cuentas"
-      );
-    } finally {
-      setLocalLoading((prev) => ({ ...prev, accounts: false }));
-    }
-  }, []);
-
-  // Fetch responsibles
-  const fetchResponsibles = useMemo(
-    () =>
-      debounce(async (proyecto: string) => {
-        if (!proyecto) return;
-
-        setLocalLoading((prev) => ({ ...prev, responsibles: true }));
-        try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
-            {
-              headers: {
-                Authorization: `Bearer ${getAuthToken()}`,
-              },
-              credentials: "include",
-            }
-          );
-
-          if (!response.ok) throw new Error("Error al cargar responsables");
-
-          const data = await response.json();
-          setLocalOptions((prev) => ({
-            ...prev,
-            responsibles: data.map(
-              (responsible: { nombre_completo: string; id: string }) => ({
-                label: responsible.nombre_completo,
-                value: responsible.nombre_completo,
-              })
-            ),
-          }));
-        } catch (error) {
-          toast.error("Error al cargar responsables");
-          console.error("Error al cargar responsables:", error);
-        } finally {
-          setLocalLoading((prev) => ({ ...prev, responsibles: false }));
-        }
-      }, 500),
-    []
-  );
 
   // Show additional fields when project is selected
   const selectedProject = form.watch("proyecto");
@@ -309,7 +194,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
   useEffect(() => {
     if (!selectedProject) {
       setShowAdditionalFields(false);
-      setLocalOptions((prev) => ({ ...prev, responsibles: [] }));
       lastFetchedProject.current = null;
       return;
     }
@@ -320,12 +204,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
       lastFetchedProject.current = selectedProject;
     }
   }, [selectedProject, fetchResponsibles]);
-
-  // Initial data fetching
-  useEffect(() => {
-    fetchAccounts();
-    fetchProjects();
-  }, []);
 
   // Form submission
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -676,16 +554,16 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                         "w-full justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm h-9",
                                         !field.value && "text-muted-foreground"
                                       )}
-                                      disabled={localLoading.projects}
+                                      disabled={contextLoading.projects}
                                     >
-                                      {localLoading.projects ? (
+                                      {contextLoading.projects ? (
                                         <span className="flex items-center">
                                           <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
                                           Cargando...
                                         </span>
                                       ) : field.value ? (
                                         <span className="truncate">
-                                          {localOptions.projects.find(
+                                          {options.projects.find(
                                             (project) =>
                                               project.value === field.value
                                           )?.label || field.value}
@@ -708,37 +586,34 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                         No se encontraron proyectos.
                                       </CommandEmpty>
                                       <CommandGroup>
-                                        {localOptions.projects.map(
-                                          (project) => (
-                                            <CommandItem
-                                              value={project.label}
-                                              key={project.value}
-                                              onSelect={() => {
-                                                form.setValue(
-                                                  "proyecto",
-                                                  project.value
-                                                );
-                                                form.trigger("proyecto");
-                                              }}
-                                              className="text-sm"
-                                            >
-                                              <div className="flex items-center">
-                                                <Check
-                                                  className={cn(
-                                                    "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
-                                                    project.value ===
-                                                      field.value
-                                                      ? "opacity-100"
-                                                      : "opacity-0"
-                                                  )}
-                                                />
-                                                <span className="truncate">
-                                                  {project.label}
-                                                </span>
-                                              </div>
-                                            </CommandItem>
-                                          )
-                                        )}
+                                        {options.projects.map((project) => (
+                                          <CommandItem
+                                            value={project.label}
+                                            key={project.value}
+                                            onSelect={() => {
+                                              form.setValue(
+                                                "proyecto",
+                                                project.value
+                                              );
+                                              form.trigger("proyecto");
+                                            }}
+                                            className="text-sm"
+                                          >
+                                            <div className="flex items-center">
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
+                                                  project.value === field.value
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                                )}
+                                              />
+                                              <span className="truncate">
+                                                {project.label}
+                                              </span>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
                                       </CommandGroup>
                                     </CommandList>
                                   </Command>
@@ -797,16 +672,16 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                               !field.value &&
                                                 "text-muted-foreground"
                                             )}
-                                            disabled={localLoading.accounts}
+                                            disabled={contextLoading.accounts}
                                           >
-                                            {localLoading.accounts ? (
+                                            {contextLoading.accounts ? (
                                               <span className="flex items-center">
                                                 <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
                                                 Cargando...
                                               </span>
                                             ) : field.value ? (
                                               <span className="truncate max-w-[180px]">
-                                                {localOptions.accounts.find(
+                                                {options.accounts.find(
                                                   (account) =>
                                                     account.value ===
                                                     field.value
@@ -830,7 +705,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                               No se encontraron cuentas.
                                             </CommandEmpty>
                                             <CommandGroup>
-                                              {localOptions.accounts.map(
+                                              {options.accounts.map(
                                                 (account, idx) => (
                                                   <CommandItem
                                                     value={account.label}
@@ -899,16 +774,18 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                               !field.value &&
                                                 "text-muted-foreground"
                                             )}
-                                            disabled={localLoading.responsibles}
+                                            disabled={
+                                              contextLoading.responsibles
+                                            }
                                           >
-                                            {localLoading.responsibles ? (
+                                            {contextLoading.responsibles ? (
                                               <span className="flex items-center">
                                                 <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
                                                 Cargando...
                                               </span>
                                             ) : field.value ? (
                                               <span className="truncate max-w-[180px]">
-                                                {localOptions.responsibles.find(
+                                                {options.responsibles.find(
                                                   (resp) =>
                                                     resp.value === field.value
                                                 )?.label || field.value}
@@ -931,7 +808,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                               No se encontraron responsables.
                                             </CommandEmpty>
                                             <CommandGroup>
-                                              {localOptions.responsibles.map(
+                                              {options.responsibles.map(
                                                 (responsible) => (
                                                   <CommandItem
                                                     value={responsible.label}

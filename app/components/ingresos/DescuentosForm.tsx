@@ -1,15 +1,14 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LoadingState, OptionsState, RequestData } from "@/utils/types";
+import { LoadingState, RequestData } from "@/utils/types";
 import NormalDiscountForm from "./NormalDiscountForm";
 import MassDiscountForm from "./MassDiscountForm";
 import LoanForm from "./LoanForm";
 import ExcelUploadSection from "./ExcelUploadSection";
-import { fetchWithAuth, fetchWithAuthFormData } from "@/services/auth.service";
-import { useAuth } from "@/hooks/useAuth";
+import { fetchWithAuthFormData } from "@/services/auth.service";
+import { useData } from "@/contexts/DataContext";
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -21,131 +20,10 @@ const DescuentosForm = () => {
     areas: false,
   });
 
-  const [options, setOptions] = useState<OptionsState>({
-    projects: [],
-    responsibles: [],
-    transports: [],
-    accounts: [],
-    areas: [],
-  });
+  // Usar el contexto de datos global
+  const { options } = useData();
 
   const [activeTab, setActiveTab] = useState("normal");
-  const auth = useAuth();
-
-  // Fetch inicial de datos
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading((prev) => ({
-        ...prev,
-        projects: true,
-        areas: true,
-        accounts: true,
-        responsibles: true,
-        transports: true,
-      }));
-      const assignedProjectIds = auth.hasProjects();
-
-      try {
-        const [
-          projectsRes,
-          areasRes,
-          accountsRes,
-          responsiblesRes,
-          transportsRes,
-        ] = await Promise.all([
-          fetchWithAuth(`/projects?projects=${assignedProjectIds.join(",")}`),
-          fetchWithAuth(`/areas?projects=${assignedProjectIds.join(",")}`),
-          fetchWithAuth(`/accounts`),
-          fetchWithAuth(`/responsibles?fields=id,nombre_completo`),
-          fetchWithAuth(`/vehicles`),
-        ]);
-
-        if (!projectsRes.ok) throw new Error("Error al cargar proyectos");
-        if (!areasRes.ok) throw new Error("Error al cargar áreas");
-        if (!accountsRes.ok) throw new Error("Error al cargar cuentas");
-        if (!responsiblesRes.ok)
-          throw new Error("Error al cargar responsables");
-        if (!transportsRes.ok) throw new Error("Error al cargar vehículos");
-
-        // Convertir respuestas a arreglos con tipado explícito
-        const projectsData: { name: string; id: string }[] = Object.values(
-          projectsRes
-        ).filter(
-          (item): item is { name: string; id: string } =>
-            typeof item === "object" &&
-            item !== null &&
-            "name" in item &&
-            "id" in item
-        );
-        const areasData: { name: string; id: string }[] = Object.values(
-          areasRes
-        ).filter(
-          (item): item is { name: string; id: string } =>
-            typeof item === "object" &&
-            item !== null &&
-            "name" in item &&
-            "id" in item
-        );
-        const accountsData: { name: string; id: string }[] =
-          accountsRes.data || [];
-        const responsiblesData: { nombre_completo: string; id: string }[] =
-          Object.values(responsiblesRes).filter(
-            (item): item is { nombre_completo: string; id: string } =>
-              typeof item === "object" &&
-              item !== null &&
-              "nombre_completo" in item &&
-              "id" in item
-          );
-        const transportsData: { name: string; id: string }[] = Object.values(
-          transportsRes
-        ).filter(
-          (item): item is { name: string; id: string } =>
-            typeof item === "object" &&
-            item !== null &&
-            "name" in item &&
-            "id" in item
-        );
-
-        setOptions((prev) => ({
-          ...prev,
-          projects: projectsData.map((project) => ({
-            label: project.name,
-            value: project.name,
-          })),
-          areas: areasData.map((area) => ({
-            label: area.name,
-            value: area.name,
-          })),
-          accounts: accountsData.map((account) => ({
-            label: account.name,
-            value: account.name,
-          })),
-          responsibles: responsiblesData.map((resp) => ({
-            label: resp.nombre_completo,
-            value: resp.nombre_completo,
-          })),
-          transports: transportsData.map((vehicle) => ({
-            label: vehicle.name,
-            value: vehicle.name,
-          })),
-        }));
-      } catch (error) {
-        toast.error("Error al cargar datos iniciales");
-        console.error("Error al cargar datos iniciales:", error);
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          projects: false,
-          areas: false,
-          accounts: false,
-          responsibles: false,
-          transports: false,
-        }));
-      }
-    };
-
-    fetchInitialData();
-  }, []);
 
   const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));

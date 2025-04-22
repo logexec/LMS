@@ -55,10 +55,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { getAuthToken } from "@/services/auth.service";
-import apiService from "@/services/api.service";
-import debounce from "lodash/debounce";
-import { LoadingState, OptionsState, AccountProps } from "@/utils/types";
+import { LoadingState, OptionsState } from "@/utils/types";
 import {
   Card,
   CardContent,
@@ -69,6 +66,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useData } from "@/contexts/DataContext";
 
 const formSchema = z.object({
   fechaGasto: z.coerce.date(),
@@ -93,27 +91,17 @@ interface MyFormProps {
   onSubmit: (data: FormData) => Promise<void>;
 }
 
-export default function NormalDiscountForm({
-  options,
-  type,
-  onSubmit,
-}: MyFormProps) {
-  const [localOptions, setLocalOptions] = useState<OptionsState>({
-    projects: options.projects,
-    responsibles: [],
-    transports: [],
-    accounts: [],
-    areas: options.areas,
-  });
-
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false);
-  const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(false);
-  const [isLoadingResponsibles, setIsLoadingResponsibles] =
-    useState<boolean>(false);
-  const [isLoadingVehicles, setIsLoadingVehicles] = useState<boolean>(false);
-
+export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Usar el contexto de datos global
+  const {
+    fetchAccounts,
+    fetchResponsibles,
+    fetchTransports,
+    loading: contextLoading,
+    options,
+  } = useData();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -140,158 +128,43 @@ export default function NormalDiscountForm({
     }
   }, [form.formState.errors]);
 
-  useEffect(() => {
-    setIsLoadingProjects(true);
-
-    const timeout = setTimeout(() => {
-      setLocalOptions((prevOptions) => ({
-        ...prevOptions,
-        projects: options.projects,
-        areas: options.areas,
-      }));
-      setIsLoadingProjects(false);
-    }, 300); // lo suficiente para permitir un render son 200ms
-
-    return () => clearTimeout(timeout);
-  }, [options.projects, options.areas]);
-
-  const fetchAccounts = useCallback(async (tipo: string) => {
-    try {
-      setIsLoading(true);
-      setIsLoadingAccounts(true);
-      const response = await apiService.getAccounts(tipo, "discount");
-      if (!response.ok) throw new Error("Error al cargar las cuentas");
-
-      const data = await response.data;
-
-      const activeAccounts = data.filter(
-        (account: AccountProps) => account.account_status === "active"
-      );
-
-      setLocalOptions((prev) => ({
-        ...prev,
-        accounts: activeAccounts.map((account: { name: string }) => ({
-          label: account.name,
-          value: account.name,
-        })),
-      }));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al cargar las cuentas"
-      );
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingAccounts(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    form.resetField("cuenta");
-    fetchAccounts(form.watch("tipo"));
-  }, [form.watch("tipo")]);
-
-  const fetchResponsibles = useCallback(
-    debounce(async (proyecto: string) => {
-      if (!proyecto) return;
-      try {
-        setIsLoading(true);
-        setIsLoadingResponsibles(true);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) throw new Error("Error al cargar responsables");
-
-        const data = await response.json();
-        setLocalOptions((prev) => ({
-          ...prev,
-          responsibles: data.map(
-            (responsible: { nombre_completo: string }) => ({
-              label: responsible.nombre_completo,
-              value: responsible.nombre_completo,
-            })
-          ),
-        }));
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error al cargar responsables"
-        );
-      } finally {
-        setIsLoading(false);
-        setIsLoadingResponsibles(false);
+  // Primero, define callbacks fuera del efecto:
+  const handleTipoChange = useCallback(
+    (tipo: string) => {
+      if (tipo) {
+        fetchAccounts(tipo, type === "discount" ? "discount" : "income");
       }
-    }, 300),
-    []
+    },
+    [fetchAccounts, type]
   );
 
-  const fetchTransports = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setIsLoadingVehicles(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/transports`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          credentials: "include",
+  const handleProyectoChange = useCallback(
+    (proyecto: string, tipo: string) => {
+      if (proyecto && tipo === "nomina") {
+        fetchResponsibles(proyecto);
+      }
+    },
+    [fetchResponsibles]
+  );
+
+  // Luego, usa un único effect con watch:
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "tipo" && value.tipo) {
+        handleTipoChange(value.tipo as string);
+
+        if (value.tipo === "transportista") {
+          fetchTransports();
         }
-      );
+      }
 
-      if (!response.ok) throw new Error("Error al cargar transportes");
+      if (name === "proyecto" && value.proyecto && value.tipo === "nomina") {
+        handleProyectoChange(value.proyecto as string, value.tipo as string);
+      }
+    });
 
-      const data = await response.json();
-      setLocalOptions((prev) => ({
-        ...prev,
-        transports: data.map((transport: { name: string }) => ({
-          label: transport.name,
-          value: transport.name,
-        })),
-      }));
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Error al cargar los transportes"
-      );
-    } finally {
-      setIsLoading(false);
-      setIsLoadingVehicles(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const tipo = form.watch("tipo");
-    if (tipo) {
-      fetchAccounts(tipo);
-    }
-  }, [form.watch("tipo"), fetchAccounts]);
-
-  useEffect(() => {
-    const proyecto = form.watch("proyecto");
-    const tipo = form.watch("tipo");
-    if (proyecto && tipo) {
-      fetchResponsibles(proyecto);
-    }
-  }, [form.watch("proyecto"), form.watch("tipo"), fetchResponsibles]);
-
-  useEffect(() => {
-    const tipo = form.watch("tipo");
-    if (tipo === "transportista") {
-      fetchTransports();
-    }
-  }, [form.watch("tipo"), fetchTransports]);
+    return () => subscription.unsubscribe();
+  }, [form.watch, handleTipoChange, handleProyectoChange, fetchTransports]);
 
   const resetForm = () => {
     form.reset();
@@ -299,7 +172,6 @@ export default function NormalDiscountForm({
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsLoading(true);
       setIsSubmitting(true);
       const formData = new FormData();
       formData.append("request_date", format(values.fechaGasto, "yyyy-MM-dd"));
@@ -335,7 +207,6 @@ export default function NormalDiscountForm({
           : "Hubo un error al registrar el descuento"
       );
     } finally {
-      setIsLoading(false);
       setIsSubmitting(false);
     }
   };
@@ -447,7 +318,7 @@ export default function NormalDiscountForm({
                     Resumen del Registro
                   </h3>
                   <div className="space-y-2">
-                    {isLoading ? (
+                    {isSubmitting ? (
                       <div className="space-y-2">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-3/4" />
@@ -517,9 +388,7 @@ export default function NormalDiscountForm({
                               {form.watch("vehicle_plate") || "No seleccionado"}
                             </span>
                           </div>
-                        ) : (
-                          "No seleccionado"
-                        )}
+                        ) : null}
                         {form.watch("vehicle_number") && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-600 dark:text-slate-400">
@@ -704,9 +573,9 @@ export default function NormalDiscountForm({
                                           !field.value &&
                                             "text-muted-foreground"
                                         )}
-                                        disabled={isLoadingProjects}
+                                        disabled={contextLoading.projects}
                                       >
-                                        {isLoadingProjects ? (
+                                        {contextLoading.projects ? (
                                           <span className="flex items-center">
                                             <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
                                             Cargando...
@@ -714,7 +583,7 @@ export default function NormalDiscountForm({
                                         ) : field.value ? (
                                           <span className="truncate">
                                             {
-                                              localOptions.projects.find(
+                                              options.projects.find(
                                                 (project) =>
                                                   project.value === field.value
                                               )?.label
@@ -738,36 +607,34 @@ export default function NormalDiscountForm({
                                           No se pudieron cargar los proyectos.
                                         </CommandEmpty>
                                         <CommandGroup>
-                                          {localOptions.projects.map(
-                                            (project) => (
-                                              <CommandItem
-                                                value={project.label}
-                                                key={project.value}
-                                                onSelect={() => {
-                                                  form.setValue(
-                                                    "proyecto",
-                                                    project.value
-                                                  );
-                                                }}
-                                                className="text-sm"
-                                              >
-                                                <div className="flex items-center">
-                                                  <Check
-                                                    className={cn(
-                                                      "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
-                                                      project.value ===
-                                                        field.value
-                                                        ? "opacity-100"
-                                                        : "opacity-0"
-                                                    )}
-                                                  />
-                                                  <span className="truncate">
-                                                    {project.label}
-                                                  </span>
-                                                </div>
-                                              </CommandItem>
-                                            )
-                                          )}
+                                          {options.projects.map((project) => (
+                                            <CommandItem
+                                              value={project.label}
+                                              key={project.value}
+                                              onSelect={() => {
+                                                form.setValue(
+                                                  "proyecto",
+                                                  project.value
+                                                );
+                                              }}
+                                              className="text-sm"
+                                            >
+                                              <div className="flex items-center">
+                                                <Check
+                                                  className={cn(
+                                                    "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
+                                                    project.value ===
+                                                      field.value
+                                                      ? "opacity-100"
+                                                      : "opacity-0"
+                                                  )}
+                                                />
+                                                <span className="truncate">
+                                                  {project.label}
+                                                </span>
+                                              </div>
+                                            </CommandItem>
+                                          ))}
                                         </CommandGroup>
                                       </CommandList>
                                     </Command>
@@ -825,21 +692,19 @@ export default function NormalDiscountForm({
                                           !field.value &&
                                             "text-muted-foreground"
                                         )}
-                                        disabled={isLoadingAccounts}
+                                        disabled={contextLoading.accounts}
                                       >
-                                        {isLoadingAccounts ? (
+                                        {contextLoading.accounts ? (
                                           <span className="flex items-center">
                                             <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
                                             Cargando...
                                           </span>
                                         ) : field.value ? (
                                           <span className="truncate max-w-[180px]">
-                                            {
-                                              localOptions.accounts.find(
-                                                (account) =>
-                                                  account.value === field.value
-                                              )?.label
-                                            }
+                                            {options.accounts.find(
+                                              (account) =>
+                                                account.value === field.value
+                                            )?.label || field.value}
                                           </span>
                                         ) : (
                                           "-- Selecciona --"
@@ -859,7 +724,7 @@ export default function NormalDiscountForm({
                                           No se encontraron cuentas.
                                         </CommandEmpty>
                                         <CommandGroup>
-                                          {localOptions.accounts.map(
+                                          {options.accounts.map(
                                             (account, idx) => (
                                               <CommandItem
                                                 value={account.label}
@@ -921,27 +786,25 @@ export default function NormalDiscountForm({
                                               "text-muted-foreground"
                                           )}
                                           disabled={
-                                            isLoadingResponsibles ||
+                                            contextLoading.responsibles ||
                                             form.watch("proyecto") ===
                                               undefined ||
                                             form.watch("proyecto") === null ||
                                             form.watch("proyecto") === ""
                                           }
                                         >
-                                          {isLoadingResponsibles ? (
+                                          {contextLoading.responsibles ? (
                                             <span className="flex items-center">
                                               <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
                                               Cargando...
                                             </span>
                                           ) : field.value ? (
                                             <span className="truncate max-w-[180px]">
-                                              {
-                                                localOptions.responsibles.find(
-                                                  (responsible) =>
-                                                    responsible.value ===
-                                                    field.value
-                                                )?.label
-                                              }
+                                              {options.responsibles.find(
+                                                (responsible) =>
+                                                  responsible.value ===
+                                                  field.value
+                                              )?.label || field.value}
                                             </span>
                                           ) : (
                                             "-- Selecciona --"
@@ -961,7 +824,7 @@ export default function NormalDiscountForm({
                                             No se encontraron responsables.
                                           </CommandEmpty>
                                           <CommandGroup>
-                                            {localOptions.responsibles.map(
+                                            {options.responsibles.map(
                                               (responsible) => (
                                                 <CommandItem
                                                   value={responsible.label}
@@ -1024,23 +887,23 @@ export default function NormalDiscountForm({
                                               "text-muted-foreground"
                                           )}
                                           disabled={
-                                            isLoadingVehicles ||
+                                            contextLoading.transports ||
                                             form.watch("proyecto") ===
                                               undefined ||
                                             form.watch("proyecto") === null ||
                                             form.watch("proyecto") === ""
                                           }
                                         >
-                                          {isLoadingVehicles ? (
+                                          {contextLoading.transports ? (
                                             <span className="flex items-center">
                                               <Loader2 className="w-3 h-3 rounded-full bg-rose-500 dark:bg-rose-400 animate-spin mr-2" />
                                               Cargando...
                                             </span>
                                           ) : field.value ? (
-                                            localOptions.transports.find(
+                                            options.transports.find(
                                               (transport) =>
                                                 transport.value === field.value
-                                            )?.label
+                                            )?.label || field.value
                                           ) : (
                                             "-- Selecciona --"
                                           )}
@@ -1059,7 +922,7 @@ export default function NormalDiscountForm({
                                             No se encontró ninguna placa.
                                           </CommandEmpty>
                                           <CommandGroup>
-                                            {localOptions.transports.map(
+                                            {options.transports.map(
                                               (transport) => (
                                                 <CommandItem
                                                   value={transport.label}
@@ -1221,7 +1084,7 @@ export default function NormalDiscountForm({
                     <Button
                       type="submit"
                       className="w-full sm:w-auto bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white transition-all"
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <span className="flex items-center">
