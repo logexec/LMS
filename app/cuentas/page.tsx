@@ -329,6 +329,7 @@ const CuentasPage = () => {
               <SelectContent>
                 <SelectItem value="nomina">Nómina</SelectItem>
                 <SelectItem value="transportista">Transportista</SelectItem>
+                <SelectItem value="ambos">Ambos</SelectItem>
               </SelectContent>
             </Select>
           ) : (
