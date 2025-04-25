@@ -61,24 +61,27 @@ interface ColumnHelpers {
   hasPermission?: (permission: string) => boolean;
 }
 
-const handleDeleteRecord = async (id: string, table: any) => {
+// Nueva función para eliminar múltiples registros
+const handleDeleteMultipleRecords = async (ids: string[], table: any) => {
   try {
-    // Hacer la solicitud para eliminar el registro
-    const response = await apiService.deleteRequest(id);
+    // Realizar la eliminación de todos los registros en paralelo
+    const deletePromises = ids.map((id) => apiService.deleteRequest(id));
+    const responses = await Promise.all(deletePromises);
 
-    if (response.ok) {
-      // La eliminación fue exitosa
-      toast.success(`${response.message}`);
+    // Verificar si todas las eliminaciones fueron exitosas
+    const allSuccessful = responses.every((response) => response.ok);
 
-      // Optimistic update: Eliminar el registro de la tabla
-      if (table.options.meta?.removeRow) {
-        table.options.meta.removeRow(id);
+    if (allSuccessful) {
+      toast.success(`Se eliminaron ${ids.length} registros correctamente`);
+
+      // Actualización optimista: Eliminar los registros de la tabla
+      if (table.options.meta?.removeRows) {
+        table.options.meta.removeRows(ids);
       }
 
-      // Cerrar el diálogo de AlertDialog de forma segura
+      // Cerrar todos los diálogos abiertos
       const dialogElements = document.querySelectorAll('[role="dialog"]');
       dialogElements.forEach((dialog) => {
-        // Buscar y hacer clic en cualquier botón con data-state="open" (botones de AlertDialog)
         const openButtons = dialog.querySelectorAll('[data-state="open"]');
         openButtons.forEach((button) => {
           if (button instanceof HTMLElement) {
@@ -86,7 +89,6 @@ const handleDeleteRecord = async (id: string, table: any) => {
           }
         });
 
-        // Si lo anterior no funcionó, intentar con el botón de cancelar específicamente
         const cancelButton = dialog.querySelector(
           "[data-radix-alert-dialog-cancel]"
         );
@@ -95,7 +97,70 @@ const handleDeleteRecord = async (id: string, table: any) => {
         }
       });
 
-      // Otra forma de asegurarnos que el diálogo se cierre es usando el evento ESC
+      const escEvent = new KeyboardEvent("keydown", {
+        key: "Escape",
+        code: "Escape",
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+      });
+      document.dispatchEvent(escEvent);
+    } else {
+      const failedIds = responses
+        .map((response, index) => (!response.ok ? ids[index] : null))
+        .filter(Boolean);
+      console.error(
+        `No se pudieron eliminar los registros: ${failedIds.join(", ")}`
+      );
+      toast.error(
+        `No se pudieron eliminar algunos registros: ${failedIds.join(
+          ", "
+        )}. Inténtalo nuevamente.`
+      );
+      if (table.options.meta?.refreshData) {
+        table.options.meta.refreshData();
+      }
+    }
+
+    return allSuccessful;
+  } catch (error) {
+    console.error("Error al eliminar registros:", error);
+    if (table.options.meta?.refreshData) {
+      table.options.meta.refreshData();
+    }
+    toast.error("Error al eliminar los registros. Inténtalo nuevamente.");
+    return false;
+  }
+};
+
+const handleDeleteRecord = async (id: string, table: any) => {
+  try {
+    const response = await apiService.deleteRequest(id);
+
+    if (response.ok) {
+      toast.success(`${response.message}`);
+
+      if (table.options.meta?.removeRow) {
+        table.options.meta.removeRow(id);
+      }
+
+      const dialogElements = document.querySelectorAll('[role="dialog"]');
+      dialogElements.forEach((dialog) => {
+        const openButtons = dialog.querySelectorAll('[data-state="open"]');
+        openButtons.forEach((button) => {
+          if (button instanceof HTMLElement) {
+            button.click();
+          }
+        });
+
+        const cancelButton = dialog.querySelector(
+          "[data-radix-alert-dialog-cancel]"
+        );
+        if (cancelButton instanceof HTMLElement) {
+          cancelButton.click();
+        }
+      });
+
       const escEvent = new KeyboardEvent("keydown", {
         key: "Escape",
         code: "Escape",
@@ -109,7 +174,6 @@ const handleDeleteRecord = async (id: string, table: any) => {
       toast.error(
         `No se pudo eliminar el registro ${id}. Inténtalo nuevamente.`
       );
-      // Refrescar datos si hay error y existe el método
       if (table.options.meta?.refreshData) {
         table.options.meta.refreshData();
       }
@@ -118,7 +182,6 @@ const handleDeleteRecord = async (id: string, table: any) => {
     return response;
   } catch (error) {
     console.error(error);
-    // Refrescar datos en caso de error
     if (table.options.meta?.refreshData) {
       table.options.meta.refreshData();
     }
@@ -206,7 +269,6 @@ const ActionCell = ({
 };
 
 // Columnas para RequestProps
-
 export const getRequestColumns = (
   helpers: ColumnHelpers = {}
 ): ColumnDef<RequestProps>[] => [
@@ -234,14 +296,14 @@ export const getRequestColumns = (
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 40, // Ancho fijo pequeño
+    size: 40,
   },
   {
     accessorKey: "unique_id",
     header: () => <div className="text-center">ID</div>,
     sortingFn: "alphanumeric",
     enableSorting: true,
-    size: 100, // Ancho fijo
+    size: 100,
   },
   {
     accessorKey: "updated_at",
@@ -279,8 +341,8 @@ export const getRequestColumns = (
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
-    minSize: 150, // Ancho mínimo
-    maxSize: 180, // Ancho máximo
+    minSize: 150,
+    maxSize: 180,
   },
   {
     accessorKey: "amount",
@@ -323,8 +385,8 @@ export const getRequestColumns = (
     },
     sortingFn: "alphanumeric",
     enableSorting: true,
-    minSize: 180, // Ancho mínimo
-    maxSize: 220, // Ancho máximo
+    minSize: 180,
+    maxSize: 220,
   },
   {
     accessorKey: "vehicle_plate",
@@ -631,7 +693,7 @@ export const getReposicionColumns = (
     },
     {
       id: "request_type",
-      accessorKey: "request_type", // Esto puede quedarse aunque no se use directamente
+      accessorKey: "request_type",
       header: () => <div className="w-full text-center">Tipo</div>,
       cell: ({ row }: any) => {
         const requests = row.original.requests || [];
@@ -665,7 +727,7 @@ export const getReposicionColumns = (
       sortingFn: (rowA, rowB) => {
         const getRequestType = (row: any) => {
           const requests = row.original.requests || [];
-          if (!requests.length) return "—"; // Valor por defecto para filas sin requests
+          if (!requests.length) return "—";
           const firstRequestId = requests[0].unique_id;
           return firstRequestId.startsWith("G")
             ? "Gasto"
@@ -681,7 +743,6 @@ export const getReposicionColumns = (
         const typeA = getRequestType(rowA);
         const typeB = getRequestType(rowB);
 
-        // Compara los valores como strings
         return typeA.localeCompare(typeB);
       },
       enableSorting: true,
@@ -756,3 +817,6 @@ export function getColumns<T extends RequestProps | ReposicionProps>(
   }
   return getReposicionColumns(helpers) as ColumnDef<T>[];
 }
+
+// Exportar la función de eliminación masiva
+export { handleDeleteMultipleRecords };

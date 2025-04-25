@@ -39,12 +39,14 @@ import {
   ChevronRight,
   SortAscIcon,
   SortDescIcon,
+  Trash,
+  Loader,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getColumns } from "./columnConfig";
+import { getColumns, handleDeleteMultipleRecords } from "./columnConfig";
 import { ReposicionProvider } from "./ReposicionContext";
 import {
   DataTableProps,
@@ -63,16 +65,25 @@ import { fetchWithAuth, getAuthToken } from "@/services/auth.service";
 import { SubmitFile } from "./SubmitFile";
 import { Switch } from "@/components/ui/switch";
 import apiService from "@/services/api.service";
-import { useAuth } from "@/hooks/useAuth"; // Importar useAuth
+import { useAuth } from "@/hooks/useAuth";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogCancel,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog";
 
 interface MappableData {
   project?: string | number | string[];
   project_name?: string;
-  account?: { id: string | number; name: string } | string | number; // Puede ser objeto o ID
+  account?: { id: string | number; name: string } | string | number;
   responsible?:
     | { id: string | number; nombre_completo: string }
     | string
-    | number; // Puede ser objeto o ID
+    | number;
   vehicle?: string | number;
 }
 
@@ -119,12 +130,10 @@ const TableFooterWithTotals = ({
   data: any[];
   mode: "requests" | "reposiciones" | "income";
 }) => {
-  // Obtener los modelos de filas importantes
   const filteredRows = table.getFilteredRowModel().rows;
   const selectedRows = table.getSelectedRowModel().rows;
   const displayedRows = table.getRowModel().rows;
 
-  // Calcular el total de todas las solicitudes pendientes (en todos los datos)
   const totalAmount = useMemo(() => {
     return data
       .filter((item) => item.status === "pending")
@@ -137,7 +146,6 @@ const TableFooterWithTotals = ({
       }, 0);
   }, [data, mode]);
 
-  // Calcular el total de los registros FILTRADOS pendientes
   const filteredAmount = useMemo(() => {
     return filteredRows
       .filter((row: any) => row.original.status === "pending")
@@ -153,7 +161,6 @@ const TableFooterWithTotals = ({
       }, 0);
   }, [filteredRows, mode]);
 
-  // Calcular el total de los registros SELECCIONADOS
   const selectedAmount = useMemo(() => {
     if (selectedRows.length === 0) return 0;
     return selectedRows.reduce((sum: number, row: any) => {
@@ -168,17 +175,13 @@ const TableFooterWithTotals = ({
     }, 0);
   }, [selectedRows, mode]);
 
-  // Obtener el índice de la columna de monto
   const amountIndex = useMemo(() => {
     return findAmountColumnIndex(table, mode);
   }, [table, mode]);
 
-  // Determinar si hay filtros aplicados
   const isFiltered = filteredRows.length < data.length;
-  // Determinar si hay selecciones hechas
   const hasSelection = selectedAmount > 0;
 
-  // Construir el texto de visualización para los totales
   const displayText = hasSelection
     ? isFiltered
       ? `Seleccionado: $${selectedAmount.toFixed(
@@ -196,7 +199,6 @@ const TableFooterWithTotals = ({
   return (
     <TableFooter>
       <TableRow>
-        {/* Columnas antes de amount - información de resultados */}
         <TableCell colSpan={amountIndex}>
           <div className="text-sm text-slate-600 dark:text-slate-400">
             Mostrando {displayedRows.length} de {filteredRows.length} resultados
@@ -204,10 +206,8 @@ const TableFooterWithTotals = ({
           </div>
         </TableCell>
 
-        {/* Columna amount y el resto - totales y paginación */}
         <TableCell colSpan={table.getVisibleLeafColumns().length - amountIndex}>
           <div className="flex flex-wrap items-center gap-4">
-            {/* Parte de los totales */}
             <div className="font-medium whitespace-nowrap">
               <span
                 className={hasSelection ? "text-blue-600" : "text-slate-800"}
@@ -216,7 +216,6 @@ const TableFooterWithTotals = ({
               </span>
             </div>
 
-            {/* Parte de la paginación */}
             <div className="flex items-center gap-2 ml-4">
               <Button
                 variant="outline"
@@ -259,7 +258,7 @@ export function RequestsTable<
   onCreateReposicion,
   onUpdateReposicion,
 }: DataTableProps<TData>) {
-  const { hasPermission } = useAuth(); // Obtener hasPermission desde useAuth
+  const { hasPermission } = useAuth();
   const [data, setData] = useState<TData[]>([]);
   const [tableState, setTableState] = useState<TableState>({
     sorting: [],
@@ -271,6 +270,7 @@ export function RequestsTable<
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadAllData, setLoadAllData] = useState(false);
+  const [isDeletingMultiple, setIsDeletingMultiple] = useState(false);
 
   const [dataMaps, setDataMaps] = useState({
     accountMap: {} as Record<string, string>,
@@ -440,7 +440,6 @@ export function RequestsTable<
         if (fetchedData.length === 0)
           console.warn("No data found in response!");
 
-        // Si estamos en el modo "requests", filtrar para mostrar solo las pendientes
         if (mode === "requests") {
           fetchedData = fetchedData.filter(
             (item) => (item as RequestProps).status === "pending"
@@ -515,6 +514,26 @@ export function RequestsTable<
     []
   );
 
+  const handleDeleteMultiple = async () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original.unique_id)
+      .filter((id): id is string => id !== undefined);
+
+    if (selectedIds.length === 0) {
+      toast.error("Selecciona al menos un registro para eliminar");
+      return;
+    }
+
+    try {
+      setIsDeletingMultiple(true);
+      await handleDeleteMultipleRecords(selectedIds, table);
+      setRowSelection({}); // Limpiar selección después de eliminar
+    } finally {
+      setIsDeletingMultiple(false);
+    }
+  };
+
   const table = useReactTable<TData>({
     data,
     columns,
@@ -532,6 +551,15 @@ export function RequestsTable<
           prevData.filter(
             (item) =>
               !("unique_id" in item) || (item as RequestProps).unique_id !== id
+          )
+        );
+      },
+      removeRows: (ids: string[]) => {
+        setData((prevData) =>
+          prevData.filter(
+            (item) =>
+              !("unique_id" in item) ||
+              !ids.includes((item as RequestProps).unique_id)
           )
         );
       },
@@ -586,10 +614,8 @@ export function RequestsTable<
         return null;
       }
 
-      // Llamamos a la función onCreateReposicion que recibimos como prop
       await onCreateReposicion(requestIds, attachment);
 
-      // Actualización optimista: eliminar las solicitudes enviadas de la tabla
       setData((prevData) => {
         return prevData.filter((item) => {
           if (!("unique_id" in item)) return true;
@@ -598,11 +624,9 @@ export function RequestsTable<
         });
       });
 
-      // Limpiar selección
       setRowSelection({});
       toast.success("Solicitudes enviadas correctamente");
 
-      // Creamos y devolvemos un objeto Response mock ya que necesitamos devolver Response | null
       return new Response(null, { status: 201 });
     } catch (error) {
       toast.error(
@@ -636,7 +660,6 @@ export function RequestsTable<
     (reposicionId: number, requestData: Partial<RequestProps>) => {
       setData((prevData) => {
         return prevData.map((item) => {
-          // Si no es una reposición o no es la que buscamos, devolver sin cambios
           if (
             mode !== "reposiciones" ||
             !("id" in item) ||
@@ -645,13 +668,11 @@ export function RequestsTable<
             return item;
           }
 
-          // Es la reposición que buscamos, actualizar sus solicitudes
           const reposicion = item as unknown as ReposicionProps;
           if (!reposicion.requests || !Array.isArray(reposicion.requests)) {
             return item;
           }
 
-          // Actualizar todas las solicitudes de la reposición
           const updatedRequests = reposicion.requests.map((req) => ({
             ...req,
             ...requestData,
@@ -678,21 +699,15 @@ export function RequestsTable<
           if (onUpdateReposicion) {
             await onUpdateReposicion(id, updateData, prevStatus);
 
-            // Actualización optimista de la reposición
             handleRowUpdate(id, updateData as Partial<TData>);
 
-            // Si estamos actualizando el estado, también actualizar el estado de las solicitudes
             if (updateData.status) {
-              // Garantizar que el status sea del tipo correcto Status
               const requestStatus: Partial<RequestProps> = {
                 status: updateData.status as Status,
               };
-
-              // Actualizar optimistamente las solicitudes en la reposición
               updateRequestsInReposicion(id, requestStatus);
             }
 
-            // Si estamos actualizando el mes o el momento de pago, actualizar eso en las solicitudes
             if (updateData.month) {
               updateRequestsInReposicion(id, { month: updateData.month });
             }
@@ -762,6 +777,62 @@ export function RequestsTable<
           </div>
 
           <div className="flex items-center gap-2">
+            {mode === "requests" && Object.keys(rowSelection).length > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 px-2"
+                          disabled={isDeletingMultiple}
+                        >
+                          <Trash className="h-4 w-4 mr-2" />
+                          Eliminar seleccionados
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Eliminar registros seleccionados
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            ¿Estás seguro de que deseas eliminar{" "}
+                            {Object.keys(rowSelection).length} registros
+                            seleccionados? Esta acción no se puede deshacer.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="w-full flex items-center justify-evenly gap-2">
+                          <AlertDialogCancel className="w-full py-1.5 shadow-sm rounded border hover:bg-gray-100">
+                            Cancelar
+                          </AlertDialogCancel>
+                          <Button
+                            onClick={handleDeleteMultiple}
+                            className="w-full rounded bg-red-600 hover:bg-red-700 text-center text-white"
+                            disabled={isDeletingMultiple}
+                          >
+                            {isDeletingMultiple ? (
+                              <span className="flex flex-row items-center gap-2">
+                                <Loader className="animate-spin h-4 w-4" />{" "}
+                                Eliminando...
+                              </span>
+                            ) : (
+                              "Sí, Eliminar"
+                            )}
+                          </Button>
+                        </div>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Eliminar registros seleccionados
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
             <DropdownMenu>
               <TooltipProvider>
                 <Tooltip>
