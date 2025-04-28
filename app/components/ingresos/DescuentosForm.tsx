@@ -102,7 +102,7 @@ const DescuentosForm = () => {
   };
 
   return (
-    <div className="container pb-8 max-w-screen-2xl mx-auto px-4 sm:px-6">
+    <div className="container pb-8 max-w-(--breakpoint-2xl) mx-auto px-4 sm:px-6">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -113,7 +113,7 @@ const DescuentosForm = () => {
         <motion.div
           key="excel-upload"
           variants={itemVariants}
-          className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+          className="rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-shadow duration-300"
         >
           <ExcelUploadSection context="discounts" />
         </motion.div>
@@ -122,7 +122,7 @@ const DescuentosForm = () => {
         <motion.div
           key="form-section"
           variants={itemVariants}
-          className="mt-8 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800"
+          className="mt-8 bg-linear-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 rounded-xl shadow-xs border border-slate-100 dark:border-slate-800"
         >
           <Tabs
             defaultValue="normal"
@@ -132,29 +132,29 @@ const DescuentosForm = () => {
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-slate-100 dark:border-slate-800">
               <div className="space-y-1 mb-4 sm:mb-0">
-                <h2 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300">
+                <h2 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300">
                   Registrar Descuentos y Préstamos
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   Selecciona el tipo de operación que deseas registrar
                 </p>
               </div>
-              <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+              <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs p-1 rounded-lg border border-slate-200 dark:border-slate-700">
                 <TabsTrigger
                   value="normal"
-                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
                 >
                   Individual
                 </TabsTrigger>
                 <TabsTrigger
                   value="masivo"
-                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
                 >
                   Masivo
                 </TabsTrigger>
                 <TabsTrigger
                   value="loans"
-                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
                 >
                   Préstamos
                 </TabsTrigger>

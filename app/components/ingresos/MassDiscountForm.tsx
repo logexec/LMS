@@ -482,7 +482,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
       <Card className="border-slate-200 dark:border-slate-800 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 border-b border-slate-100 dark:border-slate-800">
+        <CardHeader className="bg-linear-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 border-b border-slate-100 dark:border-slate-800">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="flex items-center text-xl text-slate-800 dark:text-slate-200">
@@ -507,7 +507,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-1 space-y-6">
-              <Alert className="border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 shadow-sm">
+              <Alert className="border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 shadow-xs">
                 <AlertCircle className="h-4 w-4 text-rose-500 dark:text-rose-400" />
                 <AlertDescription className="text-slate-700 dark:text-slate-300 mt-2">
                   <AlertTitle className="font-medium mb-2">
@@ -515,22 +515,22 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                   </AlertTitle>
                   <ul className="space-y-2 text-sm">
                     <li className="flex">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 mr-2 flex-shrink-0"></span>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 mr-2 shrink-0"></span>
                       Completa todos los campos del formulario
                     </li>
                     <li className="flex">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 mr-2 flex-shrink-0"></span>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 mr-2 shrink-0"></span>
                       Selecciona proyecto y área para ver los empleados
                     </li>
                     <li className="flex">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 mr-2 flex-shrink-0"></span>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 mr-2 shrink-0"></span>
                       Marca a los empleados que recibirán el descuento
                     </li>
                   </ul>
                 </AlertDescription>
               </Alert>
 
-              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
                 <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center">
                   <DollarSign className="h-4 w-4 mr-2 text-rose-500 dark:text-rose-400" />
                   Resumen del Descuento
@@ -622,7 +622,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                       exit="exit"
                       className="space-y-6"
                     >
-                      <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+                      <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-xs">
                         <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center">
                           <FileText className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />
                           Información del Descuento
@@ -704,7 +704,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                         </div>
                       </div>
 
-                      <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+                      <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-xs">
                         <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center">
                           <Building2 className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />
                           Proyecto y Área
@@ -785,7 +785,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                         </div>
                       </div>
 
-                      <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+                      <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-xs">
                         <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center">
                           <DollarSign className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />
                           Valores y Detalles
@@ -882,7 +882,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                           type="button"
                           onClick={handleContinueToEmployees}
                           disabled={!isBasicInfoValid || isLoading}
-                          className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white transition-all duration-200"
+                          className="bg-linear-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white transition-all duration-200"
                         >
                           {isLoading ? (
                             <div className="flex items-center">
@@ -909,7 +909,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                       exit="exit"
                       className="space-y-6"
                     >
-                      <div className="bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                      <div className="bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
                         <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center mb-1">
@@ -1010,7 +1010,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
                           <Button
                             type="submit"
                             disabled={!isFormValid || loading.submit}
-                            className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white transition-all duration-200"
+                            className="bg-linear-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white transition-all duration-200"
                           >
                             {loading.submit ? (
                               <div className="flex items-center">

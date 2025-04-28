@@ -106,7 +106,7 @@ export default function NewOrderPanel({
                   pattern="[0-9]{10}"
                   required
                   maxLength={10}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   placeholder="1234567890"
                 />
               </div>
@@ -125,7 +125,7 @@ export default function NewOrderPanel({
                   required
                   pattern="[A-Za-z]{4}"
                   maxLength={4}
-                  className="mt-1 block w-full uppercase rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full uppercase rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   placeholder="ABCD"
                 />
               </div>
@@ -144,7 +144,7 @@ export default function NewOrderPanel({
                   required
                   pattern="[0-9]{2}-[0-9]{2}"
                   maxLength={5}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   placeholder="24-03"
                 />
               </div>
@@ -161,7 +161,7 @@ export default function NewOrderPanel({
                   name="accountCode"
                   id="accountCode"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
@@ -177,7 +177,7 @@ export default function NewOrderPanel({
                   name="vendor"
                   id="vendor"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
@@ -209,7 +209,7 @@ export default function NewOrderPanel({
                             name={`items[${index}].description`}
                             placeholder="Description"
                             required
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -220,7 +220,7 @@ export default function NewOrderPanel({
                               placeholder="Quantity"
                               min="1"
                               required
-                              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                              className="block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             />
                           </div>
                           <div>
@@ -231,7 +231,7 @@ export default function NewOrderPanel({
                               min="0"
                               step="0.01"
                               required
-                              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                              className="block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             />
                           </div>
                         </div>
@@ -260,7 +260,7 @@ export default function NewOrderPanel({
                   <div className="flex text-sm text-gray-600">
                     <label
                       htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
                     >
                       <span>Upload files</span>
                       <input
@@ -307,7 +307,7 @@ export default function NewOrderPanel({
             <div className="mt-6">
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Create Order
               </button>

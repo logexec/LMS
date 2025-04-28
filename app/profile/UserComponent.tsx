@@ -218,7 +218,7 @@ const UserProfileComponent = ({
                                 .toISOString()
                                 .split("T")[0]
                             }
-                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                            className="px-3 py-2 border rounded-md focus:outline-hidden focus:ring-3 focus:border-blue-300"
                           />
                         </div>
                         <div className="flex flex-col">
@@ -231,7 +231,7 @@ const UserProfileComponent = ({
                             value={telefono}
                             onChange={(e) => setTelefono(e.target.value)}
                             placeholder="Ingresa tu teléfono"
-                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                            className="px-3 py-2 border rounded-md focus:outline-hidden focus:ring-3 focus:border-blue-300"
                           />
                         </div>
                         <div className="flex flex-col">
@@ -244,14 +244,14 @@ const UserProfileComponent = ({
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Ingresa nueva contraseña"
-                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                            className="px-3 py-2 border rounded-md focus:outline-hidden focus:ring-3 focus:border-blue-300"
                           />
                         </div>
                         <AlertDialogFooter className="pt-4">
                           <AlertDialogAction asChild>
                             <button
                               type="submit"
-                              className="uppercase font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                              className="uppercase font-bold text-xs px-4 py-2 rounded focus:outline-hidden"
                               disabled={updateProfileMutation.isPending}
                             >
                               {updateProfileMutation.isPending
@@ -262,7 +262,7 @@ const UserProfileComponent = ({
                           <AlertDialogCancel asChild>
                             <button
                               type="button"
-                              className="uppercase text-gray-800 font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                              className="uppercase text-gray-800 font-bold text-xs px-4 py-2 rounded focus:outline-hidden"
                             >
                               Cancelar
                             </button>

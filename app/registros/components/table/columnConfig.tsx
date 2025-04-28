@@ -242,7 +242,7 @@ const ActionCell = ({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="w-full flex items-center justify-evenly gap-2">
-                <AlertDialogCancel className="w-full py-1.5 shadow-sm rounded border hover:bg-gray-100">
+                <AlertDialogCancel className="w-full py-1.5 shadow-xs rounded border hover:bg-gray-100">
                   Cancelar
                 </AlertDialogCancel>
                 <Button
@@ -426,7 +426,7 @@ export const getRequestColumns = (
                   {(row.getValue("note") as string) || "—"}
                 </span>
               </TooltipTrigger>
-              <TooltipContent className="bg-white shadow dark:bg-slate-800 text-slate-700 dark:text-white font-medium">
+              <TooltipContent className="bg-white shadow-sm dark:bg-slate-800 text-slate-700 dark:text-white font-medium">
                 {(row.getValue("note") as string) || "—"}
               </TooltipContent>
             </Tooltip>
@@ -767,7 +767,7 @@ export const getReposicionColumns = (
                   {row.getValue("note") || "—"}
                 </span>
               </TooltipTrigger>
-              <TooltipContent className="text-slate-800 bg-white shadow dark:text-slate-200 dark:bg-black border border-gray-300">
+              <TooltipContent className="text-slate-800 bg-white shadow-sm dark:text-slate-200 dark:bg-black border border-gray-300">
                 {row.getValue("note") || "—"}
               </TooltipContent>
             </Tooltip>

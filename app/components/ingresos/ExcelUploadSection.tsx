@@ -260,7 +260,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
                         <Button
                           onClick={() => handleDownloadTemplate(context)}
                           disabled={isDownloading}
-                          className="w-full mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white border-0 transition-all duration-200 shadow-sm"
+                          className="w-full mt-2 bg-linear-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white border-0 transition-all duration-200 shadow-xs"
                         >
                           {isDownloading ? (
                             <div className="flex items-center justify-center">

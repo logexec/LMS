@@ -202,7 +202,7 @@ const EditModal = ({
 
   return (
     <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden bg-white">
-      <div className="bg-gradient-to-r from-rose-500 to-red-600 p-6">
+      <div className="bg-linear-to-r from-rose-500 to-red-600 p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-white flex items-center">
             Editando la solicitud {row.unique_id}

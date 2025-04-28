@@ -102,7 +102,7 @@ const EditCell = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger
         asChild
-        className="flex p-1 size-7 text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow hover:shadow-none rounded-lg items-center justify-center"
+        className="flex p-1 size-7 text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm hover:shadow-none rounded-lg items-center justify-center"
         onClick={handleButtonClick}
       >
         <Pencil />

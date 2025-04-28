@@ -90,11 +90,11 @@ const DateSelectField: React.FC<DateSelectFieldProps> = ({
         {showCalendar && (
           <>
             <div
-              className="fixed inset-0 z-[999]"
+              className="fixed inset-0 z-999"
               onClick={handleClickOutside}
             />
             <div
-              className="absolute z-[1000] bg-white border rounded-md shadow-lg"
+              className="absolute z-1000 bg-white border rounded-md shadow-lg"
               style={{
                 top: `calc(100% + 5px)`,
                 left: 0,

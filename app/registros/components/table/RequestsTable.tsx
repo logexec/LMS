@@ -805,7 +805,7 @@ export function RequestsTable<
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="w-full flex items-center justify-evenly gap-2">
-                          <AlertDialogCancel className="w-full py-1.5 shadow-sm rounded border hover:bg-gray-100">
+                          <AlertDialogCancel className="w-full py-1.5 shadow-xs rounded border hover:bg-gray-100">
                             Cancelar
                           </AlertDialogCancel>
                           <Button
@@ -879,7 +879,7 @@ export function RequestsTable<
           )}
         </div>
 
-        <div className="rounded-lg border shadow-sm overflow-hidden">
+        <div className="rounded-lg border shadow-xs overflow-hidden">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -932,7 +932,7 @@ export function RequestsTable<
                       className={`transition-colors ${
                         row.getIsSelected()
                           ? "bg-slate-100 dark:bg-slate-900"
-                          : "even:bg-gray-100/70 even:dark:bg-slate-900"
+                          : "even:bg-gray-100/70 dark:even:bg-slate-900"
                       } hover:bg-slate-100 dark:hover:bg-slate-900`}
                     >
                       {row.getVisibleCells().map((cell) => (

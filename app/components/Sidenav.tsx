@@ -111,7 +111,7 @@ const Sidenav = () => {
       <ScrollArea>
         <motion.aside
           {...sidenavAnimationProps}
-          className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-[17rem]"
+          className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col bg-slate-950 bg-opacity-95 p-6 backdrop-blur-xs lg:w-[17rem]"
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -146,7 +146,7 @@ const Sidenav = () => {
                 <h3 className="mb-2 text-sm font-semibold text-slate-400">
                   {item.category}
                 </h3>
-                <div className="mb-2 h-0.5 bg-gradient-to-r from-red-600 to-transparent" />
+                <div className="mb-2 h-0.5 bg-linear-to-r from-red-600 to-transparent" />
                 <ul className="space-y-1">
                   {item.links.map((link, linkIndex) => (
                     <motion.li

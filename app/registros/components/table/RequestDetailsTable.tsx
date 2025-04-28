@@ -560,7 +560,7 @@ const RequestDetailsTableComponent = ({
                 >
                   {row.original.responsible_id || "—"}
                 </TooltipTrigger>
-                <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
+                <TooltipContent className="shadow-sm border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
                   {row.original.responsible_id || "—"}
                 </TooltipContent>
               </Tooltip>
@@ -616,7 +616,7 @@ const RequestDetailsTableComponent = ({
                 <TooltipTrigger className="text-left cursor-help truncate w-[220px] max-w-[850px]">
                   {row.original.note || "—"}
                 </TooltipTrigger>
-                <TooltipContent className="shadow border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
+                <TooltipContent className="shadow-sm border border-gray-300 text-slate-800 bg-white dark:bg-black dark:text-slate-300">
                   {row.original.note || "—"}
                 </TooltipContent>
               </Tooltip>
@@ -703,7 +703,7 @@ const RequestDetailsTableComponent = ({
           <AlertDialog>
             <AlertDialogTrigger asChild onClick={handleOpenModal}>
               <Button
-                className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow disabled:opacity-50 disabled:cursor-progress"
+                className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200 active:scale-[.99] flex flex-row gap-1 shadow-sm disabled:opacity-50 disabled:cursor-progress"
                 disabled={!fileData}
               >
                 <Paperclip className="h-5 w-5 mr-2" />
@@ -720,7 +720,7 @@ const RequestDetailsTableComponent = ({
                     No se encontró archivo adjunto para esta reposición.
                   </p>
                 ) : fileData ? (
-                  <div className="relative w-full aspect-[9/16] lg:aspect-[16/9] h-[70vh] 2xl:h-auto">
+                  <div className="relative w-full aspect-9/16 lg:aspect-16/9 h-[70vh] 2xl:h-auto">
                     <object
                       key={fileData.file_name}
                       data={fileData.file_url}
@@ -777,7 +777,7 @@ const RequestDetailsTableComponent = ({
                   />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="shadow border border-gray-300 text-slate-700 bg-white dark:bg-black dark:text-slate-300">
+              <TooltipContent className="shadow-sm border border-gray-300 text-slate-700 bg-white dark:bg-black dark:text-slate-300">
                 Actualizar datos
               </TooltipContent>
             </Tooltip>

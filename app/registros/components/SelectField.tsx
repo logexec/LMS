@@ -101,7 +101,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
 
         {isOpen && (
           <div
-            className="absolute z-[1000] bg-white border rounded-md shadow-lg w-[200px] mt-1 flex flex-col"
+            className="absolute z-1000 bg-white border rounded-md shadow-lg w-[200px] mt-1 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-1">

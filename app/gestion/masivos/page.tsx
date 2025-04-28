@@ -48,7 +48,7 @@ const MasivosPage = () => {
           <div className="my-2">
             <Hr />
           </div>
-          <div className="w-full mx-1 p-5 bg-white shadow rounded-xl my-3">
+          <div className="w-full mx-1 p-5 bg-white shadow-sm rounded-xl my-3">
             <form className="lg:grid grid-cols-4 gap-5">
               <Input
                 type="date"

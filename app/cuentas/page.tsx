@@ -463,7 +463,7 @@ const CuentasPage = () => {
                   Para realizar un cambio en la cuenta, dale doble clic en el
                   campo que desees editar. Da click afuera o presiona la tecla{" "}
                   <span className="text-sm text-muted-foreground">
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 shadow">
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 shadow-sm">
                       <span className="text-xs">↩</span>Enter
                     </kbd>
                   </span>{" "}

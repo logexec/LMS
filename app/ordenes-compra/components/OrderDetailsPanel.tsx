@@ -103,7 +103,7 @@ export default function OrderDetailsPanel({
                     type="text"
                     value={editedOrder?.ruc}
                     onChange={(e) => handleInputChange("ruc", e.target.value)}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 ) : (
                   <p className="mt-1 text-gray-200">{editedOrder?.ruc}</p>
@@ -119,7 +119,7 @@ export default function OrderDetailsPanel({
                     onChange={(e) =>
                       handleInputChange("proyecto", e.target.value)
                     }
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 ) : (
                   <p className="mt-1 text-gray-200">{editedOrder?.proyecto}</p>
@@ -137,7 +137,7 @@ export default function OrderDetailsPanel({
                     onChange={(e) =>
                       handleInputChange("mesDeServicio", e.target.value)
                     }
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 ) : (
                   <p className="mt-1 text-gray-200">
@@ -157,7 +157,7 @@ export default function OrderDetailsPanel({
                     onChange={(e) =>
                       handleInputChange("accountCode", e.target.value)
                     }
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 ) : (
                   <p className="mt-1 text-gray-200">
@@ -175,7 +175,7 @@ export default function OrderDetailsPanel({
                     onChange={(e) =>
                       handleInputChange("vendor", e.target.value)
                     }
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 ) : (
                   <p className="mt-1 text-gray-200">{editedOrder?.vendor}</p>
@@ -190,7 +190,7 @@ export default function OrderDetailsPanel({
                     onChange={(e) =>
                       handleInputChange("status", e.target.value)
                     }
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     <option value="solicitado">Solicitado</option>
                     <option value="aprobado">Aprobado</option>

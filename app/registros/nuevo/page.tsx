@@ -35,31 +35,31 @@ const RegistroPage: React.FC = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-t-xl bg-gradient-to-r from-gray-50 to-slate-100 dark:from-gray-950 dark:to-slate-900 border-t border-x">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-t-xl bg-linear-to-r from-gray-50 to-slate-100 dark:from-gray-950 dark:to-slate-900 border-t border-x">
           <h3 className="text-lg font-bold">Categoría</h3>
-          <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+          <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs p-1 rounded-lg border border-slate-200 dark:border-slate-700">
             <TabsTrigger
               value="discount"
-              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
             >
               Descuentos
             </TabsTrigger>
             <TabsTrigger
               value="expense"
-              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
             >
               Gastos
             </TabsTrigger>
             <TabsTrigger
               value="income"
-              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+              className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
             >
               Ingresos
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <div className="p-6 border-x border-b rounded-b-xl shadow-sm">
+        <div className="p-6 border-x border-b rounded-b-xl shadow-xs">
           <AnimatePresence mode="wait">
             {activeTab === "discount" && (
               <motion.div

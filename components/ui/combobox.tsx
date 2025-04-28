@@ -111,7 +111,7 @@ const Combobox: React.FC<ComboboxProps> = ({
             aria-expanded={open}
             id={id}
             className={cn(
-              `justify-between ${width} h-10 border border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-950 focus:ring-1 focus:ring-rose-500 dark:focus:ring-rose-400 focus:outline-none`,
+              `justify-between ${width} h-10 border border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-950 focus:ring-1 focus:ring-rose-500 dark:focus:ring-rose-400 focus:outline-hidden`,
               !value && "text-slate-500 dark:text-slate-400",
               error &&
                 "border-red-500 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-900",

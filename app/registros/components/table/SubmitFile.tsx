@@ -90,7 +90,7 @@ export function SubmitFile({
           </AlertDialogHeader>
           <div
             {...getRootProps()}
-            className="border border-dashed border-indigo-600 hover:border-indigo-400 p-4 text-center cursor-pointer shadow-sm"
+            className="border border-dashed border-indigo-600 hover:border-indigo-400 p-4 text-center cursor-pointer shadow-xs"
           >
             <input {...getInputProps()} />
             {selectedFile ? (

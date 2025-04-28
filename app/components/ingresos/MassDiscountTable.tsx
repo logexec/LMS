@@ -76,7 +76,7 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border shadow-sm space-y-4">
+      <div className="rounded-lg border shadow-xs space-y-4">
         <div className="p-4">
           <Skeleton className="h-10 w-64 mb-4" />
           <div className="space-y-2">
@@ -128,7 +128,7 @@ export const MassDiscountTable: React.FC<MassDiscountTableProps> = ({
         </div>
       </div>
 
-      <div className="rounded-lg border shadow-sm overflow-hidden">
+      <div className="rounded-lg border shadow-xs overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

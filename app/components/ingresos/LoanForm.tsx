@@ -585,7 +585,7 @@ export default function LoanForm({
   return (
     <motion.div initial="hidden" animate="visible" variants={formVariants}>
       <Card className="border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 shadow-md hover:shadow-lg transition-all duration-300">
-        <CardHeader className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/40 dark:to-red-950/40 border-b border-slate-100 dark:border-slate-800">
+        <CardHeader className="bg-linear-to-r from-rose-50 to-red-50 dark:from-rose-950/40 dark:to-red-950/40 border-b border-slate-100 dark:border-slate-800">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle className="text-xl text-slate-800 dark:text-slate-200">
@@ -607,10 +607,10 @@ export default function LoanForm({
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-1 items-center pt-4">
-              <Alert className="border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 shadow-sm">
+              <Alert className="border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 shadow-xs">
                 <AlertDescription className="flex flex-col space-y-4 text-slate-700 dark:text-slate-300">
                   <div className="flex items-start space-x-3">
-                    <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                     <span>
                       Completa la información del préstamo y define las fechas
                       de las cuotas. Selecciona fechas a partir del mes actual.
@@ -622,7 +622,7 @@ export default function LoanForm({
                     </p>
                     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                       <div
-                        className="h-2 rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-500 ease-out"
+                        className="h-2 rounded-full bg-linear-to-r from-rose-500 to-red-500 transition-all duration-500 ease-out"
                         style={{
                           width: `${calculateProgress()}%`,
                           maxWidth: "100%",
@@ -635,7 +635,7 @@ export default function LoanForm({
 
               {/* Form Summary */}
               <div className="mt-6 space-y-4">
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
                   <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                     Resumen del Préstamo
                   </h3>
@@ -764,7 +764,7 @@ export default function LoanForm({
                     animate="visible"
                   >
                     {/* Primera sección: Información Básica */}
-                    <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-xs">
                       <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center">
                         <FileText className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />
                         Información Básica
@@ -996,7 +996,7 @@ export default function LoanForm({
                     </div>
 
                     {/* Segunda sección: Detalles del préstamo */}
-                    <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-xs">
                       <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center">
                         <ClipboardList className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />
                         Detalles del Préstamo
@@ -1315,7 +1315,7 @@ export default function LoanForm({
                           damping: 30,
                         },
                       }}
-                      className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-sm mb-6"
+                      className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 shadow-xs mb-6"
                     >
                       <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center">
                         <CalendarIcon className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />

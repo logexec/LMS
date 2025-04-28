@@ -38,7 +38,7 @@ export const MonthCell = ({ value, row, column, table }: EditableCellProps) => {
         value={cellValue}
         onChange={(e) => setCellValue(e.target.value)}
         onBlur={onBlur}
-        className="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+        className="w-full rounded-md border-gray-300 shadow-xs focus:border-sky-500 focus:ring-sky-500 text-sm disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
         disabled={isRejected}
       />
     </div>
@@ -70,7 +70,7 @@ export const SelectCell = ({
         value={cellValue}
         onChange={(e) => setCellValue(e.target.value)}
         onBlur={onBlur}
-        className="w-full rounded-md border-slate-200 bg-white shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+        className="w-full rounded-md border-slate-200 bg-white shadow-xs focus:border-sky-500 focus:ring-sky-500 text-sm disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
         disabled={isRejected}
       >
         <option value="rol">Rol</option>
@@ -103,7 +103,7 @@ export const TextCell = ({ value, row, column, table }: EditableCellProps) => {
         onChange={(e) => setCellValue(e.target.value)}
         onBlur={onBlur}
         placeholder="Agregar observación..."
-        className="w-full rounded-md border-slate-200 bg-white shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+        className="w-full rounded-md border-slate-200 bg-white shadow-xs focus:border-sky-500 focus:ring-sky-500 text-sm disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
         disabled={isRejected}
       />
     </div>

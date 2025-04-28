@@ -747,7 +747,7 @@ export function RequestsTable<
           )}
         </div>
 
-        <div className="rounded-lg border shadow-sm overflow-hidden">
+        <div className="rounded-lg border shadow-xs overflow-hidden">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -800,7 +800,7 @@ export function RequestsTable<
                       className={`transition-colors ${
                         row.getIsSelected()
                           ? "bg-slate-100 dark:bg-slate-900"
-                          : "even:bg-slate-100 even:dark:bg-slate-900"
+                          : "even:bg-slate-100 dark:even:bg-slate-900"
                       } hover:bg-slate-100 dark:hover:bg-slate-900`}
                     >
                       {row.getVisibleCells().map((cell) => (
