@@ -8,9 +8,11 @@ import {
   Banknote,
   HandHelping,
   CircleDollarSign,
+  ReceiptText,
 } from "lucide-react";
 import { GrSubtractCircle, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
+import { RiReceiptLine } from "react-icons/ri";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -68,11 +70,26 @@ export const sidenavLinks: NavLink[] = [
         icon: PiggyBank,
         requiredPermissions: [Permission.VIEW_USERS],
       },
+    ],
+  },
+  {
+    category: "Facturación",
+    requiredPermissions: [Permission.MANAGE_BUDGET],
+    links: [
+      {
+        label: "Facturación",
+        url: "/facturacion/facturacion",
+        icon: RiReceiptLine,
+      },
+      {
+        label: "SRI",
+        url: "/facturacion/sri",
+        icon: ReceiptText,
+      },
       {
         label: "Órdenes de Compra",
-        url: "/ordenes-compra",
+        url: "/facturacion/ordenes-compra",
         icon: Receipt,
-        requiredPermissions: [Permission.VIEW_USERS],
       },
     ],
   },

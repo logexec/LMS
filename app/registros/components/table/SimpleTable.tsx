@@ -1,4 +1,3 @@
-// SimpleTable.tsx - Componente de tabla simplificado para diagnosticar problemas
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from "react";
 import { fetchWithAuth } from "@/services/auth.service";
@@ -19,7 +18,7 @@ const SimpleTable: React.FC<SimpleTableProps> = ({ mode, type }) => {
       setIsLoading(true);
 
       const params = new URLSearchParams({
-        period: "last_3_months",
+        period: "last_onth",
       });
 
       if (type && mode === "requests") {
