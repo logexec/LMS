@@ -9,6 +9,7 @@ import LoanForm from "./LoanForm";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { fetchWithAuthFormData } from "@/services/auth.service";
 import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -101,6 +102,8 @@ const DescuentosForm = () => {
     exit: { opacity: 0, x: 10, transition: { duration: 0.2 } },
   };
 
+  const currentUser = useAuth();
+
   return (
     <div className="container pb-8 max-w-(--breakpoint-2xl) mx-auto px-4 sm:px-6">
       <motion.div
@@ -152,12 +155,20 @@ const DescuentosForm = () => {
                 >
                   Masivo
                 </TabsTrigger>
-                <TabsTrigger
-                  value="loans"
-                  className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
-                >
-                  Préstamos
-                </TabsTrigger>
+                {
+                  // Solo se muestra la pestaña a los usuarios nicolas y michelle
+                  currentUser.user!.email === "nicolas.iza@logex.ec" ||
+                  currentUser.user!.email === "ricardo.estrella@logex.ec" ||
+                  currentUser.user!.email === "michelle.quintana@logex.ec" ||
+                  currentUser.user!.email === "jk@logex.ec" ? (
+                    <TabsTrigger
+                      value="loans"
+                      className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
+                    >
+                      Préstamos
+                    </TabsTrigger>
+                  ) : null
+                }
               </TabsList>
             </div>
 
