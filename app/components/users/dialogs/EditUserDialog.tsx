@@ -528,7 +528,7 @@ export const EditUserDialog = ({
                         disabled={(date) => date > today}
                         fromYear={1940}
                         toYear={today.getFullYear()}
-                        captionLayout="dropdown-buttons"
+                        captionLayout="dropdown"
                         fixedWeeks
                         showOutsideDays={false}
                       />
