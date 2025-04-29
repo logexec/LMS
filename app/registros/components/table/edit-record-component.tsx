@@ -33,7 +33,9 @@ interface EditRecordProps {
 
 const formSchema = z.object({
   request_date: z.coerce.date(),
-  invoice_number: z.coerce.number().transform((val) => String(val)), // Convertir a string después de validar como número
+  invoice_number: z.string().refine((val) => !isNaN(Number(val)), {
+    message: "Debe ser un número válido",
+  }),
   account_id: z.string(),
   amount: z.coerce.number(),
   project: z.string().optional(),
@@ -69,15 +71,13 @@ export default function EditRecord({
     resolver: zodResolver(formSchema),
     defaultValues: {
       request_date: clampedDate,
-      invoice_number: row.original.invoice_number.toString() || "0",
-      account_id: row.original.account_id
-        ? String(row.original.account_id)
-        : "",
+      invoice_number: row.original.invoice_number?.toString() ?? "0",
+      account_id: row.original.account_id?.toString() ?? "",
       amount: Number(row.original.amount) || 0,
       project: Array.isArray(row.original.project)
-        ? row.original.project[0] // tomamos solo el primero
-        : row.original.project || "",
-      note: row.original.note || "",
+        ? row.original.project[0]
+        : row.original.project ?? "",
+      note: row.original.note ?? "",
     },
   });
 
