@@ -339,6 +339,60 @@ export const apiService = {
     }
   },
 
+  importLoanExcelData: async (file: File, context = "loan") => {
+    // Verificar conexión con API (función asumida)
+    checkApiStatus();
+
+    // Crear FormData para enviar el archivo
+    const formData = new FormData();
+    formData.append("file", file); // Nombre del campo debe ser "file"
+    formData.append("context", context);
+
+    // Agregar información del archivo para debug
+    console.log("Enviando archivo:", {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+    });
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/loans/import`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include", // Para enviar cookies (JWT)
+        }
+      );
+
+      // Manejar respuesta no-OK
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error de respuesta:", errorData);
+
+        if (errorData.errors) {
+          // Formatear errores para mostrarlos
+          const errorMessages = [];
+          for (const key in errorData.errors) {
+            if (Array.isArray(errorData.errors[key])) {
+              errorMessages.push(...errorData.errors[key]);
+            } else {
+              errorMessages.push(errorData.errors[key]);
+            }
+          }
+          throw new Error(JSON.stringify(errorMessages));
+        }
+        throw new Error(errorData.message || "Error desconocido");
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error(`Error importando datos (${context}):`, error);
+      throw error;
+    }
+  },
+
   // Préstamos
   createLoan: async (formData: FormData) => {
     try {
