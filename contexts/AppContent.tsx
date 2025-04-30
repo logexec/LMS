@@ -48,8 +48,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </AnimatePresence>
         </div>
         {process.env.NODE_ENV === "development" && (
-          <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60">
-            LMS | Versión 1.2.1.20251802 | Beta
+          <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60 cursor-default">
+            LMS | Versión 2.3.0 | Beta
           </div>
         )}
       </div>
