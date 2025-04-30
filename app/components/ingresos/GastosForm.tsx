@@ -33,7 +33,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
@@ -64,6 +63,7 @@ import { LoadingState } from "@/utils/types";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useData } from "@/contexts/DataContext";
+import CalendarComponent from "@/components/comp-487";
 
 // Form Schema
 const formSchema = z.object({
@@ -492,7 +492,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                   className="w-auto p-0 border-slate-200 dark:border-slate-700 shadow-lg"
                                   align="start"
                                 >
-                                  <Calendar
+                                  <CalendarComponent
                                     mode="single"
                                     selected={field.value}
                                     onSelect={field.onChange}
@@ -500,7 +500,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                       date < firstAllowedDate ||
                                       date > lastAllowedDate
                                     }
-                                    initialFocus
                                     className="rounded-md border-slate-200 dark:border-slate-700"
                                   />
                                 </PopoverContent>

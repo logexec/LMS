@@ -23,7 +23,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import {
   AlertCircle,
   Calendar as CalendarIcon,
@@ -67,6 +66,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useData } from "@/contexts/DataContext";
+import CalendarComponent from "@/components/comp-487";
 
 const formSchema = z.object({
   fechaGasto: z.coerce.date(),
@@ -493,7 +493,7 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
                                     className="w-auto p-0 border-slate-200 dark:border-slate-700 shadow-lg"
                                     align="start"
                                   >
-                                    <Calendar
+                                    <CalendarComponent
                                       mode="single"
                                       selected={field.value}
                                       onSelect={field.onChange}
@@ -501,7 +501,7 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
                                         date < firstAllowedDate ||
                                         date > lastAllowedDate
                                       }
-                                      initialFocus
+                                      autoFocus
                                       className="rounded-md border-slate-200 dark:border-slate-700"
                                     />
                                   </PopoverContent>
