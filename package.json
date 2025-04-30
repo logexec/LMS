@@ -1,6 +1,6 @@
 {
   "name": "lms",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -9,7 +9,8 @@
     "prune": "ts-prune",
     "test": "next build && next start",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "update": "echo \"Actualizando git...\" && git pull origin main && echo \"Instalando dependencias de package.json\" && npm install && echo \"Compilando…\" && npm run build && echo \"Recargando PM2…\" && pm2 reload LMS && echo \"¡Listo!\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -65,7 +66,6 @@
     "swr": "^2.3.3",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
-    "xlsx": "^0.18.5",
     "zod": "^3.24.3"
   },
   "devDependencies": {
