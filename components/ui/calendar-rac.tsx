@@ -93,8 +93,8 @@ function Calendar({
             <CalendarCellRac
               date={date}
               className={cn(
-                "text-center text-sm p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md cursor-pointer",
-                "data-[disabled]:text-muted-foreground data-[disabled]:opacity-20",
+                "text-center text-sm p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md cursor-pointer [&:has([aria-disabled])]:text-muted",
+                "data-[disabled]:text-muted-foreground data-[unavailable]:opacity-50 data-[unavailable]:text-muted-foreground",
                 "data-[selected]:bg-black data-[selected]:text-white"
               )}
             >
