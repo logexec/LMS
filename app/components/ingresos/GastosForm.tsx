@@ -176,8 +176,11 @@ const GastosForm: React.FC<GastosFormProps> = ({
   // Calculate date constraints
   const today = new Date();
   const firstAllowedDate = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 28);
-
+  const lastAllowedDate = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    5
+  );
   // Fetch cuentas cuando se carga el componente
   useEffect(() => {
     fetchAccounts("nomina", "expense");

@@ -213,11 +213,7 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
 
   const today = new Date();
   const firstAllowedDate = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastAllowedDate = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    5
-  );
+  const lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 28);
 
   // Variantes de animación para una entrada más suave
   const formVariants = {
