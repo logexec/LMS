@@ -1,6 +1,6 @@
 {
   "name": "lms",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -10,7 +10,8 @@
     "test": "next build && next start",
     "start": "next start",
     "lint": "next lint",
-    "update": "echo \"Actualizando git...\" && git pull origin main && echo \"Instalando dependencias de package.json\" && npm install && echo \"Compilando…\" && npm run build && echo \"Recargando PM2…\" && pm2 reload LMS && echo \"¡Listo!\""
+    "update": "echo \"Actualizando git...\" && git pull origin main && echo \"Instalando dependencias de package.json\" && npm install && echo \"Compilando…\" && npm run build && echo \"Recargando PM2…\" && pm2 reload LMS && echo \"¡Listo!\"",
+    "refresh": "echo \"Actualizando git...\" && git pull origin main && echo \"Compilando…\" && npm run build && echo \"Recargando PM2…\" && pm2 reload LMS && echo \"¡Listo!\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
