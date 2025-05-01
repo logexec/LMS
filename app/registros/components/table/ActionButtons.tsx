@@ -128,6 +128,11 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
     setEditData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
+  const today = new Date();
+  const currentMonth = `${today.getFullYear()}-${String(
+    today.getMonth() + 1
+  ).padStart(2, "0")}`;
+
   const handleStatusUpdate = useCallback(
     (newStatus: Status) => {
       const currentStatus = row.status;
@@ -217,6 +222,7 @@ export const ActionButtons: React.FC<{ row: ReposicionProps }> = ({ row }) => {
               type="month"
               value={editData.month}
               onChange={(e) => handleInputChange("month", e.target.value)}
+              min={currentMonth}
               className="w-full border rounded-md p-2"
             />
             <select
