@@ -212,8 +212,31 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
   };
 
   const today = new Date();
-  const firstAllowedDate = new Date(today.getFullYear(), today.getMonth(), 1);
+  let firstAllowedDate = new Date(
+    today.getFullYear(),
+    today.getMonth() - 1,
+    29
+  );
   const lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 28);
+  if (today.getDate() >= 29) {
+    firstAllowedDate = new Date(today.getFullYear(), today.getMonth() - 1, 28);
+  }
+
+  // const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"];
+
+  // console.log("Día de hoy: ", today.getDate());
+  // console.log(
+  //   "Primer día disponible para descuentos: " +
+  //     new Date(firstAllowedDate).getDate() +
+  //     " de " +
+  //     months[new Date(firstAllowedDate).getMonth()]
+  // );
+  // console.log(
+  //   "Ultimo día disponible para descuentos: " +
+  //     new Date(lastAllowedDate).getDate() +
+  //     " de " +
+  //     months[new Date(lastAllowedDate).getMonth()]
+  // );
 
   // Variantes de animación para una entrada más suave
   const formVariants = {

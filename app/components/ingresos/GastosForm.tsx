@@ -175,12 +175,29 @@ const GastosForm: React.FC<GastosFormProps> = ({
 
   // Calculate date constraints
   const today = new Date();
-  const firstAllowedDate = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastAllowedDate = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    5
-  );
+  let firstAllowedDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  let lastAllowedDate = new Date(today.getFullYear(), today.getMonth(), 5);
+
+  if (today.getDate() >= 6) {
+    firstAllowedDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    lastAllowedDate = new Date(today.getFullYear(), today.getMonth() + 1, 5);
+  }
+
+  // const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"];
+
+  // console.log("Día de hoy: ", today.getDate());
+  // console.log(
+  //   "Primer día disponible para gastos: " +
+  //     new Date(firstAllowedDate).getDate() +
+  //     " de " +
+  //     months[new Date(firstAllowedDate).getMonth()]
+  // );
+  // console.log(
+  //   "Ultimo día disponible para gastos: " +
+  //     new Date(lastAllowedDate).getDate() +
+  //     " de " +
+  //     months[new Date(lastAllowedDate).getMonth()]
+  // );
   // Fetch cuentas cuando se carga el componente
   useEffect(() => {
     fetchAccounts("nomina", "expense");
