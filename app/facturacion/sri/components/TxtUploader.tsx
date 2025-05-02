@@ -4,6 +4,9 @@ import React, { useState } from "react";
 import TxtTable from "./TxtTable";
 import { Button } from "@/components/ui/button";
 import { RiFilePdf2Line } from "@remixicon/react";
+import { useRouter } from "next/router";
+import { toast } from "sonner";
+import axios from "axios";
 
 interface ParsedFile {
   headers: string[];
@@ -16,27 +19,37 @@ const TxtUploader: React.FC = () => {
     rows: [],
   });
 
+  // const router = useRouter();
+
   const handleGenerateDocuments = async () => {
+    if (parsedFile.rows.length === 0) {
+      toast.warning("No hay registros cargados");
+      return;
+    }
+
+    const folderName = prompt(
+      "Ingresa un nombre para la carpeta de documentos:"
+    );
+    if (!folderName) {
+      toast.info("Cancelado por el usuario");
+      return;
+    }
+
     try {
-      const response = await fetch("/api/generate-documents", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ parsedFile }),
+      await axios.post("/api/generate-documents", {
+        folder: folderName,
+        data: parsedFile.rows,
       });
 
-      if (!response.ok) {
-        throw new Error("Error al generar documentos");
-      }
+      toast.success("Documentos generados correctamente");
 
-      const result = await response.json();
-      alert("Documentos generados correctamente");
-      console.log("Archivos generados:", result);
-      // Puedes redireccionar a la descarga aquí si quieres
-    } catch (error) {
+      // Redirigir a la pestaña de compras con la carpeta como parámetro
+      // router.push(`/compras?folder=${encodeURIComponent(folderName)}`);
+    } catch (error: any) {
       console.error(error);
-      alert("Error al generar XML y PDF");
+      toast.error(
+        error.response?.data?.message || "Error al generar XML y PDF"
+      );
     }
   };
 
