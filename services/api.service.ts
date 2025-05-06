@@ -17,6 +17,8 @@ const fetchInProgress = {
   accounts: false,
   responsibles: false,
   vehicles: false,
+  requests: false,
+  repositions: false,
 };
 
 export async function checkApiStatus() {
@@ -660,6 +662,30 @@ export const apiService = {
     } finally {
       // Reset fetch flag
       fetchInProgress.vehicles = false;
+    }
+  },
+
+  // Requests
+  fetchRequests: async (type: string) => {
+    try {
+      checkApiStatus();
+      // Prevenir duplicados
+      if (fetchInProgress.requests) {
+        console.log("Fetch requests already in progress, skipping");
+        return [];
+      }
+
+      fetchInProgress.requests = true;
+      const response = await fetchWithAuth(`/requests?type=${type}`);
+
+      const data = Array.isArray(response) ? response : Object.values(response);
+
+      return data;
+    } catch (error) {
+      console.error("❌ Error in fetchRequests:", error);
+      throw error;
+    } finally {
+      fetchInProgress.requests = false;
     }
   },
 };

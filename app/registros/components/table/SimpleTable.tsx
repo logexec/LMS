@@ -18,7 +18,7 @@ const SimpleTable: React.FC<SimpleTableProps> = ({ mode, type }) => {
       setIsLoading(true);
 
       const params = new URLSearchParams({
-        period: "last_onth",
+        period: "last_month",
       });
 
       if (type && mode === "requests") {

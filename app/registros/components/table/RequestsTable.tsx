@@ -379,7 +379,7 @@ export function RequestsTable<
   );
 
   const buildQueryUrl = useCallback(
-    (period: "last_month" | "all") => {
+    (period: "last_week" | "all") => {
       const params = new URLSearchParams({ period });
       if (type) {
         if (mode === "requests" || mode === "reposiciones") {
@@ -392,7 +392,7 @@ export function RequestsTable<
   );
 
   const fetchData = useCallback(
-    async (period: "last_month" | "all") => {
+    async (period: "last_week" | "all") => {
       try {
         setIsRefreshing(true);
         const response = await fetchWithAuth(buildQueryUrl(period));
@@ -462,7 +462,7 @@ export function RequestsTable<
   );
 
   useEffect(() => {
-    const period = loadAllData ? "all" : "last_month";
+    const period = loadAllData ? "all" : "last_week";
     if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;
       fetchData(period);
@@ -564,7 +564,7 @@ export function RequestsTable<
         );
       },
       refreshData: async () => {
-        const period = loadAllData ? "all" : "last_month";
+        const period = loadAllData ? "all" : "last_week";
         await fetchData(period);
       },
     },
@@ -642,7 +642,7 @@ export function RequestsTable<
   const handleRefresh = () => {
     setIsLoading(true);
     hasFetchedRef.current = false;
-    fetchData(loadAllData ? "all" : "last_month");
+    fetchData(loadAllData ? "all" : "last_week");
   };
 
   const handleRowUpdate = useCallback(
@@ -753,7 +753,7 @@ export function RequestsTable<
               />
               <span className="text-sm text-slate-600">
                 {loadAllData
-                  ? "Listar el último mes"
+                  ? "Listar los últimos 7 días"
                   : "Listar todas las solicitudes"}
               </span>
             </div>
