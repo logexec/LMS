@@ -472,23 +472,3 @@ export interface Installment {
 }
 
 // Fin Préstamos
-
-// export interface TableMeta<TData> {
-//   updateData: (args: {
-//     rowIndex: number;
-//     columnId: string;
-//     value: unknown;
-//   }) => void;
-// }
-
-// Esta es la declaración que puedes usar para extender React Table
-
-// declare module "@tanstack/react-table" {
-//   interface TableMeta<TData> {
-//     updateData?: (args: {
-//       rowIndex: number;
-//       columnId: string;
-//       value: unknown;
-//     }) => void;
-//   }
-// }
