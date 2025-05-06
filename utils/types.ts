@@ -40,6 +40,7 @@ export interface RequestProps extends BaseEntity {
   request_date?: string;
   when?: string;
   month?: string;
+  reposicion_id?: string;
 }
 
 export interface AccountProps extends BaseEntity {

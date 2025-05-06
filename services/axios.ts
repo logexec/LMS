@@ -41,6 +41,13 @@ export interface RequestFilters {
   type?: "expense" | "discount" | "income";
 }
 
+export interface RequestUpdateData {
+  invoice_number?: string;
+  amount?: string;
+  note?: string;
+  // Puedes añadir más campos aquí si es necesario
+}
+
 // Funciones de API para requests
 export const requestsApi = {
   // Obtener solicitudes con filtros
@@ -79,7 +86,7 @@ export const requestsApi = {
   },
 
   // Actualizar una solicitud
-  updateRequest: async (id: string, data: Partial<Request>) => {
+  updateRequest: async (id: string, data: RequestUpdateData) => {
     const response = await api.patch(`/requests/${id}`, data);
     return response.data;
   },

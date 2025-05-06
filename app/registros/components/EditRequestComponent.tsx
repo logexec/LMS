@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { LoaderCircle, Edit2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -44,6 +43,8 @@ interface EditRequestProps {
   row: Request;
   triggerElement?: React.ReactNode;
 }
+
+type FormValues = z.infer<typeof formSchema>;
 
 export const EditRequestComponent: React.FC<EditRequestProps> = ({
   row,
@@ -74,7 +75,7 @@ export const EditRequestComponent: React.FC<EditRequestProps> = ({
     });
   }, [row, form.reset]);
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: FormValues) => {
     try {
       setIsSubmitting(true);
 
@@ -186,11 +187,24 @@ export const EditRequestComponent: React.FC<EditRequestProps> = ({
                 <FormItem>
                   <FormLabel>Observación *</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <Input
                       {...field}
-                      placeholder="Detalle de la solicitud..."
-                      rows={3}
+                      placeholder="Detalle de la solicitud"
                       disabled={isSubmitting}
+                      className="w-full"
+                      // Evitar la selección automática del texto
+                      onFocus={(e) => {
+                        // Colocar el cursor al final del texto en lugar de seleccionar todo
+                        const length = e.target.value.length;
+                        e.target.setSelectionRange(length, length);
+                      }}
+                      // Asegurar que los espacios se registren
+                      onKeyDown={(e) => {
+                        if (e.key === " ") {
+                          // Esto puede ayudar a prevenir que la tecla de espacio sea interceptada
+                          e.stopPropagation();
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
