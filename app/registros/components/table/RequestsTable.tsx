@@ -622,6 +622,20 @@ export function RequestsTable<
       // Pasar el FormData personalizado
       await onCreateReposicion(requestIds, attachment);
 
+      // Para ver qué contiene el FormData
+      console.log("FormData entries:");
+      for (const pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0] + ": File", {
+            name: pair[1].name,
+            type: pair[1].type,
+            size: pair[1].size,
+          });
+        } else {
+          console.log(pair[0] + ": " + pair[1]);
+        }
+      }
+
       setData((prevData) => {
         return prevData.filter((item) => {
           if (!("unique_id" in item)) return true;
