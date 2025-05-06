@@ -51,12 +51,18 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
   // Para crear reposición
   const handleCreateReposicion = async (
     requestIds: string[],
-    attachment: File
+    attachment: File,
+    formData?: FormData
   ): Promise<void> => {
     try {
-      const formData = new FormData();
-      formData.append("attachment", attachment);
-      requestIds.forEach((id) => formData.append("request_ids[]", id)); // ← Notación correcta para Laravel
+      // Usar el FormData proporcionado o crear uno nuevo
+      const data = formData || new FormData();
+
+      // Si creamos un nuevo FormData, debemos poblarlo
+      if (!formData) {
+        data.append("attachment", attachment);
+        requestIds.forEach((id) => data.append("request_ids[]", id));
+      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
@@ -66,7 +72,7 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
             Authorization: `Bearer ${getAuthToken()}`,
           },
           credentials: "include",
-          body: formData,
+          body: data,
         }
       );
 

@@ -55,12 +55,18 @@ export default function TableContainer({
 
   const handleCreateReposicion = async (
     requestIds: string[],
-    attachment: File
+    attachment: File,
+    formData?: FormData
   ): Promise<void> => {
     try {
-      const formData = new FormData();
-      formData.append("attachment", attachment);
-      requestIds.forEach((id) => formData.append("request_ids[]", id));
+      // Usar el FormData proporcionado o crear uno nuevo
+      const data = formData || new FormData();
+
+      // Si creamos un nuevo FormData, debemos poblarlo
+      if (!formData) {
+        data.append("attachment", attachment);
+        requestIds.forEach((id) => data.append("request_ids[]", id));
+      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
@@ -70,22 +76,21 @@ export default function TableContainer({
             Authorization: `Bearer ${getAuthToken()}`,
           },
           credentials: "include",
-          body: formData,
+          body: data,
         }
       );
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.message || "Error al crear la reposición");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al crear la reposición");
       }
 
       toast.success("Reposición creada correctamente");
     } catch (error) {
-      console.error("Error creating reposición:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Error al crear la reposición");
+      toast.error(
+        error instanceof Error ? error.message : "Error al crear la reposición"
+      );
+      throw error;
     }
   };
 
