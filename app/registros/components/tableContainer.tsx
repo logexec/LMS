@@ -84,7 +84,7 @@ export default function TableContainer({
         }
       }
 
-      const response = await fetch(
+      const response = await window.fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
         {
           method: "POST",
