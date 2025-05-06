@@ -60,13 +60,10 @@ export default function TableContainer({
   ): Promise<void> => {
     try {
       // Usar el FormData proporcionado o crear uno nuevo
-      const data = formData || new FormData();
+      const data = new FormData();
 
-      // Si creamos un nuevo FormData, debemos poblarlo
-      if (!formData) {
-        data.append("attachment", attachment);
-        requestIds.forEach((id) => data.append("request_ids[]", id));
-      }
+      data.append("attachment", attachment);
+      requestIds.forEach((id) => data.append("request_ids[]", id));
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
