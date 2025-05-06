@@ -113,6 +113,8 @@ type Request = {
   note: string;
 };
 
+type Period = "last_week" | "last_month" | "all";
+
 // Custom filter function for multi-column searching
 const multiColumnFilterFn: FilterFn<Request> = (row, columnId, filterValue) => {
   const searchableRowContent =
@@ -336,12 +338,16 @@ export default function RequestsTableComponent({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState<boolean>(false);
+  const [period, setPeriod] = useState<Period>("last_month");
 
   // Función para refrescar los datos
   const refreshData = async () => {
     try {
       setIsLoading(true);
-      const freshData = await requestsApi.fetchRequests({ type: mode });
+      const freshData = await requestsApi.fetchRequests({
+        type: mode,
+        period: period,
+      });
       setData(freshData);
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -356,7 +362,10 @@ export default function RequestsTableComponent({
     async function fetchRequests() {
       try {
         setIsLoading(true);
-        const data = await requestsApi.fetchRequests({ type: mode });
+        const data = await requestsApi.fetchRequests({
+          type: mode,
+          period: period,
+        });
         setData(data);
       } catch (error) {
         console.error(error);
