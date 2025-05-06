@@ -57,13 +57,12 @@ export default function ClientTable({ mode, type, title }: ClientTableProps) {
   ): Promise<void> => {
     try {
       // Usar el FormData proporcionado si existe, de lo contrario crear uno nuevo
-      const data = formData || new FormData();
+      const data = new FormData();
 
       // Solo llenar el FormData si es uno nuevo
-      if (!formData) {
-        data.append("attachment", attachment, attachment.name);
-        requestIds.forEach((id) => data.append("request_ids[]", id));
-      }
+      data.append("file", attachment, attachment.name);
+      data.append("attachment", attachment, attachment.name);
+      requestIds.forEach((id) => data.append("request_ids[]", id));
 
       console.log(
         "En handleCreateReposicion, usando FormData:",
