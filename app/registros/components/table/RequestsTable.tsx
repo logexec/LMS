@@ -614,7 +614,27 @@ export function RequestsTable<
         return null;
       }
 
-      await onCreateReposicion(requestIds, attachment);
+      // Siempre crear un nuevo FormData
+      const formData = new FormData();
+      formData.append("attachment", attachment, attachment.name);
+      requestIds.forEach((id) => formData.append("request_ids[]", id));
+
+      console.log("FormData creado correctamente en handleSendRequests");
+      // Para ver qué contiene el FormData
+      for (const pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0] + ": File", {
+            name: pair[1].name,
+            type: pair[1].type,
+            size: pair[1].size,
+          });
+        } else {
+          console.log(pair[0] + ": " + pair[1]);
+        }
+      }
+
+      // IMPORTANTE: Pasar el FormData como tercer parámetro
+      await onCreateReposicion(requestIds, attachment, formData);
 
       setData((prevData) => {
         return prevData.filter((item) => {

@@ -160,6 +160,7 @@ const DescuentosForm = () => {
                   currentUser.user!.email === "nicolas.iza@logex.ec" ||
                   currentUser.user!.email === "ricardo.estrella@logex.ec" ||
                   currentUser.user!.email === "michelle.quintana@logex.ec" ||
+                  currentUser.user!.email === "diego.merisalde@logex.ec" ||
                   currentUser.user!.email === "jk@logex.ec" ? (
                     <TabsTrigger
                       value="loans"

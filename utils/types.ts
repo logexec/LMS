@@ -107,7 +107,11 @@ export interface DataTableProps<TData> {
   mode: "requests" | "reposiciones";
   type?: "discount" | "expense" | "income";
   onStatusChange?: (id: number, status: Status) => Promise<void>;
-  onCreateReposicion?: (requestIds: string[], file: File) => Promise<void>;
+  onCreateReposicion?: (
+    requestIds: string[],
+    file: File,
+    formData?: any
+  ) => Promise<void>;
   onUpdateReposicion?: (
     id: number,
     updateData: ReposicionUpdateData,
