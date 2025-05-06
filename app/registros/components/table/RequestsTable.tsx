@@ -619,11 +619,8 @@ export function RequestsTable<
       formData.append("attachment", attachment, attachment.name);
       requestIds.forEach((id) => formData.append("request_ids[]", id));
 
-      // Pasar el FormData personalizado
-      await onCreateReposicion(requestIds, attachment);
-
+      console.log("FormData creado correctamente en handleSendRequests");
       // Para ver qué contiene el FormData
-      console.log("FormData entries:");
       for (const pair of formData.entries()) {
         if (pair[1] instanceof File) {
           console.log(pair[0] + ": File", {
@@ -635,6 +632,9 @@ export function RequestsTable<
           console.log(pair[0] + ": " + pair[1]);
         }
       }
+
+      // IMPORTANTE: Pasar el FormData como tercer parámetro
+      await onCreateReposicion(requestIds, attachment, formData);
 
       setData((prevData) => {
         return prevData.filter((item) => {
