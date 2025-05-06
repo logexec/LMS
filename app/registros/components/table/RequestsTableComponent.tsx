@@ -374,7 +374,7 @@ export default function RequestsTableComponent({
       }
     }
     fetchRequests();
-  }, [mode]);
+  }, [mode, period]);
 
   const contextValue = {
     data,
@@ -723,13 +723,25 @@ export default function RequestsTableComponent({
               className="flex flex-row"
               type="single"
             >
-              <ToggleGroupItem className="capitalize px-1.5" value="last_week">
+              <ToggleGroupItem
+                className="capitalize px-1.5"
+                value="last_week"
+                onChange={() => setPeriod("last_week")}
+              >
                 última semana
               </ToggleGroupItem>
-              <ToggleGroupItem className="capitalize" value="last_month">
+              <ToggleGroupItem
+                className="capitalize"
+                value="last_month"
+                onChange={() => setPeriod("last_month")}
+              >
                 último mes
               </ToggleGroupItem>
-              <ToggleGroupItem className="capitalize" value="all">
+              <ToggleGroupItem
+                className="capitalize"
+                value="all"
+                onChange={() => setPeriod("all")}
+              >
                 Ver todo
               </ToggleGroupItem>
             </ToggleGroup>
