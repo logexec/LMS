@@ -614,6 +614,12 @@ export function RequestsTable<
         return null;
       }
 
+      // Siempre crear un nuevo FormData
+      const formData = new FormData();
+      formData.append("attachment", attachment, attachment.name);
+      requestIds.forEach((id) => formData.append("request_ids[]", id));
+
+      // Pasar el FormData personalizado
       await onCreateReposicion(requestIds, attachment);
 
       setData((prevData) => {
