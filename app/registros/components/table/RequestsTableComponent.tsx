@@ -364,6 +364,7 @@ export default function RequestsTableComponent({
         const data = await requestsApi.fetchRequests({
           type: mode,
           period: period,
+          status: "pending",
         });
         setData(data);
       } catch (error) {
@@ -695,6 +696,7 @@ export default function RequestsTableComponent({
               <ToggleGroupItem
                 className="capitalize px-[18px]"
                 value="last_week"
+                aria-checked={period === "last_week"}
                 onClick={() => setPeriod("last_week")}
               >
                 última semana
@@ -703,13 +705,14 @@ export default function RequestsTableComponent({
                 className="capitalize px-2"
                 value="last_month"
                 onClick={() => setPeriod("last_month")}
-                defaultChecked
+                aria-checked={period === "last_month"}
               >
                 último mes
               </ToggleGroupItem>
               <ToggleGroupItem
                 className="capitalize"
                 value="all"
+                aria-checked={period === "all"}
                 onClick={() => setPeriod("all")}
               >
                 Ver todo

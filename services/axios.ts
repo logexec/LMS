@@ -41,6 +41,7 @@ export interface RequestFilters {
   period?: "last_week" | "last_month" | "all";
   project?: string;
   type?: "expense" | "discount" | "income";
+  status?: "pending" | "rejected" | "approved";
 }
 
 export interface RequestUpdateData {
@@ -108,9 +109,32 @@ export const requestsApi = {
     if (filters.period) params.append("period", filters.period);
     if (filters.project) params.append("project", filters.project);
     if (filters.type) params.append("type", filters.type);
+    if (filters.status) params.append("status", filters.status);
 
     const response = await api.get(`/requests?${params.toString()}`);
-    return response.data;
+
+    // Obtener el email del usuario desde localStorage
+    const user = JSON.parse(localStorage.getItem("user")!);
+    const email = user?.email || null;
+
+    // Lista de emails que NO deben filtrarse (excepciones)
+    const exemptEmails = [
+      "ricardo.estrella@logex.ec",
+      "jk@logex.ec",
+      "diego.merisalde@logex.ec",
+      "michelle.quintana@logex.ec",
+      "nicolas.iza@logex.ec",
+    ];
+
+    // Filtrar solo si el email no está en la lista de excepciones
+    let result = response.data;
+    if (!exemptEmails.includes(email)) {
+      result = response.data.filter(
+        (data: any) => !data.unique_id.startsWith("P-")
+      );
+    }
+
+    return result;
   },
 
   // Eliminar una solicitud
