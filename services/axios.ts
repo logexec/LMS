@@ -64,7 +64,6 @@ export const onFileSubmit = async (
 
   // Agregar el archivo con ambos nombres posibles para mayor compatibilidad
   formData.append("attachment", file, file.name);
-  formData.append("file", file, file.name);
 
   // Agregar los IDs de solicitud
   requestIds.forEach((id) => formData.append("request_ids[]", id));
