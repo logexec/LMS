@@ -46,10 +46,7 @@ interface EditRequestProps {
 
 type FormValues = z.infer<typeof formSchema>;
 
-export const EditRequestComponent: React.FC<EditRequestProps> = ({
-  row,
-  triggerElement,
-}) => {
+export const EditRequestComponent: React.FC<EditRequestProps> = ({ row }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -109,15 +106,13 @@ export const EditRequestComponent: React.FC<EditRequestProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {triggerElement || (
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
-          >
-            <Edit2 className="h-4 w-4" />
-            <span className="sr-only">Editar solicitud</span>
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          className="w-full text-slate-700 dark:text-slate-300 hover:bg-slate-400/10 dark:hover:bg-slate-600/10 hover:text-slate-900 dark:hover:text-slate-100"
+        >
+          <Edit2 className="h-4 w-4" />
+          <span>Editar</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

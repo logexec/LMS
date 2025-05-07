@@ -295,12 +295,7 @@ function RowActions({ row }: { row: Row<Request> }) {
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <EditRequestComponent
-              row={row.original}
-              triggerElement={
-                <span className="flex items-center w-full">Editar</span>
-              }
-            />
+            <EditRequestComponent row={row.original} />
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -308,7 +303,7 @@ function RowActions({ row }: { row: Row<Request> }) {
           className="text-destructive focus:text-destructive"
           onSelect={(e) => e.preventDefault()}
         >
-          <DeleteButtonComponent row={row.original} /> Eliminar
+          <DeleteButtonComponent row={row.original} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

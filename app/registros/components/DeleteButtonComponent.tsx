@@ -60,10 +60,10 @@ export const DeleteButtonComponent: React.FC<DeleteButtonProps> = ({ row }) => {
       <AlertDialogTrigger asChild>
         <Button
           variant="ghost"
-          className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           <TrashIcon className="h-4 w-4" />
-          <span className="sr-only">Eliminar</span>
+          <span>Eliminar</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
