@@ -376,6 +376,10 @@ export default function RequestsTableComponent({
     fetchRequests();
   }, [mode, period]);
 
+  useEffect(() => {
+    console.log("Period changed: ", period);
+  }, [period]);
+
   const contextValue = {
     data,
     setData,
@@ -724,23 +728,24 @@ export default function RequestsTableComponent({
               type="single"
             >
               <ToggleGroupItem
-                className="capitalize px-1.5"
+                className="capitalize px-[18px]"
                 value="last_week"
-                onChange={() => setPeriod("last_week")}
+                onClick={() => setPeriod("last_week")}
               >
                 última semana
               </ToggleGroupItem>
               <ToggleGroupItem
-                className="capitalize"
+                className="capitalize px-2"
                 value="last_month"
-                onChange={() => setPeriod("last_month")}
+                onClick={() => setPeriod("last_month")}
+                defaultChecked
               >
                 último mes
               </ToggleGroupItem>
               <ToggleGroupItem
                 className="capitalize"
                 value="all"
-                onChange={() => setPeriod("all")}
+                onClick={() => setPeriod("all")}
               >
                 Ver todo
               </ToggleGroupItem>
@@ -920,16 +925,17 @@ export default function RequestsTableComponent({
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="flex flex-row items-center justify-center text-center mx-auto space-x-2"
-                  >
-                    <LoaderCircle className="animate-spin" />
-                    <span>Cargando datos...</span>
+                  <TableCell colSpan={columns.length}>
+                    <div className="flex items-center justify-center mx-auto space-x-2 w-max">
+                      <LoaderCircle className="animate-spin text-red-700 size-4" />
+                      <span className="text-gray-800 dark:text-gray-300 animate-pulse">
+                        Cargando datos...
+                      </span>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
-              {table.getRowModel().rows?.length
+              {table.getRowModel().rows?.length && !isLoading
                 ? table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
