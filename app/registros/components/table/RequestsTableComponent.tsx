@@ -116,20 +116,18 @@ type Period = "last_week" | "last_month" | "all";
 
 // Custom filter function for multi-column searching
 const multiColumnFilterFn: FilterFn<Request> = (row, columnId, filterValue) => {
-  const searchableRowContent =
-    `${row.original.responsible_id} ${row.original.project} ${row.original.vehicle_plate} ${row.original.unique_id} ${row.original.note}`.toLowerCase();
+  const searchableRowContent = Object.values(row.original)
+    .map((value) => {
+      if (value instanceof Date) {
+        return value.toLocaleDateString("es-EC");
+      }
+      return String(value ?? "");
+    })
+    .join(" ")
+    .toLowerCase();
+
   const searchTerm = (filterValue ?? "").toLowerCase();
   return searchableRowContent.includes(searchTerm);
-};
-
-const projectFilterFn: FilterFn<Request> = (
-  row,
-  columnId,
-  filterValue: string[]
-) => {
-  if (!filterValue?.length) return true;
-  const project = row.getValue(columnId) as string;
-  return filterValue.includes(project);
 };
 
 const columns: ColumnDef<Request>[] = [
@@ -185,6 +183,7 @@ const columns: ColumnDef<Request>[] = [
   {
     header: "Cuenta",
     accessorKey: "account_id",
+    filterFn: multiColumnFilterFn,
     size: 200,
   },
   {
@@ -205,6 +204,7 @@ const columns: ColumnDef<Request>[] = [
         </Badge>
       );
     },
+    filterFn: multiColumnFilterFn,
     size: 100,
   },
   {
@@ -214,7 +214,7 @@ const columns: ColumnDef<Request>[] = [
       <Badge variant={"secondary"}>{row.getValue("project")}</Badge>
     ),
     size: 100,
-    filterFn: projectFilterFn,
+    filterFn: multiColumnFilterFn,
   },
   {
     header: "Responsable",
@@ -232,6 +232,7 @@ const columns: ColumnDef<Request>[] = [
         </div>
       </div>
     ),
+    filterFn: multiColumnFilterFn,
     size: 300,
   },
   {
@@ -259,6 +260,7 @@ const columns: ColumnDef<Request>[] = [
         )}
       </div>
     ),
+    filterFn: multiColumnFilterFn,
   },
   {
     header: "Observación",
@@ -271,6 +273,7 @@ const columns: ColumnDef<Request>[] = [
     cell: ({ row }) => <RowActions row={row} />,
     size: 60,
     enableHiding: false,
+    filterFn: multiColumnFilterFn,
   },
 ];
 
@@ -315,10 +318,11 @@ function RowActions({ row }: { row: Row<Request> }) {
 export default function RequestsTableComponent({
   mode,
 }: {
-  mode: "discount" | "expense";
+  mode: "discount" | "expense" | "income";
 }) {
   const id = useId();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -375,10 +379,6 @@ export default function RequestsTableComponent({
     }
     fetchRequests();
   }, [mode, period]);
-
-  useEffect(() => {
-    console.log("Period changed: ", period);
-  }, [period]);
 
   const contextValue = {
     data,
@@ -502,11 +502,14 @@ export default function RequestsTableComponent({
     onColumnVisibilityChange: setColumnVisibility,
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    globalFilterFn: multiColumnFilterFn, // Asignar el filtro global
+    onGlobalFilterChange: setGlobalFilter, // Manejar cambios en el filtro global
     state: {
       sorting,
       pagination,
       columnFilters,
       columnVisibility,
+      globalFilter,
     },
   });
 
@@ -559,34 +562,29 @@ export default function RequestsTableComponent({
     <TableContextProvider value={contextValue}>
       <div className="space-y-4">
         <h3 className="font-medium text-xl border-b pb-2">
-          {mode === "discount" ? "Descuentos" : "Gastos"}
+          {mode === "discount"
+            ? "Descuentos"
+            : mode === "expense"
+            ? "Gastos"
+            : "Ingresos"}
         </h3>
         {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* Filter by name or email */}
+            {/* Filter by name */}
             <div className="relative">
               <Input
                 id={`${id}-input`}
                 ref={inputRef}
                 className={cn(
                   "peer min-w-60 ps-9",
-                  Boolean(
-                    table.getColumn("responsible_id")?.getFilterValue()
-                  ) && "pe-9"
+                  Boolean(globalFilter) && "pe-9"
                 )}
-                value={
-                  (table.getColumn("responsible_id")?.getFilterValue() ??
-                    "") as string
-                }
-                onChange={(e) =>
-                  table
-                    .getColumn("responsible_id")
-                    ?.setFilterValue(e.target.value)
-                }
-                placeholder="Filtrar por nombre o proyecto..."
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)} // Usar el filtro global
+                placeholder="Filtrar en todas las columnas..."
                 type="text"
-                aria-label="Filtrar por nombre o proyecto"
+                aria-label="Filtrar en todas las columnas"
               />
               <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
                 <ListFilterIcon size={16} aria-hidden="true" />
