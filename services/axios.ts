@@ -62,41 +62,39 @@ export const onFileSubmit = async (
   // Crear FormData
   const formData = new FormData();
 
-  // Agregar el archivo con ambos nombres posibles para mayor compatibilidad
-  formData.append("attachment", file, file.name);
+  // Agregar el archivo con ambos nombres para mayor compatibilidad
+  formData.append("attachment", file);
+  formData.append("file", file);
+
+  // Verificar que el archivo se haya agregado correctamente
+  console.log("File appended:", file.name, file.size);
 
   // Agregar los IDs de solicitud
   requestIds.forEach((id) => formData.append("request_ids[]", id));
 
-  // Imprimir el contenido del FormData para depuración
-  console.log("FormData creado en onFileSubmit:");
-  for (const pair of formData.entries()) {
-    if (pair[1] instanceof File) {
-      console.log(pair[0] + ": File", {
-        name: pair[1].name,
-        type: pair[1].type,
-        size: pair[1].size,
-      });
-    } else {
-      console.log(pair[0] + ": " + pair[1]);
-    }
-  }
-
   // Configuración específica para subida de archivos
   const config = {
     headers: {
-      // Importante: No especificar Content-Type para que axios lo configure automáticamente
+      "Content-Type": "multipart/form-data",
     },
-    skipErrorToast: true, // Manejaremos los errores manualmente
+    skipErrorToast: true,
   };
 
-  // Realizar la petición con timeout extendido para archivos grandes
-  const response = await api.post("/reposiciones", formData, {
-    ...config,
-    timeout: 60000, // 60 segundos para archivos grandes
-  });
-
-  return response.data;
+  try {
+    // Realizar la petición con timeout extendido
+    const response = await api.post("/reposiciones", formData, {
+      ...config,
+      timeout: 30000, // 30 segundos
+    });
+    return response.data;
+  } catch (error) {
+    console.error("File upload error:", error);
+    // Log del error para diagnóstico
+    if (axios.isAxiosError(error)) {
+      console.error("Response data:", error.response?.data);
+    }
+    throw error;
+  }
 };
 
 // Funciones de API para requests
@@ -151,6 +149,7 @@ export const requestsApi = {
     const config = {
       headers: {
         // No especificar Content-Type para que axios lo configure automáticamente
+        "Content-Type": "multipart/form-data",
       },
       skipErrorToast: true, // Manejamos los errores manualmente
     };
