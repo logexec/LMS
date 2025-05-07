@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -47,6 +49,55 @@ export interface RequestUpdateData {
   note?: string;
   // Puedes añadir más campos aquí si es necesario
 }
+
+/**
+ * Función especialmente diseñada para la subida de archivos
+ * Intenta con múltiples enfoques para maximizar compatibilidad
+ */
+export const onFileSubmit = async (
+  requestIds: string[],
+  file: File
+): Promise<any> => {
+  // Crear FormData
+  const formData = new FormData();
+
+  // Agregar el archivo con ambos nombres posibles para mayor compatibilidad
+  formData.append("attachment", file, file.name);
+  formData.append("file", file, file.name);
+
+  // Agregar los IDs de solicitud
+  requestIds.forEach((id) => formData.append("request_ids[]", id));
+
+  // Imprimir el contenido del FormData para depuración
+  console.log("FormData creado en onFileSubmit:");
+  for (const pair of formData.entries()) {
+    if (pair[1] instanceof File) {
+      console.log(pair[0] + ": File", {
+        name: pair[1].name,
+        type: pair[1].type,
+        size: pair[1].size,
+      });
+    } else {
+      console.log(pair[0] + ": " + pair[1]);
+    }
+  }
+
+  // Configuración específica para subida de archivos
+  const config = {
+    headers: {
+      // Importante: No especificar Content-Type para que axios lo configure automáticamente
+    },
+    skipErrorToast: true, // Manejaremos los errores manualmente
+  };
+
+  // Realizar la petición con timeout extendido para archivos grandes
+  const response = await api.post("/reposiciones", formData, {
+    ...config,
+    timeout: 60000, // 60 segundos para archivos grandes
+  });
+
+  return response.data;
+};
 
 // Funciones de API para requests
 export const requestsApi = {

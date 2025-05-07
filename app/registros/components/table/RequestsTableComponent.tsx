@@ -92,9 +92,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { SubmitFileDialog } from "../SubmitFileDialog";
 import axios from "axios";
-import { getAuthToken } from "@/services/auth.service";
 import DeleteButtonComponent from "../DeleteButtonComponent";
-import { requestsApi } from "@/services/axios";
+import { onFileSubmit, requestsApi } from "@/services/axios";
 import { TableContextProvider } from "@/contexts/TableContext";
 import EditRequestComponent from "../EditRequestComponent";
 
@@ -443,81 +442,47 @@ export default function RequestsTableComponent({
 
       if (requestIds.length === 0) {
         toast.error("Selecciona al menos una solicitud");
-        return;
+        return null;
       }
 
-      // Crear FormData manualmente
-      const formData = new FormData();
-
-      // Importante: Añadir el archivo con el nombre original
-      formData.append("attachment", file, file.name);
-
-      // Añadir los IDs como array de PHP
-      requestIds.forEach((id) => formData.append("request_ids[]", id));
-
-      // Depuración del FormData
-      console.log("FormData creado:");
-      for (const pair of formData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(pair[0] + ": File", {
-            name: pair[1].name,
-            type: pair[1].type,
-            size: pair[1].size,
-          });
-        } else {
-          console.log(pair[0] + ": " + pair[1]);
-        }
-      }
-
-      // Usar axios para enviar la solicitud
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/reposiciones`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            // Importante: No especificar Content-Type, para que axios lo configure automáticamente con el boundary correcto
-          },
-          withCredentials: true,
-        }
+      // Actualización optimista - Eliminar filas de la UI primero
+      setData((prevData) =>
+        prevData.filter((item) => !requestIds.includes(item.unique_id))
       );
 
-      // Manejar respuesta exitosa
-      if (response.status === 201) {
-        toast.success("Solicitudes enviadas correctamente");
+      // Usar la función especializada para archivos
+      await onFileSubmit(requestIds, file);
 
-        // Actualizar la tabla eliminando las filas enviadas
-        setData((prevData) =>
-          prevData.filter((item) => !requestIds.includes(item.unique_id))
-        );
+      // Si llegamos aquí, la operación fue exitosa
+      toast.success(
+        requestIds.length > 1
+          ? "Solicitudes enviadas correctamente."
+          : "Solicitud enviada correctamente."
+      );
+      table.resetRowSelection();
+      setShowSubmitDialog(false);
 
-        // Limpiar selección
-        table.resetRowSelection();
-
-        // Cerrar diálogo
-        setShowSubmitDialog(false);
-      }
+      return true; // Retornamos cualquier valor que no sea void
     } catch (error) {
-      console.error("Error in handleSubmitRequests:", error);
+      console.error("Error in handleSendRequests:", error);
 
-      // Manejar errores de axios
+      // Restaurar datos en caso de error
+      refreshData();
+
+      // Mostrar mensaje de error
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data;
-        console.error("Error response:", errorData);
-
-        // Mostrar mensaje de error más específico
-        if (errorData?.message) {
-          toast.error(errorData.message);
-        } else if (error.message) {
-          toast.error(error.message);
-        } else {
-          toast.error("Error al enviar las solicitudes");
-        }
+        const errorMessage =
+          errorData?.message || "Error al crear la reposición";
+        toast.error(errorMessage);
       } else {
         toast.error(
-          error instanceof Error ? error.message : "Error desconocido"
+          error instanceof Error
+            ? error.message
+            : "Error al crear la reposición"
         );
       }
+      return null;
     } finally {
       setIsSubmitting(false);
     }

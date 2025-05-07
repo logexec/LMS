@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState } from "react";
 import {
@@ -14,7 +15,7 @@ import { LoaderCircle, Upload } from "lucide-react";
 interface SubmitFileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (file: File) => void;
+  onSubmit: (file: File) => Promise<any>;
   isSubmitting: boolean;
   count: number;
 }
