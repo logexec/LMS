@@ -104,13 +104,13 @@ export const sidenavLinks: NavLink[] = [
       },
       {
         label: "Descuentos",
-        url: "/registros/descuentos",
+        url: "/registros/discounts",
         icon: GrSubtractCircle,
         requiredPermissions: [Permission.VIEW_DISCOUNTS],
       },
       {
         label: "Gastos",
-        url: "/registros/gastos",
+        url: "/registros/expenses",
         icon: GiPayMoney,
         requiredPermissions: [Permission.VIEW_EXPENSES],
       },
