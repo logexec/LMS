@@ -158,7 +158,9 @@ const columns: ColumnDef<Request>[] = [
     header: "ID",
     accessorKey: "unique_id",
     cell: ({ row }) => (
-      <div className="font-normal">{row.getValue("unique_id")}</div>
+      <div className="font-semibold text-slate-800 dark:text-slate-200">
+        {row.getValue("unique_id")}
+      </div>
     ),
     size: 90,
     filterFn: multiColumnFilterFn,
@@ -224,12 +226,14 @@ const columns: ColumnDef<Request>[] = [
         <span className="truncate font-medium text-[15px] capitalize">
           {row.original.responsible_id || "—"}
         </span>
-        <div className="text-gray-500 font-medium text-xs flex flex-row space-x-1.5">
-          <span className="text-gray-700 dark:text-gray-300 font-normal">
-            Cédula Responsable:
-          </span>
-          <span>{row.original.cedula_responsable}</span>
-        </div>
+        {row.original.responsible_id && (
+          <div className="text-gray-600 dark:text-gray-300 font-medium text-xs flex flex-row space-x-1.5">
+            <span className="text-gray-500 dark:text-gray-500 font-normal">
+              Cédula Responsable:
+            </span>
+            <span>{row.original.cedula_responsable}</span>
+          </div>
+        )}
       </div>
     ),
     filterFn: multiColumnFilterFn,
@@ -289,7 +293,7 @@ function RowActions({ row }: { row: Row<Request> }) {
           <Button
             size="icon"
             variant="ghost"
-            className="shadow-none"
+            className="shadow-none cursor-pointer"
             aria-label="Editar solicitud"
           >
             <EllipsisIcon size={16} aria-hidden="true" />
@@ -618,9 +622,9 @@ export default function RequestsTableComponent({
                 )}
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)} // Usar el filtro global
-                placeholder="Filtrar en todas las columnas..."
+                placeholder="Buscar en todas las columnas..."
                 type="text"
-                aria-label="Filtrar en todas las columnas"
+                aria-label="Buscar en todas las columnas"
               />
               <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
                 <ListFilterIcon size={16} aria-hidden="true" />

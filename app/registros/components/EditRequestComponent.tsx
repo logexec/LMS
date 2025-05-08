@@ -108,7 +108,7 @@ export const EditRequestComponent: React.FC<EditRequestProps> = ({ row }) => {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full text-slate-700 dark:text-slate-300 hover:bg-slate-400/10 dark:hover:bg-slate-600/10 hover:text-slate-900 dark:hover:text-slate-100"
+          className="w-full text-slate-700 dark:text-slate-300 hover:bg-slate-400/10 dark:hover:bg-slate-600/10 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
         >
           <Edit2 className="h-4 w-4" />
           <span>Editar</span>

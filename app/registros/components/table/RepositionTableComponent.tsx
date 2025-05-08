@@ -614,9 +614,9 @@ export default function RepositionTableComponent({
                 )}
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)} // Usar el filtro global
-                placeholder="Filtrar en todas las columnas..."
+                placeholder="Buscar en todas las columnas..."
                 type="text"
-                aria-label="Filtrar en todas las columnas"
+                aria-label="Buscar en todas las columnas"
               />
               <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
                 <ListFilterIcon size={16} aria-hidden="true" />
