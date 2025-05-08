@@ -553,6 +553,43 @@ export default function RequestsTableComponent({
       ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
   };
 
+  // Total general (todos los registros en data)
+  const totalAmount = useMemo(
+    () => data.reduce((sum, row) => sum + (Number(row.amount) || 0), 0),
+    [data]
+  );
+
+  // Total mostrado (filas visibles en la página actual)
+  const displayedAmount = useMemo(
+    () =>
+      table
+        .getRowModel()
+        .rows.reduce(
+          (sum, row) => sum + (Number(row.getValue("amount")) || 0),
+          0
+        ),
+    [table.getRowModel().rows]
+  );
+
+  // Total seleccionado (filas seleccionadas)
+  const selectedAmount = useMemo(
+    () =>
+      table
+        .getSelectedRowModel()
+        .rows.reduce(
+          (sum, row) => sum + (Number(row.getValue("amount")) || 0),
+          0
+        ),
+    [table.getSelectedRowModel().rows]
+  );
+
+  // Formateador de moneda
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
+
   return (
     <TableContextProvider value={contextValue}>
       <div className="space-y-4">
@@ -940,6 +977,46 @@ export default function RequestsTableComponent({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div
+            className="flex grow justify-center text-sm whitespace-nowrap"
+            aria-live="polite"
+          >
+            <span className="font-normal">
+              {table.getSelectedRowModel().rows.length > 0 ? (
+                <div className="flex space-x-1 text-slate-600 dark:text-slate-400">
+                  <div>
+                    Seleccionado{" "}
+                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                      {formatCurrency(selectedAmount)}
+                    </span>
+                  </div>
+                  <div>
+                    (de{" "}
+                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                      {formatCurrency(totalAmount)}
+                    </span>
+                    )
+                  </div>
+                </div>
+              ) : (
+                <div className="flex space-x-1 text-slate-600 dark:text-slate-400">
+                  <div>
+                    Mostrando{" "}
+                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                      {formatCurrency(displayedAmount)}
+                    </span>
+                  </div>
+                  <div>
+                    (Total:{" "}
+                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                      {formatCurrency(totalAmount)}
+                    </span>
+                    )
+                  </div>
+                </div>
+              )}
+            </span>
           </div>
           {/* Page number information */}
           <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
