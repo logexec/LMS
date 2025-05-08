@@ -140,14 +140,14 @@ const columns: ColumnDef<Request>[] = [
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label="Seleccionar todas"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label="Seleccionar fila"
       />
     ),
     size: 28,
@@ -336,7 +336,7 @@ export default function RequestsTableComponent({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState<boolean>(false);
-  const [period, setPeriod] = useState<Period>("last_month");
+  const [period, setPeriod] = useState<Period>("last_week");
 
   // Función para refrescar los datos
   const refreshData = async () => {
@@ -674,7 +674,7 @@ export default function RequestsTableComponent({
                         }
                         onSelect={(event) => event.preventDefault()}
                       >
-                        {column.id}
+                        {column.columnDef.header?.toString()}
                       </DropdownMenuCheckboxItem>
                     );
                   })}
@@ -685,29 +685,19 @@ export default function RequestsTableComponent({
               variant="outline"
               className="flex flex-row"
               type="single"
+              value={period}
+              onValueChange={(value) => setPeriod(value as Period)}
             >
               <ToggleGroupItem
                 className="capitalize px-[18px]"
                 value="last_week"
-                aria-checked={period === "last_week"}
-                onClick={() => setPeriod("last_week")}
               >
                 última semana
               </ToggleGroupItem>
-              <ToggleGroupItem
-                className="capitalize px-2"
-                value="last_month"
-                onClick={() => setPeriod("last_month")}
-                aria-checked={period === "last_month"}
-              >
+              <ToggleGroupItem className="capitalize px-2" value="last_month">
                 último mes
               </ToggleGroupItem>
-              <ToggleGroupItem
-                className="capitalize"
-                value="all"
-                aria-checked={period === "all"}
-                onClick={() => setPeriod("all")}
-              >
+              <ToggleGroupItem className="capitalize" value="all">
                 Ver todo
               </ToggleGroupItem>
             </ToggleGroup>
