@@ -248,14 +248,18 @@ const columns: ColumnDef<Request>[] = [
             <span className="font-medium">{row.original.vehicle_plate}</span>
           </div>
         ) : (
-          <span className="text-gray-500">—</span>
+          <span className="text-gray-500 text-start">N/A</span>
         )}
-        {row.original.vehicle_number && (
-          <div className="flex flex-row space-x-1">
-            <span className="text-gray-700 dark:text-gray-300 font-normal">
-              No. Transporte:
+        {row.original.vehicle_plate && (
+          <div
+            className={`${
+              !row.original.vehicle_number && "text-gray-400 dark:text-gray-600"
+            } "flex flex-row space-x-1 font-normal"`}
+          >
+            <span>No. Transporte:</span>
+            <span className={`${row.original.vehicle_number && "font-medium"}`}>
+              {row.original.vehicle_number || "N/A"}
             </span>
-            <span className="font-medium">{row.original.vehicle_number}</span>
           </div>
         )}
       </div>
