@@ -925,7 +925,13 @@ export default function RequestsTableComponent({
                     <div className="flex items-center justify-center mx-auto space-x-2 w-max">
                       <LoaderCircle className="animate-spin text-red-700 size-4" />
                       <span className="text-gray-800 dark:text-gray-300 animate-pulse">
-                        Cargando datos...
+                        Cargando{" "}
+                        {mode === "discount"
+                          ? "descuentos"
+                          : mode === "expense"
+                          ? "gastos"
+                          : "ingresos"}
+                        ...
                       </span>
                     </div>
                   </TableCell>
