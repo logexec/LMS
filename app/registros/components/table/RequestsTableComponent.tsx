@@ -210,6 +210,12 @@ const columns: ColumnDef<Request>[] = [
     size: 100,
   },
   {
+    header: "Factura",
+    accessorKey: "invoice_number",
+    filterFn: multiColumnFilterFn,
+    size: 80,
+  },
+  {
     header: "Proyecto",
     accessorKey: "project",
     cell: ({ row }) => (
