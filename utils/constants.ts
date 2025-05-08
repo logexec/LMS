@@ -116,7 +116,7 @@ export const sidenavLinks: NavLink[] = [
       },
       {
         label: "Ingresos",
-        url: "/registros/ingresos",
+        url: "/registros/income",
         icon: Banknote,
         requiredPermissions: [Permission.EDIT_INCOME],
       },
