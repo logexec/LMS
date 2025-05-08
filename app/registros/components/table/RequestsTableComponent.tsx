@@ -212,6 +212,7 @@ const columns: ColumnDef<Request>[] = [
   {
     header: "Factura",
     accessorKey: "invoice_number",
+    cell: ({ row }) => <span>{row.original.invoice_number || "—"}</span>,
     filterFn: multiColumnFilterFn,
     size: 80,
   },
