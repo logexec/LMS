@@ -1,6 +1,6 @@
 {
   "name": "lms",
-  "version": "3.0.1",
+  "version": "3.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -48,6 +48,7 @@
     "date-fns": "^4.1.0",
     "jose": "^6.0.10",
     "js-cookie": "^3.0.5",
+    "jspdf": "^3.0.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.503.0",
     "motion": "^12.9.2",
