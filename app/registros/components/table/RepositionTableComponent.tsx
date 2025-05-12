@@ -25,28 +25,15 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-  CircleAlertIcon,
   CircleXIcon,
   Columns3Icon,
   EllipsisIcon,
   FilterIcon,
   ListFilterIcon,
   LoaderCircle,
-  TrashIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -87,35 +74,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaPaperPlane } from "react-icons/fa6";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
-import { SubmitFileDialog } from "../SubmitFileDialog";
-import axios from "axios";
-import DeleteButtonComponent from "../DeleteButtonComponent";
-import { onFileSubmit, requestsApi } from "@/services/axios";
-import { TableContextProvider } from "@/contexts/TableContext";
-import EditRequestComponent from "../EditRequestComponent";
-
-type Request = {
-  id: string;
-  unique_id: string;
-  request_date: Date;
-  invoice_number: string;
-  account_id: string;
-  amount: string;
-  project: string;
-  responsible_id?: string;
-  cedula_responsable?: string;
-  vehicle_plate?: string;
-  vehicle_number?: string;
-  note: string;
-};
+import { repositionsApi } from "@/services/axios";
+import { Reposition, TableContextProvider } from "@/contexts/TableContext";
+import RepositionDetailsTableComponent from "./RepositionDetailsTableComponent";
+import PayRepositionComponent from "../PayRepositionComponent";
+import RejectRepositionComponent from "../RejectRepositionComponent";
 
 type Period = "last_week" | "last_month" | "all";
+type Status = "rejected" | "pending" | "paid" | "all";
+
+const Statuses = {
+  pending: "Pendiente",
+  paid: "Pagada",
+  rejected: "Rechazada",
+};
 
 // Custom filter function for multi-column searching
-const multiColumnFilterFn: FilterFn<Request> = (row, columnId, filterValue) => {
+const multiColumnFilterFn: FilterFn<Reposition> = (
+  row,
+  columnId,
+  filterValue
+) => {
   const searchableRowContent = Object.values(row.original)
     .map((value) => {
       if (value instanceof Date) {
@@ -130,46 +111,25 @@ const multiColumnFilterFn: FilterFn<Request> = (row, columnId, filterValue) => {
   return searchableRowContent.includes(searchTerm);
 };
 
-const columns: ColumnDef<Request>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todas"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    size: 28,
-    enableSorting: false,
-    enableHiding: false,
-  },
+const columns: ColumnDef<Reposition>[] = [
   {
     header: "ID",
-    accessorKey: "unique_id",
+    accessorKey: "id",
     cell: ({ row }) => (
-      <div className="font-normal">{row.getValue("unique_id")}</div>
+      <div className="font-semibold text-slate-800 dark:text-slate-200">
+        {row.getValue("id")}
+      </div>
     ),
-    size: 90,
+    size: 75,
     filterFn: multiColumnFilterFn,
     enableHiding: false,
   },
   {
     header: "Fecha",
-    accessorKey: "request_date",
+    accessorKey: "fecha_reposicion",
     cell: ({ row }) => (
       <div className="font-normal">
-        {new Date(row.original.request_date).toLocaleDateString("es-EC", {
+        {new Date(row.original.fecha_reposicion!).toLocaleDateString("es-EC", {
           year: "numeric",
           month: "short",
           day: "2-digit",
@@ -181,90 +141,129 @@ const columns: ColumnDef<Request>[] = [
     enableHiding: false,
   },
   {
-    header: "Cuenta",
-    accessorKey: "account_id",
-    filterFn: multiColumnFilterFn,
-    size: 200,
-  },
-  {
-    header: "Valor",
-    accessorKey: "amount",
+    header: "Total",
+    accessorKey: "total_reposicion",
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
+      const amount = parseFloat(row.getValue("total_reposicion"));
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
       }).format(amount);
       return (
-        <Badge
-          variant="outline"
-          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-        >
+        <Badge variant="secondary" className="cursor-default">
           {formatted}
         </Badge>
       );
     },
     filterFn: multiColumnFilterFn,
+    size: 90,
+  },
+  {
+    header: "Estado",
+    accessorKey: "status",
+    cell: ({ row }) => (
+      <Badge
+        variant="outline"
+        className={`${
+          row.original.status === "pending"
+            ? "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300"
+            : row.original.status === "rejected"
+            ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
+            : "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
+        }`}
+      >
+        {Statuses[row.original.status]}
+      </Badge>
+    ),
     size: 100,
+    filterFn: multiColumnFilterFn,
   },
   {
     header: "Proyecto",
     accessorKey: "project",
     cell: ({ row }) => (
-      <Badge variant={"secondary"}>{row.getValue("project")}</Badge>
+      <Badge variant="secondary">{row.getValue("project")}</Badge>
     ),
     size: 100,
     filterFn: multiColumnFilterFn,
   },
   {
-    header: "Responsable",
-    accessorKey: "responsible_id",
-    cell: ({ row }) => (
-      <div className="flex flex-col space-y-0">
-        <span className="truncate font-medium text-[15px] capitalize">
-          {row.original.responsible_id || "—"}
-        </span>
-        <div className="text-gray-500 font-medium text-xs flex flex-row space-x-1.5">
-          <span className="text-gray-700 dark:text-gray-300 font-normal">
-            Cédula Responsable:
+    header: "Mes/Rol",
+    accessorKey: "month",
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("month")).toLocaleDateString("es-EC", {
+        year: "numeric",
+        month: "2-digit",
+      });
+      return (
+        <div className="flex flex-col space-y-0">
+          <span className="truncate font-medium text-[15px]">
+            {date || "—"}
           </span>
-          <span>{row.original.cedula_responsable}</span>
         </div>
-      </div>
-    ),
+      );
+    },
     filterFn: multiColumnFilterFn,
-    size: 300,
+    size: 150,
   },
   {
-    header: "Vehículo",
-    accessorKey: "vehicle_plate",
+    header: "Descontar en",
+    accessorKey: "when",
     cell: ({ row }) => (
       <div className="flex flex-col space-y-0">
-        {row.original.vehicle_plate ? (
-          <div className="flex flex-row space-x-2">
-            <span className="text-gray-700 dark:text-gray-300 font-normal">
-              Placa:
-            </span>
-            <span className="font-medium">{row.original.vehicle_plate}</span>
-          </div>
+        {row.original.when ? (
+          <span className="font-medium capitalize">{row.original.when}</span>
         ) : (
-          <span className="text-gray-500">—</span>
-        )}
-        {row.original.vehicle_number && (
-          <div className="flex flex-row space-x-1">
-            <span className="text-gray-700 dark:text-gray-300 font-normal">
-              No. Transporte:
-            </span>
-            <span className="font-medium">{row.original.vehicle_number}</span>
-          </div>
+          <span className="text-gray-500 text-start">N/A</span>
         )}
       </div>
     ),
     filterFn: multiColumnFilterFn,
+    size: 120,
+  },
+  {
+    header: "Tipo",
+    cell: ({ row }) => {
+      const firstItem = row.original.detail![0];
+      const typeOfRequest = firstItem.startsWith("I")
+        ? "Ingreso"
+        : firstItem.startsWith("P")
+        ? "Préstamo"
+        : firstItem.startsWith("D")
+        ? "Descuento"
+        : "Gasto";
+      const requestColors = firstItem.startsWith("I")
+        ? "text-emerald-600 dark:text-emerald-400"
+        : firstItem.startsWith("P")
+        ? "text-orange-600 dark:text-orange-400"
+        : firstItem.startsWith("D")
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-rose-600 dark:text-rose-400";
+
+      return (
+        <span className={`${requestColors} font-medium`}>{typeOfRequest}</span>
+      );
+    },
+    size: 100,
+  },
+  {
+    header: "Detalles",
+    cell: ({ row }) => {
+      const reposition_id = row.original.id;
+      const total_reposition = parseFloat(row.getValue("total_reposicion"));
+      return (
+        <RepositionDetailsTableComponent
+          reposition={parseInt(reposition_id!)}
+          total={total_reposition}
+        />
+      );
+    },
+    size: 125,
   },
   {
     header: "Observación",
     accessorKey: "note",
+    cell: ({ row }) => <span className="text-sm">{row.getValue("note")}</span>,
     size: 200,
   },
   {
@@ -277,25 +276,30 @@ const columns: ColumnDef<Request>[] = [
   },
 ];
 
-function RowActions({ row }: { row: Row<Request> }) {
+function RowActions({ row }: { row: Row<Reposition> }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div className="flex justify-end">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="shadow-none"
-            aria-label="Editar solicitud"
-          >
-            <EllipsisIcon size={16} aria-hidden="true" />
-          </Button>
-        </div>
+      <DropdownMenuTrigger
+        disabled={
+          row.original.status === "paid" || row.original.status === "rejected"
+        }
+        className={`${
+          (row.original.status === "paid" ||
+            row.original.status === "rejected") &&
+          "cursor-not-allowed"
+        } disabled:cursor-not-allowed`}
+      >
+        <EllipsisIcon size={16} aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <EditRequestComponent row={row.original} />
+            <PayRepositionComponent
+              item={row.original}
+              type={
+                row.original.detail![0].startsWith("D") ? "discount" : "expense"
+              }
+            />
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -303,7 +307,12 @@ function RowActions({ row }: { row: Row<Request> }) {
           className="text-destructive focus:text-destructive"
           onSelect={(e) => e.preventDefault()}
         >
-          <DeleteButtonComponent row={row.original} />
+          <RejectRepositionComponent
+            item={row.original}
+            type={
+              row.original.detail![0].startsWith("D") ? "discount" : "expense"
+            }
+          />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -313,7 +322,7 @@ function RowActions({ row }: { row: Row<Request> }) {
 export default function RepositionTableComponent({
   mode,
 }: {
-  mode: "discount" | "expense" | "income";
+  mode: "all" | "income";
 }) {
   const id = useId();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -327,24 +336,24 @@ export default function RepositionTableComponent({
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "unique_id",
+      id: "id",
       desc: true,
     },
   ]);
 
-  const [data, setData] = useState<Request[]>([]);
+  const [data, setData] = useState<Reposition[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSubmitDialog, setShowSubmitDialog] = useState<boolean>(false);
   const [period, setPeriod] = useState<Period>("last_week");
+  const [status, setStatus] = useState<Status>("pending");
 
   // Función para refrescar los datos
   const refreshData = async () => {
     try {
       setIsLoading(true);
-      const freshData = await requestsApi.fetchRequests({
-        type: mode,
+      const freshData = await repositionsApi.fetchRepositions({
+        mode: mode,
         period: period,
+        status: status,
       });
       setData(freshData);
     } catch (error) {
@@ -357,13 +366,13 @@ export default function RepositionTableComponent({
 
   // Cargar datos iniciales
   useEffect(() => {
-    async function fetchRequests() {
+    async function fetchRepositions() {
       try {
         setIsLoading(true);
-        const data = await requestsApi.fetchRequests({
-          type: mode,
+        const data = await repositionsApi.fetchRepositions({
+          mode: mode,
           period: period,
-          status: "pending",
+          status: status,
         });
         setData(data);
       } catch (error) {
@@ -372,8 +381,8 @@ export default function RepositionTableComponent({
         setIsLoading(false);
       }
     }
-    fetchRequests();
-  }, [mode, period]);
+    fetchRepositions();
+  }, [mode, period, status]);
 
   const contextValue = {
     data,
@@ -381,107 +390,6 @@ export default function RepositionTableComponent({
     refreshData,
     isLoading,
     mode,
-  };
-
-  const handleDeleteMultiple = async () => {
-    const selectedRows = table.getSelectedRowModel().rows;
-    const selectedIds = selectedRows.map((row) => row.original.unique_id);
-
-    if (selectedIds.length === 0) {
-      toast.error("Selecciona al menos una solicitud para eliminar");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      // Actualización optimista - Eliminar filas de la UI
-      setData((prevData) =>
-        prevData.filter((item) => !selectedIds.includes(item.unique_id))
-      );
-
-      // Eliminar en la API
-      await requestsApi.deleteMultipleRequests(selectedIds);
-
-      // Limpiar selección
-      table.resetRowSelection();
-
-      // Mostrar mensaje de éxito
-      toast.success(
-        `${selectedIds.length} ${
-          selectedIds.length === 1
-            ? "solicitud eliminada"
-            : "solicitudes eliminadas"
-        } correctamente`
-      );
-    } catch (error) {
-      console.error("Error deleting multiple requests:", error);
-
-      // Revertir eliminación optimista en caso de error
-      refreshData();
-
-      toast.error(
-        "No se pudieron eliminar las solicitudes. Inténtalo de nuevo."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmitRequests = async (file: File) => {
-    try {
-      setIsSubmitting(true);
-
-      // Obtener IDs de las filas seleccionadas
-      const selectedRows = table.getSelectedRowModel().rows;
-      const requestIds = selectedRows.map((row) => row.original.unique_id);
-
-      if (requestIds.length === 0) {
-        toast.error("Selecciona al menos una solicitud");
-        return null;
-      }
-
-      // Actualización optimista - Eliminar filas de la UI primero
-      setData((prevData) =>
-        prevData.filter((item) => !requestIds.includes(item.unique_id))
-      );
-
-      // Usar la función especializada para archivos
-      await onFileSubmit(requestIds, file);
-
-      // Si llegamos aquí, la operación fue exitosa
-      toast.success(
-        requestIds.length > 1
-          ? "Solicitudes enviadas correctamente."
-          : "Solicitud enviada correctamente."
-      );
-      table.resetRowSelection();
-      setShowSubmitDialog(false);
-
-      return true; // Retornamos cualquier valor que no sea void
-    } catch (error) {
-      console.error("Error in handleSendRequests:", error);
-
-      // Restaurar datos en caso de error
-      refreshData();
-
-      // Mostrar mensaje de error
-      if (axios.isAxiosError(error)) {
-        const errorData = error.response?.data;
-        const errorMessage =
-          errorData?.message || "Error al crear la reposición";
-        toast.error(errorMessage);
-      } else {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error al crear la reposición"
-        );
-      }
-      return null;
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const table = useReactTable({
@@ -555,32 +463,9 @@ export default function RepositionTableComponent({
 
   // Total general (todos los registros en data)
   const totalAmount = useMemo(
-    () => data.reduce((sum, row) => sum + (Number(row.amount) || 0), 0),
+    () =>
+      data.reduce((sum, row) => sum + (Number(row.total_reposicion) || 0), 0),
     [data]
-  );
-
-  // Total mostrado (filas visibles en la página actual)
-  const displayedAmount = useMemo(
-    () =>
-      table
-        .getRowModel()
-        .rows.reduce(
-          (sum, row) => sum + (Number(row.getValue("amount")) || 0),
-          0
-        ),
-    [table.getRowModel().rows]
-  );
-
-  // Total seleccionado (filas seleccionadas)
-  const selectedAmount = useMemo(
-    () =>
-      table
-        .getSelectedRowModel()
-        .rows.reduce(
-          (sum, row) => sum + (Number(row.getValue("amount")) || 0),
-          0
-        ),
-    [table.getSelectedRowModel().rows]
   );
 
   // Formateador de moneda
@@ -594,11 +479,9 @@ export default function RepositionTableComponent({
     <TableContextProvider value={contextValue}>
       <div className="space-y-4">
         <h3 className="font-medium text-xl border-b pb-2">
-          {mode === "discount"
-            ? "Descuentos"
-            : mode === "expense"
-            ? "Gastos"
-            : "Ingresos"}
+          {mode === "all"
+            ? "Solicitudes de Reposiciones"
+            : "Solicitudes de Reposiciones (Ingresos)"}
         </h3>
         {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -621,12 +504,12 @@ export default function RepositionTableComponent({
               <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
                 <ListFilterIcon size={16} aria-hidden="true" />
               </div>
-              {Boolean(table.getColumn("responsible_id")?.getFilterValue()) && (
+              {Boolean(table.getColumn("month")?.getFilterValue()) && (
                 <button
                   className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none focus:z-10 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Clear filter"
                   onClick={() => {
-                    table.getColumn("responsible_id")?.setFilterValue("");
+                    table.getColumn("month")?.setFilterValue("");
                     if (inputRef.current) {
                       inputRef.current.focus();
                     }
@@ -738,108 +621,27 @@ export default function RepositionTableComponent({
                 Ver todo
               </ToggleGroupItem>
             </ToggleGroup>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Delete button */}
-            {table.getSelectedRowModel().rows.length > 0 && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="ml-auto" variant="destructive">
-                    <TrashIcon
-                      className="-ms-1 opacity-60"
-                      size={16}
-                      aria-hidden="true"
-                    />
-                    Eliminar
-                    <span className="bg-background text-muted-foreground/70 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium">
-                      {table.getSelectedRowModel().rows.length}
-                    </span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <div className="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
-                    <div
-                      className="flex size-9 shrink-0 items-center justify-center rounded-full border"
-                      aria-hidden="true"
-                    >
-                      <CircleAlertIcon className="opacity-80" size={16} />
-                    </div>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        ¿Estás realmente seguro?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta acción no se puede deshacer. Esto eliminará
-                        permanentemente{" "}
-                        {table.getSelectedRowModel().rows.length}{" "}
-                        {table.getSelectedRowModel().rows.length === 1
-                          ? "solicitud seleccionada"
-                          : "solicitudes seleccionadas"}
-                        .
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                  </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>
-                      Cancelar
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteMultiple();
-                      }}
-                      disabled={isLoading}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {isLoading ? (
-                        <>
-                          <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                          Eliminando...
-                        </>
-                      ) : (
-                        "Eliminar"
-                      )}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            {/* Botón de "Enviar Solicitud" */}
-            <Button
-              className="ml-auto"
+            {/* Filter by status */}
+            <ToggleGroup
               variant="outline"
-              onClick={() => {
-                if (table.getSelectedRowModel().rows.length === 0) {
-                  toast.error("Selecciona al menos una solicitud para enviar");
-                  return;
-                }
-                setShowSubmitDialog(true);
-              }}
-              disabled={isSubmitting}
+              className="flex flex-row"
+              type="single"
+              value={status}
+              onValueChange={(value) => setStatus(value as Status)}
             >
-              {isSubmitting ? (
-                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FaPaperPlane
-                  className="-ms-1 opacity-60"
-                  size={16}
-                  aria-hidden="true"
-                />
-              )}
-              {isSubmitting ? "Enviando..." : "Enviar Solicitud"}
-              <span className="bg-background text-muted-foreground/70 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium">
-                {table.getSelectedRowModel().rows.length}
-              </span>
-            </Button>
-
-            {/* Añade el componente de diálogo */}
-            <SubmitFileDialog
-              open={showSubmitDialog}
-              onOpenChange={setShowSubmitDialog}
-              onSubmit={handleSubmitRequests}
-              isSubmitting={isSubmitting}
-              count={table.getSelectedRowModel().rows.length}
-            />
+              <ToggleGroupItem className="capitalize px-4" value="pending">
+                Pendientes
+              </ToggleGroupItem>
+              <ToggleGroupItem className="capitalize px-2" value="paid">
+                Pagadas
+              </ToggleGroupItem>
+              <ToggleGroupItem className="capitalize px-4" value="rejected">
+                Rechazadas
+              </ToggleGroupItem>
+              <ToggleGroupItem className="capitalize" value="all">
+                Todas
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </div>
 
@@ -917,7 +719,7 @@ export default function RepositionTableComponent({
                     <div className="flex items-center justify-center mx-auto space-x-2 w-max">
                       <LoaderCircle className="animate-spin text-red-700 size-4" />
                       <span className="text-gray-800 dark:text-gray-300 animate-pulse">
-                        Cargando datos...
+                        Cargando reposiciones...
                       </span>
                     </div>
                   </TableCell>
@@ -928,6 +730,10 @@ export default function RepositionTableComponent({
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
+                      className={`${
+                        row.original.status === "rejected" ||
+                        (row.original.status === "paid" && "opacity-50")
+                      }`}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="last:py-0">
@@ -983,39 +789,14 @@ export default function RepositionTableComponent({
             aria-live="polite"
           >
             <span className="font-normal">
-              {table.getSelectedRowModel().rows.length > 0 ? (
-                <div className="flex space-x-1 text-slate-600 dark:text-slate-400">
-                  <div>
-                    Seleccionado{" "}
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {formatCurrency(selectedAmount)}
-                    </span>
-                  </div>
-                  <div>
-                    (de{" "}
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {formatCurrency(totalAmount)}
-                    </span>
-                    )
-                  </div>
+              <div className="flex space-x-1 text-slate-600 dark:text-slate-400">
+                <div>
+                  Total:{" "}
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {formatCurrency(totalAmount)}
+                  </span>
                 </div>
-              ) : (
-                <div className="flex space-x-1 text-slate-600 dark:text-slate-400">
-                  <div>
-                    Mostrando{" "}
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {formatCurrency(displayedAmount)}
-                    </span>
-                  </div>
-                  <div>
-                    (Total:{" "}
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {formatCurrency(totalAmount)}
-                    </span>
-                    )
-                  </div>
-                </div>
-              )}
+              </div>
             </span>
           </div>
           {/* Page number information */}
