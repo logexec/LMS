@@ -4,6 +4,7 @@ import TxtUploader from "./components/TxtUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { BoxIcon, HouseIcon, PanelsTopLeftIcon } from "lucide-react";
+import SRIDocumentList from "./components/SRIDocumentList";
 
 const SRIPage = () => {
   const [activeTab, setActiveTab] = useState("tab-1");
@@ -50,14 +51,19 @@ const SRIPage = () => {
       </ScrollArea>
       <TabsContent value="tab-1">
         <div className="text-muted-foreground p-4 pt-1 text-center text-xs">
-          <TxtUploader />
+          <TxtUploader
+            onFinish={() => {
+              setActiveTab("tab-2");
+            }}
+          />
         </div>
       </TabsContent>
       <TabsContent value="tab-2">
-        <p className="text-muted-foreground p-4 pt-1 text-center text-xs">
-          Contenido de la pestaña 2
-        </p>
+        <div className="p-4 pt-1">
+          <SRIDocumentList />
+        </div>
       </TabsContent>
+
       <TabsContent value="tab-3">
         <p className="text-muted-foreground p-4 pt-1 text-center text-xs">
           Contenido de la pestaña 3
