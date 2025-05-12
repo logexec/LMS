@@ -158,7 +158,7 @@ export function RejectRepositionComponent({ item }: EditRepositionProps) {
       }
 
       // Luego actualizamos en la API
-      await repositionsApi.updateReposition(item.id!, values);
+      await repositionsApi.updateReposition(item.id.toString(), values);
 
       // Cerrar diálogo y mostrar mensaje
       setOpen(false);
