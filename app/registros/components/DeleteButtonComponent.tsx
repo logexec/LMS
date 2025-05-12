@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { toast } from "sonner"; // Asegúrate de que tienes sonner instalado
 import { requestsApi } from "@/services/axios"; // Ajusta la ruta según tu estructura
@@ -32,8 +33,8 @@ export const DeleteButtonComponent: React.FC<DeleteButtonProps> = ({ row }) => {
       setIsDeleting(true);
 
       // Eliminación optimista - Actualizamos la UI primero
-      setData((prevData) =>
-        prevData.filter((item) => item.unique_id !== row.unique_id)
+      setData((prevData: any) =>
+        prevData.filter((item: any) => item.unique_id !== row.unique_id)
       );
 
       // Luego realizamos la petición a la API
