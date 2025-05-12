@@ -108,7 +108,7 @@ export function RejectRepositionComponent({ item }: EditRepositionProps) {
   const [open, setOpen] = useState(false);
 
   // Usar el contexto de la tabla
-  const { setData } = useTableContext();
+  const { setData, data, refreshData } = useTableContext();
 
   // Inicializar el formulario
   const form = useForm<z.infer<typeof formSchema>>({
@@ -138,28 +138,37 @@ export function RejectRepositionComponent({ item }: EditRepositionProps) {
     try {
       setIsSubmitting(true);
 
-      // Actualización optimista - Actualizar UI primero
-      setData((prevData: any) =>
-        prevData.map((row: any) =>
-          row.id === item.id ? { ...row, ...values } : row
-        )
+      // Verificar si estamos mostrando solo pendientes
+      const showingOnlyPending = data.every(
+        (reposition: any) => reposition.status === "pending"
       );
+
+      // Si solo mostramos pendientes, eliminar la reposición de la vista
+      if (showingOnlyPending) {
+        setData((prevData: any) =>
+          prevData.filter((row: any) => row.id !== item.id)
+        );
+      } else {
+        // Si estamos mostrando todas las reposiciones, actualizar la fila
+        setData((prevData: any) =>
+          prevData.map((row: any) =>
+            row.id === item.id ? { ...row, ...values } : row
+          )
+        );
+      }
 
       // Luego actualizamos en la API
       await repositionsApi.updateReposition(item.id!, values);
 
       // Cerrar diálogo y mostrar mensaje
       setOpen(false);
-      toast.success(`Reposición ${item.id} actualizada correctamente`);
+      toast.success(`Reposición ${item.id} rechazada correctamente`);
     } catch (error) {
       console.error("Error updating reposition:", error);
 
-      // En caso de error, revertir cambios optimistas
-      setData((prevData: any) =>
-        prevData.map((row: any) => (row.id === item.id ? item : row))
-      );
-
-      toast.error("No se pudo actualizar la reposición. Inténtalo de nuevo.");
+      // Revertir cambios - refrescar los datos para asegurar consistencia
+      toast.error("No se pudo actualizar la reposición. Refrescando datos...");
+      await refreshData();
     } finally {
       setIsSubmitting(false);
     }

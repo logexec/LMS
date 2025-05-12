@@ -1,7 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -81,6 +88,7 @@ import { Reposition, TableContextProvider } from "@/contexts/TableContext";
 import RepositionDetailsTableComponent from "./RepositionDetailsTableComponent";
 import PayRepositionComponent from "../PayRepositionComponent";
 import RejectRepositionComponent from "../RejectRepositionComponent";
+import { isEmpty } from "lodash";
 
 type Period = "last_week" | "last_month" | "all";
 type Status = "rejected" | "pending" | "paid" | "all";
@@ -111,7 +119,67 @@ const multiColumnFilterFn: FilterFn<Reposition> = (
   return searchableRowContent.includes(searchTerm);
 };
 
-const columns: ColumnDef<Reposition>[] = [
+// RowActions component optimized with React.memo
+const RowActions = React.memo(({ row }: { row: Row<Reposition> }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        disabled={
+          row.original.status === "paid" || row.original.status === "rejected"
+        }
+        className={`${
+          (row.original.status === "paid" ||
+            row.original.status === "rejected") &&
+          "cursor-not-allowed"
+        } disabled:cursor-not-allowed`}
+      >
+        <EllipsisIcon size={16} aria-hidden="true" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <PayRepositionComponent
+              item={row.original}
+              type={
+                row.original.detail![0].startsWith("D") ? "discount" : "expense"
+              }
+            />
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onSelect={(e) => e.preventDefault()}
+        >
+          <RejectRepositionComponent
+            item={row.original}
+            type={
+              row.original.detail![0].startsWith("D") ? "discount" : "expense"
+            }
+          />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+});
+RowActions.displayName = "RowActions";
+
+// Memoized formatters to prevent recreating functions in render cycles
+const formatDate = (date: string | Date) =>
+  (date instanceof Date ? date : new Date(date)).toLocaleDateString("es-EC", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+
+const formatCurrency = (amount: number | string) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(typeof amount === "string" ? parseFloat(amount) : amount);
+
+// Factory function for column definitions
+const createColumns = (): ColumnDef<Reposition>[] => [
   {
     header: "ID",
     accessorKey: "id",
@@ -129,11 +197,7 @@ const columns: ColumnDef<Reposition>[] = [
     accessorKey: "fecha_reposicion",
     cell: ({ row }) => (
       <div className="font-normal">
-        {new Date(row.original.fecha_reposicion!).toLocaleDateString("es-EC", {
-          year: "numeric",
-          month: "short",
-          day: "2-digit",
-        })}
+        {formatDate(row.original.fecha_reposicion || "")}
       </div>
     ),
     size: 120,
@@ -145,13 +209,9 @@ const columns: ColumnDef<Reposition>[] = [
     accessorKey: "total_reposicion",
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("total_reposicion"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
       return (
         <Badge variant="secondary" className="cursor-default">
-          {formatted}
+          {formatCurrency(amount)}
         </Badge>
       );
     },
@@ -191,15 +251,25 @@ const columns: ColumnDef<Reposition>[] = [
     header: "Mes/Rol",
     accessorKey: "month",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("month")).toLocaleDateString("es-EC", {
-        year: "numeric",
-        month: "2-digit",
-      });
+      const monthValue = row.original.month;
+
+      // Verificamos si el mes es válido
+      const isValidDate =
+        monthValue &&
+        !isNaN(new Date(monthValue).getTime()) &&
+        monthValue.trim() !== "";
+
+      // Formateamos la fecha si es válida
+      const date = isValidDate
+        ? new Date(monthValue).toLocaleDateString("es-EC", {
+            year: "numeric",
+            month: "2-digit",
+          })
+        : "—";
+
       return (
         <div className="flex flex-col space-y-0">
-          <span className="truncate font-medium text-[15px]">
-            {date || "—"}
-          </span>
+          <span className="truncate font-medium text-[15px]">{date}</span>
         </div>
       );
     },
@@ -253,7 +323,7 @@ const columns: ColumnDef<Reposition>[] = [
       const total_reposition = parseFloat(row.getValue("total_reposicion"));
       return (
         <RepositionDetailsTableComponent
-          reposition={parseInt(reposition_id!)}
+          reposition={reposition_id}
           total={total_reposition}
         />
       );
@@ -275,49 +345,6 @@ const columns: ColumnDef<Reposition>[] = [
     filterFn: multiColumnFilterFn,
   },
 ];
-
-function RowActions({ row }: { row: Row<Reposition> }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        disabled={
-          row.original.status === "paid" || row.original.status === "rejected"
-        }
-        className={`${
-          (row.original.status === "paid" ||
-            row.original.status === "rejected") &&
-          "cursor-not-allowed"
-        } disabled:cursor-not-allowed`}
-      >
-        <EllipsisIcon size={16} aria-hidden="true" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <PayRepositionComponent
-              item={row.original}
-              type={
-                row.original.detail![0].startsWith("D") ? "discount" : "expense"
-              }
-            />
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
-          onSelect={(e) => e.preventDefault()}
-        >
-          <RejectRepositionComponent
-            item={row.original}
-            type={
-              row.original.detail![0].startsWith("D") ? "discount" : "expense"
-            }
-          />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 export default function RepositionTableComponent({
   mode,
@@ -346,8 +373,11 @@ export default function RepositionTableComponent({
   const [period, setPeriod] = useState<Period>("last_week");
   const [status, setStatus] = useState<Status>("pending");
 
-  // Función para refrescar los datos
-  const refreshData = async () => {
+  // Memoized column definitions
+  const columns = useMemo(() => createColumns(), []);
+
+  // Use useCallback for functions to prevent unnecessary re-renders
+  const refreshData = useCallback(async () => {
     try {
       setIsLoading(true);
       const freshData = await repositionsApi.fetchRepositions({
@@ -362,35 +392,51 @@ export default function RepositionTableComponent({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mode, period, status]);
 
-  // Cargar datos iniciales
+  // Fetch data when dependencies change
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchRepositions() {
       try {
         setIsLoading(true);
-        const data = await repositionsApi.fetchRepositions({
+        const fetchedData = await repositionsApi.fetchRepositions({
           mode: mode,
           period: period,
           status: status,
         });
-        setData(data);
+
+        if (isMounted) {
+          setData(fetchedData);
+        }
       } catch (error) {
         console.error(error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
+
     fetchRepositions();
+
+    return () => {
+      isMounted = false;
+    };
   }, [mode, period, status]);
 
-  const contextValue = {
-    data,
-    setData,
-    refreshData,
-    isLoading,
-    mode,
-  };
+  // Memoize context value to prevent unnecessary re-renders of children
+  const contextValue = useMemo(
+    () => ({
+      data,
+      setData,
+      refreshData,
+      isLoading,
+      mode,
+    }),
+    [data, refreshData, isLoading, mode]
+  );
 
   const table = useReactTable({
     data,
@@ -405,8 +451,8 @@ export default function RepositionTableComponent({
     onColumnVisibilityChange: setColumnVisibility,
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    globalFilterFn: multiColumnFilterFn, // Asignar el filtro global
-    onGlobalFilterChange: setGlobalFilter, // Manejar cambios en el filtro global
+    globalFilterFn: multiColumnFilterFn,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       pagination,
@@ -416,18 +462,14 @@ export default function RepositionTableComponent({
     },
   });
 
-  // Get unique status values
+  // Memoize filter-related values to prevent unnecessary calculations
   const uniqueStatusValues = useMemo(() => {
     const projectColumn = table.getColumn("project");
-
     if (!projectColumn) return [];
-
     const values = Array.from(projectColumn.getFacetedUniqueValues().keys());
-
     return values.sort();
   }, [table.getColumn("project")?.getFacetedUniqueValues()]);
 
-  // Get counts for each project
   const projectCounts = useMemo(() => {
     const projectColumn = table.getColumn("project");
     if (!projectColumn) return new Map();
@@ -441,39 +483,36 @@ export default function RepositionTableComponent({
     return filterValue ?? [];
   }, [table.getColumn("project")?.getFilterValue()]);
 
-  const handleStatusChange = (checked: boolean, value: string) => {
-    const filterValue = table
-      .getColumn("project")
-      ?.getFilterValue() as string[];
-    const newFilterValue = filterValue ? [...filterValue] : [];
+  // Handler with useCallback
+  const handleStatusChange = useCallback(
+    (checked: boolean, value: string) => {
+      const filterValue = table
+        .getColumn("project")
+        ?.getFilterValue() as string[];
+      const newFilterValue = filterValue ? [...filterValue] : [];
 
-    if (checked) {
-      newFilterValue.push(value);
-    } else {
-      const index = newFilterValue.indexOf(value);
-      if (index > -1) {
-        newFilterValue.splice(index, 1);
+      if (checked) {
+        newFilterValue.push(value);
+      } else {
+        const index = newFilterValue.indexOf(value);
+        if (index > -1) {
+          newFilterValue.splice(index, 1);
+        }
       }
-    }
 
-    table
-      .getColumn("project")
-      ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
-  };
+      table
+        .getColumn("project")
+        ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
+    },
+    [table]
+  );
 
-  // Total general (todos los registros en data)
+  // Total amount calculation with useMemo
   const totalAmount = useMemo(
     () =>
       data.reduce((sum, row) => sum + (Number(row.total_reposicion) || 0), 0),
     [data]
   );
-
-  // Formateador de moneda
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
 
   return (
     <TableContextProvider value={contextValue}>
@@ -496,7 +535,7 @@ export default function RepositionTableComponent({
                   Boolean(globalFilter) && "pe-9"
                 )}
                 value={globalFilter}
-                onChange={(e) => setGlobalFilter(e.target.value)} // Usar el filtro global
+                onChange={(e) => setGlobalFilter(e.target.value)}
                 placeholder="Buscar en todas las columnas..."
                 type="text"
                 aria-label="Buscar en todas las columnas"

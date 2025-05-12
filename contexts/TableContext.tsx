@@ -23,7 +23,7 @@ export interface Request {
 }
 
 export interface Reposition {
-  id?: string;
+  id: number;
   fecha_reposicion?: Date;
   total_reposicion?: number;
   status: "paid" | "rejected" | "pending";

@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { repositionsApi } from "@/services/axios";
-import { useTableContext, Reposition } from "@/contexts/TableContext";
+import { Reposition, useTableContext } from "@/contexts/TableContext";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 import {
   Select,
@@ -33,65 +31,60 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Esquema de validación para el formulario
-const formSchema = z.object({
-  status: z.enum(["paid"]),
-  month: z
-    .string()
-    .min(1, "Debes escoger un mes")
-    .transform((val) => val ?? ""),
-  note: z
-    .string()
-    .min(1, "Debes agregar un motivo para respaldar el pago")
-    .transform((val) => val ?? ""),
-  when: z
-    .string()
-    .min(1, "Debes indicar cuando se hará el descuento.")
-    .transform((val) => val ?? ""), // convierte null o undefined en ""
-});
+interface TableContextType {
+  data: Reposition[];
+  setData: React.Dispatch<React.SetStateAction<Reposition[]>>;
+  refreshData: () => Promise<void>;
+}
+
+// Validation schema
+export const createFormSchema = (type: string) => {
+  const baseSchema = z.object({
+    status: z.literal("paid"),
+    note: z.string().nonempty("Debes agregar un motivo para respaldar el pago"),
+  });
+
+  if (type === "discount") {
+    return baseSchema.extend({
+      month: z.string().nonempty("Debes escoger un mes"),
+      when: z.string().nonempty("Debes indicar cuando se hará el descuento."),
+    });
+  }
+
+  return baseSchema.extend({
+    month: z.string().nullable(),
+    when: z.string().nullable(),
+  });
+};
 
 interface EditRepositionProps {
   item: Reposition;
-  type?: string;
+  type: string;
   triggerElement?: React.ReactNode;
 }
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 function TextareaInput({
   form,
   isSubmitting,
 }: {
-  form: any;
+  form: UseFormReturn<FormValues>;
   isSubmitting: boolean;
 }) {
-  // Manejador específico para la tecla espacio
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === " ") {
-      // Evitar el comportamiento predeterminado para la tecla espacio
       e.stopPropagation();
-
-      // Obtener la posición actual del cursor
       const textarea = e.currentTarget;
       const start = textarea.selectionStart || 0;
       const end = textarea.selectionEnd || 0;
-
-      // Obtener el valor actual
       const currentValue = textarea.value || "";
-
-      // Crear el nuevo valor con el espacio insertado en la posición del cursor
       const newValue =
         currentValue.substring(0, start) + " " + currentValue.substring(end);
-
-      // Actualizar el valor en el formulario
       form.setValue("note", newValue, { shouldValidate: true });
-
-      // Programar la actualización de la posición del cursor después del render
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 1;
       }, 0);
-
-      // Prevenir el comportamiento predeterminado
       e.preventDefault();
     }
   };
@@ -120,13 +113,12 @@ function TextareaInput({
   );
 }
 
-// Componente para mostrar los campos de descuento
 function DiscountFields({
   form,
   isSubmitting,
   today,
 }: {
-  form: any;
+  form: UseFormReturn<FormValues>;
   isSubmitting: boolean;
   today: string;
 }) {
@@ -144,7 +136,7 @@ function DiscountFields({
                 disabled={isSubmitting}
                 min={today}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={field.value}
+                value={field.value ?? ""}
                 onChange={field.onChange}
               />
             </FormControl>
@@ -160,7 +152,7 @@ function DiscountFields({
           <FormItem>
             <FormLabel htmlFor="when">Descontar en</FormLabel>
             <Select
-              value={field.value}
+              value={field.value ?? ""}
               onValueChange={field.onChange}
               disabled={isSubmitting}
             >
@@ -185,36 +177,33 @@ function DiscountFields({
   );
 }
 
-// Componente principal
 export function PayRepositionComponent({ type, item }: EditRepositionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Usar el contexto de la tabla
-  const { setData } = useTableContext();
+  const { setData, data, refreshData } = useTableContext() as TableContextType;
 
-  // Inicializar el formulario
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const schema = useMemo(() => createFormSchema(type), [type]);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
     defaultValues: {
       status: "paid",
+      note: "",
       month: "",
       when: "",
-      note: "",
     },
   });
 
-  // Reset form when row changes
   useEffect(() => {
     form.reset({
       status: "paid",
+      note: "",
       month: "",
       when: "",
-      note: "",
     });
-  }, [item, form.reset]);
+  }, [item, type, form]);
 
-  // Se encarga de prevenir la propagación de eventos del dropdown
   const handleTriggerClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -225,28 +214,43 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
     try {
       setIsSubmitting(true);
 
-      // Actualización optimista - Actualizar UI primero
-      setData((prevData: any) =>
-        prevData.map((row: any) =>
-          row.id === item.id ? { ...row, ...values } : row
-        )
+      // Validate required fields for discount type
+      if (type === "discount" && (!values.month || !values.when)) {
+        toast.error(
+          "Por favor, completa los campos requeridos para el descuento."
+        );
+        return;
+      }
+
+      // Transform values to match database schema
+      const payload = {
+        ...values,
+        month: values.month || undefined,
+        when: values.when || undefined,
+      };
+
+      const showingOnlyPending = data.every(
+        (reposition) => reposition.status === "pending"
       );
 
-      // Luego actualizamos en la API
-      await repositionsApi.updateReposition(item.id!, values);
+      if (showingOnlyPending) {
+        setData((prevData) => prevData.filter((row) => row.id !== item.id));
+      } else {
+        setData((prevData) =>
+          prevData.map((row) =>
+            row.id === item.id ? { ...row, ...values } : row
+          )
+        );
+      }
 
-      // Cerrar diálogo y mostrar mensaje
+      await repositionsApi.updateReposition(String(item.id), payload);
+
       setOpen(false);
-      toast.success(`Reposición ${item.id} actualizada correctamente`);
+      toast.success(`Reposición ${item.id} marcada como pagada correctamente`);
     } catch (error) {
       console.error("Error updating reposition:", error);
-
-      // En caso de error, revertir cambios optimistas
-      setData((prevData: any) =>
-        prevData.map((row: any) => (row.id === item.id ? item : row))
-      );
-
-      toast.error("No se pudo actualizar la solicitud. Inténtalo de nuevo.");
+      toast.error("No se pudo actualizar la solicitud. Refrescando datos...");
+      await refreshData();
     } finally {
       setIsSubmitting(false);
     }
@@ -255,13 +259,12 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
   const today = useMemo(() => {
     const date = new Date();
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Meses de 0-11, +1 para 1-12
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     return `${year}-${month}`;
   }, []);
 
   return (
     <>
-      {/* Usamos una etiqueta div en lugar de span para evitar cualquier problema de propagación */}
       <div className="w-full" onClick={(e) => e.stopPropagation()}>
         <div
           className="text-slate-700 dark:text-slate-300 hover:bg-slate-400/10 dark:hover:bg-slate-600/10 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer text-start px-2 py-1.5 text-sm block"
