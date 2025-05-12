@@ -70,13 +70,6 @@ const getStatusMessages = (status: Status) => {
       action: "Rechazar",
       toast: "Reposición rechazada",
     },
-    // [Status.review]: {
-    //   title: "Enviar a Revisión",
-    //   description:
-    //     "¿Estás seguro de que deseas enviar esta reposición a revisión?",
-    //   action: "Enviar a revisión",
-    //   toast: "Reposición enviada a revisión",
-    // },
   };
   return messages[status as keyof typeof messages];
 };

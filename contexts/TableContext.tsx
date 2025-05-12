@@ -14,15 +14,39 @@ export interface Request {
   vehicle_plate?: string;
   vehicle_number?: string;
   note: string;
+  status?: "paid" | "rejected" | "pending" | "in_reposition";
+  type?: string;
+  personnel_type?: string;
+  month?: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface Reposition {
+  id?: string;
+  fecha_reposicion?: Date;
+  total_reposicion?: number;
+  status: "paid" | "rejected" | "pending";
+  project?: string;
+  detail?: string[];
+  month?: string;
+  when?: string;
+  attachment_url?: string;
+  attachment_name?: string;
+  note: string;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 // Define el tipo para el contexto
 export interface TableContextType {
-  data: Request[];
-  setData: React.Dispatch<React.SetStateAction<Request[]>>;
+  data: Request[] | Reposition[];
+  setData:
+    | React.Dispatch<React.SetStateAction<Request[]>>
+    | React.Dispatch<React.SetStateAction<Reposition[]>>;
   refreshData: () => Promise<void>;
   isLoading: boolean;
-  mode: "discount" | "expense" | "income";
+  mode: "discount" | "expense" | "income" | "all";
 }
 
 // Crea el contexto con valores por defecto

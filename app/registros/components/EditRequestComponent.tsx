@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { requestsApi } from "@/services/axios";
@@ -77,8 +78,8 @@ export const EditRequestComponent: React.FC<EditRequestProps> = ({ row }) => {
       setIsSubmitting(true);
 
       // Actualización optimista - Actualizar UI primero
-      setData((prevData) =>
-        prevData.map((item) =>
+      setData((prevData: any) =>
+        prevData.map((item: any) =>
           item.unique_id === row.unique_id ? { ...item, ...values } : item
         )
       );
@@ -93,8 +94,10 @@ export const EditRequestComponent: React.FC<EditRequestProps> = ({ row }) => {
       console.error("Error updating request:", error);
 
       // En caso de error, revertir cambios optimistas
-      setData((prevData) =>
-        prevData.map((item) => (item.unique_id === row.unique_id ? row : item))
+      setData((prevData: any) =>
+        prevData.map((item: any) =>
+          item.unique_id === row.unique_id ? row : item
+        )
       );
 
       toast.error("No se pudo actualizar la solicitud. Inténtalo de nuevo.");

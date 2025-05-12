@@ -110,6 +110,8 @@ type Request = {
   vehicle_plate?: string;
   vehicle_number?: string;
   note: string;
+  created_at?: Date;
+  edited_at?: Date;
 };
 
 type Period = "last_week" | "last_month" | "all";
