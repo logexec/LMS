@@ -88,7 +88,6 @@ import { Reposition, TableContextProvider } from "@/contexts/TableContext";
 import RepositionDetailsTableComponent from "./RepositionDetailsTableComponent";
 import PayRepositionComponent from "../PayRepositionComponent";
 import RejectRepositionComponent from "../RejectRepositionComponent";
-import { isEmpty } from "lodash";
 
 type Period = "last_week" | "last_month" | "all";
 type Status = "rejected" | "pending" | "paid" | "all";
