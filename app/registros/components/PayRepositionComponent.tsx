@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { repositionsApi } from "@/services/axios";
@@ -236,8 +237,8 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
       if (showingOnlyPending) {
         setData((prevData) => prevData.filter((row) => row.id !== item.id));
       } else {
-        setData((prevData) =>
-          prevData.map((row) =>
+        setData((prevData: any) =>
+          prevData.map((row: any) =>
             row.id === item.id ? { ...row, ...values } : row
           )
         );
