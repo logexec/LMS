@@ -88,6 +88,7 @@ import { Reposition, TableContextProvider } from "@/contexts/TableContext";
 import RepositionDetailsTableComponent from "./RepositionDetailsTableComponent";
 import PayRepositionComponent from "../PayRepositionComponent";
 import RejectRepositionComponent from "../RejectRepositionComponent";
+import { useAuth } from "@/hooks/useAuth";
 
 type Period = "last_week" | "last_month" | "all";
 type Status = "rejected" | "pending" | "paid" | "all";
@@ -127,6 +128,21 @@ const multiColumnFilterFn: FilterFn<Reposition> = (
 
 // RowActions component optimized with React.memo
 const RowActions = React.memo(({ row }: { row: Row<Reposition> }) => {
+  const user = useAuth().user;
+  const allowedUsers = [
+    "claudia.pereira@logex.ec",
+    "omar.rubio@logex.ec",
+    "jk@logex.ec",
+    "michelle.quintana@logex.ec",
+    "nicolas.iza@logex.ec",
+    "lorena.herrera@logex.ec",
+    "luis.espinosa@logex.ec",
+    "diego.merisalde@logex.ec",
+    "ricardo.estrella@logex.ec",
+  ];
+
+  if (user && !allowedUsers.includes(user.email)) return;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
