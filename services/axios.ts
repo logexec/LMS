@@ -136,6 +136,7 @@ export const sriApi = {
       folder,
       data: rows,
     });
+    clearCache("/generate-documents");
     return response.data;
   },
 };
