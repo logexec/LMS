@@ -66,7 +66,7 @@ const Sidenav = () => {
     : {
         initial: { x: -320 },
         animate: { x: isMobileMenuOpen ? 0 : -320 },
-        transition: { type: "spring", bounce: 0, duration: 0.4 },
+        transition: { type: "spring", bounce: 0, duration: 0.3 },
       };
 
   return (
@@ -77,19 +77,14 @@ const Sidenav = () => {
           initial={false}
           animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
           className={`relative z-50 rounded-lg p-3 text-white lg:hidden ${
-            isMobileMenuOpen
-              ? "-top-[12.5rem] left-28"
-              : "-top-20 md:top-[2.5rem] lg:top-12 left-0 md:left-4 lg:left-4"
+            isMobileMenuOpen ? "-top-[12.5rem] left-28" : "top-10 left-5"
           }`}
           onClick={toggleMobileMenu}
         >
           {isMobileMenuOpen ? (
             <X size={24} />
           ) : (
-            <Menu
-              size={20}
-              className="absolute top-0 lg:top-[15.5rem] -left-[1rem] md:left-[.25rem] lg:left-[11.965rem]"
-            />
+            <Menu size={24} className="absolute top-0 left-0" />
           )}
         </motion.button>
       )}
