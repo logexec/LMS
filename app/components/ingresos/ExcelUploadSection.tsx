@@ -32,6 +32,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
     user!.email === "ricardo.estrella@logex.ec" ||
     user!.email === "nicolas.iza@logex.ec" ||
     user!.email === "michelle.quintana@logex.ec" ||
+    user!.email === "luis.espinosa@logex.ec" ||
     user!.email === "diego.merisalde@logex.ec" ||
     user!.email === "jk@logex.ec";
 
