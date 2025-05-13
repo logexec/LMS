@@ -96,6 +96,12 @@ import DeleteButtonComponent from "../DeleteButtonComponent";
 import { onFileSubmit, requestsApi } from "@/services/axios";
 import { TableContextProvider } from "@/contexts/TableContext";
 import EditRequestComponent from "../EditRequestComponent";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Request = {
   id: string;
@@ -118,6 +124,13 @@ type Period = "last_week" | "last_month" | "all";
 
 // Custom filter function for multi-column searching
 const multiColumnFilterFn: FilterFn<Request> = (row, columnId, filterValue) => {
+  // Si filterValue es un array (como en el caso del filtro de proyecto), manejarlo de manera diferente
+  if (Array.isArray(filterValue)) {
+    const value = row.getValue(columnId);
+    return filterValue.includes(value);
+  }
+
+  // Para búsquedas de texto globales
   const searchableRowContent = Object.values(row.original)
     .map((value) => {
       if (value instanceof Date) {
@@ -128,7 +141,7 @@ const multiColumnFilterFn: FilterFn<Request> = (row, columnId, filterValue) => {
     .join(" ")
     .toLowerCase();
 
-  const searchTerm = (filterValue ?? "").toLowerCase();
+  const searchTerm = String(filterValue ?? "").toLowerCase();
   return searchableRowContent.includes(searchTerm);
 };
 
@@ -214,7 +227,19 @@ const columns: ColumnDef<Request>[] = [
   {
     header: "Factura",
     accessorKey: "invoice_number",
-    cell: ({ row }) => <span>{row.original.invoice_number || "—"}</span>,
+    cell: ({ row }) =>
+      row.original.invoice_number ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="max-w-[8ch] truncate">
+              {row.original.invoice_number}
+            </TooltipTrigger>
+            <TooltipContent>{row.original.invoice_number}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <span></span>
+      ),
     filterFn: multiColumnFilterFn,
     size: 80,
   },
