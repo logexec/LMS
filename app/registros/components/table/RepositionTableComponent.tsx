@@ -104,6 +104,13 @@ const multiColumnFilterFn: FilterFn<Reposition> = (
   columnId,
   filterValue
 ) => {
+  // Si filterValue es un array (como en el caso del filtro de proyecto), manejarlo de manera diferente
+  if (Array.isArray(filterValue)) {
+    const value = row.getValue(columnId);
+    return filterValue.includes(value);
+  }
+
+  // Para búsquedas de texto globales
   const searchableRowContent = Object.values(row.original)
     .map((value) => {
       if (value instanceof Date) {
@@ -114,7 +121,7 @@ const multiColumnFilterFn: FilterFn<Reposition> = (
     .join(" ")
     .toLowerCase();
 
-  const searchTerm = (filterValue ?? "").toLowerCase();
+  const searchTerm = String(filterValue ?? "").toLowerCase();
   return searchableRowContent.includes(searchTerm);
 };
 
