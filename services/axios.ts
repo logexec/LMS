@@ -138,6 +138,40 @@ export const sriApi = {
     clearCache("/generate-documents");
     return response.data;
   },
+  batchUpdateDocuments: async (documents: any[]) => {
+    const response = await api.patch("/sri-documents/batch", {
+      documents,
+    });
+    return response.data;
+  },
+};
+/**
+ * API for reports
+ */
+export const reportsApi = {
+  generateReport: async (type: string, period: string) => {
+    const response = await api.post(
+      "/reports/generate",
+      {
+        type,
+        period,
+      },
+      {
+        responseType: "blob",
+      }
+    );
+
+    // Crear un enlace para descargar el archivo
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `reporte-${type}-${period}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    return true;
+  },
 };
 
 /**
