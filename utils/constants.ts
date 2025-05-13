@@ -122,13 +122,13 @@ export const sidenavLinks: NavLink[] = [
       },
       {
         label: "Reposiciones",
-        url: "/registros/reposiciones",
+        url: "/registros/repositions",
         icon: GrMoney,
         requiredPermissions: [Permission.VIEW_EXPENSES],
       },
       {
         label: "Reposiciones de Ingresos",
-        url: "/registros/reposiciones-de-ingresos",
+        url: "/registros/income-repositions",
         icon: CircleDollarSign,
         requiredPermissions: [Permission.EDIT_INCOME],
       },
