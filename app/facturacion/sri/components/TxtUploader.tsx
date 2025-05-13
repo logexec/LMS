@@ -32,22 +32,14 @@ const TxtUploader: React.FC<Props> = ({ onFinish }) => {
       return;
     }
 
-    const folderName = prompt(
-      "Ingresa un nombre para la carpeta de documentos:"
-    );
-    if (!folderName) {
-      toast.info("Cancelado por el usuario");
-      return;
-    }
-
     try {
       setLoading(true);
-      await sriApi.generateDocuments(folderName, parsedFile.rows);
+      await sriApi.generateDocuments(parsedFile.rows);
       toast.success("Documentos generados correctamente");
-      if (onFinish) onFinish(folderName); // cambiar de pestaña
+      onFinish?.("done"); // Activa la pestaña 2
     } catch (error) {
-      // El error ya lo maneja el interceptor
       console.error("[handleGenerateDocuments] Error:", error);
+      // El error lo maneja el interceptor
     } finally {
       setLoading(false);
     }

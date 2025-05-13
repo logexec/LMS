@@ -131,9 +131,8 @@ export interface RepositionUpdateData {
  * API for SRI document generation
  */
 export const sriApi = {
-  generateDocuments: async (folder: string, rows: Record<string, string>[]) => {
+  generateDocuments: async (rows: Record<string, string>[]) => {
     const response = await api.post("/generate-documents", {
-      folder,
       data: rows,
     });
     clearCache("/generate-documents");
