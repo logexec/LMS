@@ -156,11 +156,12 @@ const DescuentosForm = () => {
                   Masivo
                 </TabsTrigger>
                 {
-                  // Solo se muestra la pestaña a los usuarios nicolas y michelle
+                  // Solo se muestra la pestaña a los usuarios nicolas, michelle, diego, john, luis
                   currentUser.user!.email === "nicolas.iza@logex.ec" ||
                   currentUser.user!.email === "ricardo.estrella@logex.ec" ||
                   currentUser.user!.email === "michelle.quintana@logex.ec" ||
                   currentUser.user!.email === "diego.merisalde@logex.ec" ||
+                  currentUser.user!.email === "luis.espinosa@logex.ec" ||
                   currentUser.user!.email === "jk@logex.ec" ? (
                     <TabsTrigger
                       value="loans"
