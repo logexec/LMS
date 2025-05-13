@@ -48,6 +48,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
     filePath: string;
     fileName: string;
   } | null>(null);
+  const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
   const [isAttachmentViewable, setIsAttachmentViewable] =
     useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -56,6 +57,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
     attachment: { filePath: string; fileName: string } | null;
     error: string | null;
   } | null>(null);
+  const [fileLoading, setFileLoading] = useState<boolean>(false);
 
   // List of file extensions that can be displayed in an iframe
   const viewableExtensions = ["pdf", "png", "jpg", "jpeg", "gif"];
@@ -67,6 +69,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
     }
   }, [attachment]);
 
+  // Cargar detalles de la reposición
   async function getRepositionDetails(reposition: number) {
     try {
       setLoading(true);
@@ -103,6 +106,28 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
     }
   }
 
+  // Nueva función para obtener la URL firmada del archivo
+  async function getSignedFileUrl(reposicionId: number) {
+    try {
+      setFileLoading(true);
+      const response = await api.get(`reposiciones/${reposicionId}/file`);
+
+      if (response.data && response.data.file_url) {
+        setSignedFileUrl(response.data.file_url);
+        return response.data.file_url;
+      } else {
+        toast.error("No se pudo obtener el acceso al archivo");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al obtener URL firmada:", error);
+      toast.error("Error al acceder al archivo");
+      return null;
+    } finally {
+      setFileLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       getRepositionDetails(reposition);
@@ -117,6 +142,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
         setRequestData(null);
         setAttachment(null);
         setSavedDetails(null);
+        setSignedFileUrl(null);
       }
     } else {
       // Prevenir cierre del AlertDialog mientras el visor está abierto
@@ -125,7 +151,15 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
   };
 
   // Función para abrir el visor de archivos
-  const openFileViewer = () => {
+  const openFileViewer = async () => {
+    // Primero obtenemos la URL firmada
+    if (!signedFileUrl) {
+      const url = await getSignedFileUrl(reposition);
+      if (!url) {
+        return; // Si no se puede obtener la URL, no continuamos
+      }
+    }
+
     // Guardamos los datos actuales para restaurarlos después
     setSavedDetails({
       requestData,
@@ -165,7 +199,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
 
   // Componente de visor de archivos
   const FileViewer = () => {
-    if (!attachment || !isAttachmentViewable) return null;
+    if (!attachment || !isAttachmentViewable || !signedFileUrl) return null;
 
     return (
       <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center">
@@ -197,7 +231,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
 
           <div className="flex-1 bg-slate-100 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 overflow-hidden">
             <iframe
-              src={attachment.filePath}
+              src={signedFileUrl}
               title={attachment.fileName}
               className="w-full h-[65vh] border-0"
               onError={handleIframeError}
@@ -206,7 +240,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
 
           <div className="mt-4 flex justify-end">
             <a
-              href={attachment.filePath}
+              href={signedFileUrl}
               download={attachment.fileName}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
@@ -237,22 +271,56 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
                   {isAttachmentViewable ? (
                     <button
                       onClick={openFileViewer}
-                      className="flex items-center space-x-2 px-4 py-1.5 bg-slate-600 text-white rounded hover:bg-slate-700 w-fit"
+                      disabled={fileLoading}
+                      className={`flex items-center space-x-2 px-4 py-1.5 ${
+                        fileLoading
+                          ? "bg-slate-400"
+                          : "bg-slate-600 hover:bg-slate-700"
+                      } text-white rounded w-fit`}
                       aria-label={`Ver archivo ${attachment.fileName}`}
                     >
-                      <Eye className="size-4" />
-                      <span>Ver {attachment.fileName}</span>
+                      {fileLoading ? (
+                        <LoaderCircle className="size-4 animate-spin" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                      <span>
+                        {fileLoading
+                          ? "Preparando archivo..."
+                          : `Ver ${attachment.fileName}`}
+                      </span>
                     </button>
                   ) : (
-                    <a
-                      href={attachment.filePath}
-                      download={attachment.fileName}
-                      className="flex items-center space-x-2 px-4 py-1.5 bg-slate-600 text-white rounded hover:bg-slate-700 w-fit"
+                    <button
+                      onClick={async () => {
+                        if (!signedFileUrl) {
+                          const url = await getSignedFileUrl(reposition);
+                          if (url) {
+                            window.open(url, "_blank");
+                          }
+                        } else {
+                          window.open(signedFileUrl, "_blank");
+                        }
+                      }}
+                      disabled={fileLoading}
+                      className={`flex items-center space-x-2 px-4 py-1.5 ${
+                        fileLoading
+                          ? "bg-slate-400"
+                          : "bg-slate-600 hover:bg-slate-700"
+                      } text-white rounded w-fit`}
                       aria-label={`Descargar archivo ${attachment.fileName}`}
                     >
-                      <Download className="size-4" />
-                      <span>Descargar {attachment.fileName}</span>
-                    </a>
+                      {fileLoading ? (
+                        <LoaderCircle className="size-4 animate-spin" />
+                      ) : (
+                        <Download className="size-4" />
+                      )}
+                      <span>
+                        {fileLoading
+                          ? "Preparando archivo..."
+                          : `Descargar ${attachment.fileName}`}
+                      </span>
+                    </button>
                   )}
                 </>
               )}
