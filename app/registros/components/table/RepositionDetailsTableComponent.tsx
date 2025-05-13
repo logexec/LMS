@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import EditRequestComponent from "./EditRequestComponent";
 
 interface RepositionDetailsProp {
   reposition: number;
@@ -124,7 +125,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
                   <TableHead>Responsable</TableHead>
                   <TableHead>Vehículo</TableHead>
                   <TableHead>Observación</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -273,9 +274,7 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
                         </TooltipProvider>
                       </TableCell>
                       <TableCell>
-                        {/* Editar linea */}
-                        Editar
-                        {/* <ItemActions item={item} /> */}
+                        <EditRequestComponent row={item} />
                       </TableCell>
                     </TableRow>
                   ))

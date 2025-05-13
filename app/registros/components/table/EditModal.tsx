@@ -14,12 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AccountProps,
-  RequestProps,
-  ResponsibleProps,
-  TransportProps,
-} from "@/utils/types";
+import { AccountProps, ResponsibleProps, TransportProps } from "@/utils/types";
 import {
   CalendarIcon,
   Receipt,
@@ -31,6 +26,30 @@ import {
   Hash,
   FileText,
 } from "lucide-react";
+
+interface RequestProps {
+  id: string;
+  unique_id: string;
+  invoice_number: string;
+  account_id: string;
+  account_name?: string;
+  project_name?: string;
+  amount: string;
+  project: string;
+  responsible_id?: string;
+  vehicle_plate?: string;
+  vehicle_number?: string;
+  note: string;
+  status?: "paid" | "pending" | "rejected" | "in_reposition";
+  type?: string;
+  attachment_path?: string | null;
+  personnel_type?: string;
+  request_date: Date;
+  when?: string;
+  month?: string;
+  reposicion_id?: string;
+  updated_at?: Date;
+}
 
 interface EditModalProps {
   row: RequestProps;
@@ -46,7 +65,7 @@ interface FormDataType {
   invoice_number: string;
   account_id: string; // Realmente contiene el nombre de la cuenta
   amount: string;
-  project: string | string[]; // Contiene el nombre del proyecto
+  project: string; // Contiene el nombre del proyecto
   responsible_id: string; // Contiene el nombre completo del responsable
   vehicle_plate: string;
   vehicle_number: string;
@@ -92,8 +111,7 @@ const EditModal = ({
       : "",
     invoice_number: row.invoice_number?.toString() || "",
     account_id: row.account_id || "", // Ya contiene el nombre de la cuenta
-    amount:
-      typeof row.amount === "number" ? row.amount.toString() : row.amount || "",
+    amount: row.amount || "",
     project: row.project || "", // Ya contiene el nombre del proyecto
     responsible_id: row.responsible_id || "", // Ya contiene el nombre del responsable
     vehicle_plate: row.vehicle_plate || "",
@@ -136,11 +154,11 @@ const EditModal = ({
     const updatedRow: RequestProps = {
       ...row,
       // personnel_type NO se modifica pues no es editable
-      request_date: formData.request_date,
+      request_date: new Date(formData.request_date),
       // month NO se modifica pues no es editable
       invoice_number: formData.invoice_number,
       account_id: formData.account_id, // Guardamos el nombre, no el ID
-      amount: formData.amount ? parseFloat(formData.amount) : 0,
+      amount: formData.amount ? formData.amount : "0",
       project: formData.project, // Guardamos el nombre, no el ID
       responsible_id: formData.responsible_id, // Guardamos el nombre, no el ID
       vehicle_plate: formData.vehicle_plate,
@@ -219,25 +237,25 @@ const EditModal = ({
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div
             className={`flex flex-col rounded-lg border p-3 ${getTypeClass(
-              row.type
+              row.type!
             )}`}
           >
             <span className="text-xs font-medium uppercase tracking-wider opacity-75">
               Tipo
             </span>
-            <span className="font-semibold mt-1">{getTypeText(row.type)}</span>
+            <span className="font-semibold mt-1">{getTypeText(row.type!)}</span>
           </div>
 
           <div
             className={`flex flex-col rounded-lg border p-3 ${getStatusClass(
-              row.status
+              row.status!
             )}`}
           >
             <span className="text-xs font-medium uppercase tracking-wider opacity-75">
               Estado
             </span>
             <span className="font-semibold mt-1">
-              {getStatusText(row.status)}
+              {getStatusText(row.status!)}
             </span>
           </div>
 

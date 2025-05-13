@@ -95,13 +95,13 @@ import axios from "axios";
 import DeleteButtonComponent from "../DeleteButtonComponent";
 import { onFileSubmit, requestsApi } from "@/services/axios";
 import { TableContextProvider } from "@/contexts/TableContext";
-import EditRequestComponent from "../EditRequestComponent";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import EditRequestComponent from "./EditRequestComponent";
 
 type Request = {
   id: string;
@@ -311,7 +311,7 @@ const columns: ColumnDef<Request>[] = [
   },
   {
     id: "actions",
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => <span className="sr-only">Accione</span>,
     cell: ({ row }) => <RowActions row={row} />,
     size: 60,
     enableHiding: false,
