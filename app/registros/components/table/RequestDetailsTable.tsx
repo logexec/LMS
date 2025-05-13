@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
@@ -13,12 +12,7 @@ import {
   SortAsc,
   SortDesc,
 } from "lucide-react";
-import {
-  AccountProps,
-  RequestProps,
-  ResponsibleProps,
-  TransportProps,
-} from "@/utils/types";
+import { RequestProps } from "@/utils/types";
 import { toast } from "sonner";
 import Loader from "@/app/Loader";
 import { motion, AnimatePresence } from "motion/react";
@@ -53,7 +47,7 @@ import {
 } from "@tanstack/react-table";
 
 // Componente EditModal
-import EditModal from "./EditModal";
+// import EditModal from "./EditModal";
 
 interface RequestDetailsTableProps {
   requests: RequestProps[];
@@ -109,11 +103,11 @@ const RequestDetailsTableComponent = ({
   const [fileData, setFileData] = useState<FileMetadata | undefined>(undefined);
 
   // Almacenamos los datos con un solo fetch
-  const [accountsList, setAccountsList] = useState<AccountProps[]>([]);
-  const [responsiblesList, setResponsiblesList] = useState<ResponsibleProps[]>(
-    []
-  );
-  const [vehiclesList, setVehiclesList] = useState<TransportProps[]>([]);
+  // const [accountsList, setAccountsList] = useState<AccountProps[]>([]);
+  // const [responsiblesList, setResponsiblesList] = useState<ResponsibleProps[]>(
+  //   []
+  // );
+  // const [vehiclesList, setVehiclesList] = useState<TransportProps[]>([]);
 
   // Estado para modal
   const [selectedRow, setSelectedRow] = useState<RequestProps | null>(null);
@@ -122,22 +116,6 @@ const RequestDetailsTableComponent = ({
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-
-  // Función para eliminar duplicados
-  const removeDuplicates = <T extends Record<string, any>>(
-    array: T[],
-    key: string
-  ): T[] => {
-    const uniqueMap = new Map();
-    return array.filter((item) => {
-      const val = item[key];
-      if (val && !uniqueMap.has(val)) {
-        uniqueMap.set(val, true);
-        return true;
-      }
-      return false;
-    });
-  };
 
   // Fetch del archivo
   const fetchFile = async (
@@ -182,17 +160,17 @@ const RequestDetailsTableComponent = ({
       );
 
       // Eliminar duplicados usando nuestra función
-      const uniqueAccounts = removeDuplicates(accounts, "id");
-      const uniqueResponsibles = removeDuplicates(responsibles, "id");
-      const uniqueVehicles = removeDuplicates(
-        vehicles.filter((v) => v.vehicle_plate),
-        "vehicle_plate"
-      );
+      // const uniqueAccounts = removeDuplicates(accounts, "id");
+      // const uniqueResponsibles = removeDuplicates(responsibles, "id");
+      // const uniqueVehicles = removeDuplicates(
+      //   vehicles.filter((v) => v.vehicle_plate),
+      //   "vehicle_plate"
+      // );
 
       // Actualizar estado con datos sin duplicados
-      setAccountsList(uniqueAccounts);
-      setResponsiblesList(uniqueResponsibles);
-      setVehiclesList(uniqueVehicles);
+      // setAccountsList(uniqueAccounts);
+      // setResponsiblesList(uniqueResponsibles);
+      // setVehiclesList(uniqueVehicles);
 
       if (file) {
         setFileData(file);
@@ -335,37 +313,37 @@ const RequestDetailsTableComponent = ({
   };
 
   // Función para manejar guardado de cambios
-  const handleSave = async (updatedRow: RequestProps) => {
-    const rowId = updatedRow.unique_id;
-    const originalRequestIndex = filteredRequests.findIndex(
-      (r) => r.unique_id === rowId
-    );
-    if (originalRequestIndex === -1) return;
+  // const handleSave = async (updatedRow: RequestProps) => {
+  //   const rowId = updatedRow.unique_id;
+  //   const originalRequestIndex = filteredRequests.findIndex(
+  //     (r) => r.unique_id === rowId
+  //   );
+  //   if (originalRequestIndex === -1) return;
 
-    // Guardar una copia del estado original
-    const originalRequests = [...filteredRequests];
+  //   // Guardar una copia del estado original
+  //   const originalRequests = [...filteredRequests];
 
-    // Actualización optimista
-    setFilteredRequests((prev) =>
-      prev.map((r) => (r.unique_id === rowId ? updatedRow : r))
-    );
+  //   // Actualización optimista
+  //   setFilteredRequests((prev) =>
+  //     prev.map((r) => (r.unique_id === rowId ? updatedRow : r))
+  //   );
 
-    try {
-      await apiService.updateRequest(rowId, updatedRow);
-      toast.success("Registro actualizado correctamente");
-    } catch (error) {
-      // Restaurar el estado original en caso de fallo
-      console.error("Error al guardar los cambios:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Error al guardar los cambios."
-      );
-      setFilteredRequests(originalRequests);
-      toast.error("Error al guardar los cambios");
-    } finally {
-      setIsEditModalOpen(false);
-      setSelectedRow(null);
-    }
-  };
+  //   try {
+  //     await apiService.updateRequest(rowId, updatedRow);
+  //     toast.success("Registro actualizado correctamente");
+  //   } catch (error) {
+  //     // Restaurar el estado original en caso de fallo
+  //     console.error("Error al guardar los cambios:", error);
+  //     toast.error(
+  //       error instanceof Error ? error.message : "Error al guardar los cambios."
+  //     );
+  //     setFilteredRequests(originalRequests);
+  //     toast.error("Error al guardar los cambios");
+  //   } finally {
+  //     setIsEditModalOpen(false);
+  //     setSelectedRow(null);
+  //   }
+  // };
 
   // Refrescar datos manualmente
   const handleRefreshData = () => {
@@ -902,7 +880,7 @@ const RequestDetailsTableComponent = ({
             if (!open) setSelectedRow(null);
           }}
         >
-          <EditModal
+          {/* <EditModal
             key={`edit-modal-${selectedRow.unique_id}-${Date.now()}`} // Clave única para evitar problemas de caché
             row={selectedRow}
             onSave={handleSave}
@@ -913,7 +891,8 @@ const RequestDetailsTableComponent = ({
             accounts={accountsList}
             responsibles={responsiblesList}
             vehicles={vehiclesList}
-          />
+          /> */}
+          Editar
         </Dialog>
       )}
     </motion.div>
