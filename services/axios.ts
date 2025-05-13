@@ -226,6 +226,7 @@ export const requestsApi = {
       "diego.merisalde@logex.ec",
       "michelle.quintana@logex.ec",
       "nicolas.iza@logex.ec",
+      "luis.espinosa@logex.ec",
     ];
 
     // Filter only if email is not in exempt list

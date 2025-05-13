@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +15,10 @@ interface Document {
   clave_acceso: string;
   ruc_emisor: string;
   razon_social_emisor: string;
+  tipo_comprobante?: string;
+  serie_comprobante?: string;
   fecha_emision: string;
+  importe_total?: string;
   gcs_path_xml: string;
   gcs_path_pdf: string;
 }
@@ -42,7 +43,9 @@ const SRIDocumentList = () => {
   }, []);
 
   if (loading)
-    return <p className="text-sm text-muted-foreground">Cargando...</p>;
+    return (
+      <p className="text-sm text-muted-foreground animate-pulse">Cargando...</p>
+    );
 
   return (
     <div className="w-full space-y-4">
@@ -51,11 +54,14 @@ const SRIDocumentList = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Clave de Acceso</TableHead>
+            <TableHead>Clave Acceso</TableHead>
             <TableHead>RUC Emisor</TableHead>
             <TableHead>Razón Social</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Serie</TableHead>
             <TableHead>Fecha Emisión</TableHead>
-            <TableHead>Acciones</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Descargar</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -64,7 +70,10 @@ const SRIDocumentList = () => {
               <TableCell>{doc.clave_acceso}</TableCell>
               <TableCell>{doc.ruc_emisor}</TableCell>
               <TableCell>{doc.razon_social_emisor}</TableCell>
+              <TableCell>{doc.tipo_comprobante || "-"}</TableCell>
+              <TableCell>{doc.serie_comprobante || "-"}</TableCell>
               <TableCell>{doc.fecha_emision}</TableCell>
+              <TableCell>{doc.importe_total || "-"}</TableCell>
               <TableCell className="space-x-2">
                 <a
                   href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_GCS_BUCKET}/${doc.gcs_path_xml}`}
