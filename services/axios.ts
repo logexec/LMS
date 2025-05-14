@@ -144,7 +144,40 @@ export const sriApi = {
     });
     return response.data;
   },
+  /**
+   * Descarga múltiples documentos en formato ZIP
+   */
+  downloadMultipleDocuments: async (docIds: number[]) => {
+    try {
+      const response = await api.post(
+        "/sri-documents/download-multiple",
+        {
+          document_ids: docIds,
+        },
+        {
+          responseType: "blob",
+        }
+      );
+
+      const filename = `documentos_sri_${new Date()
+        .toISOString()
+        .slice(0, 10)}.zip`;
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      return true;
+    } catch (error) {
+      console.error("Error al descargar documentos:", error);
+      throw error;
+    }
+  },
 };
+
 /**
  * API for reports
  */
