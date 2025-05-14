@@ -275,18 +275,14 @@ const createColumns = (): ColumnDef<Reposition>[] => [
     cell: ({ row }) => {
       const monthValue = row.original.month;
 
-      // Verificamos si el mes es válido
       const isValidDate =
-        monthValue &&
-        !isNaN(new Date(`${monthValue}-01`).getTime()) &&
-        monthValue.trim() !== "";
+        typeof monthValue === "string" && /^\d{4}-\d{2}$/.test(monthValue);
 
-      // Formateamos la fecha si es válida
       const date = isValidDate
-        ? new Date(`${monthValue}-01`).toLocaleDateString("es-EC", {
-            year: "numeric",
-            month: "2-digit",
-          })
+        ? (() => {
+            const [year, month] = monthValue.split("-");
+            return `${month}/${year}`;
+          })()
         : "—";
 
       return (
