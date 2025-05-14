@@ -146,16 +146,33 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
   };
 
   const handleChange = (id: number, field: string, value: string) => {
+    // Convertir a número si es un campo numérico
+    const numericFields = ["valor_sin_impuestos", "iva", "importe_total"];
+    const processedValue = numericFields.includes(field)
+      ? value === ""
+        ? null
+        : parseFloat(value)
+      : value;
+
     setDocuments((prev) =>
-      prev.map((doc) => (doc.id === id ? { ...doc, [field]: value } : doc))
+      prev.map((doc) =>
+        doc.id === id ? { ...doc, [field]: processedValue } : doc
+      )
     );
   };
 
   const handleSave = async () => {
     try {
       setSaving(true);
+
+      // Log para debugging
+      console.log("Enviando datos para actualizar:", documents);
+
       await sriApi.batchUpdateDocuments(documents);
       toast.success("Cambios guardados correctamente");
+
+      // Refrescar la lista para asegurar que tenemos los últimos datos
+      fetchDocuments();
     } catch (err) {
       console.error("Error al guardar:", err);
     } finally {
@@ -478,7 +495,9 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
                     </TableCell>
                     <TableCell className="flex space-x-1">
                       <a
-                        href={`${process.env.NEXT_PUBLIC_API_URL}/sri-documents/${doc.id}/generate-xml`}
+                        href={`${
+                          process.env.NEXT_PUBLIC_API_URL
+                        }/sri-documents/${doc.id}/generate-xml?t=${Date.now()}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -492,7 +511,9 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
                         </Button>
                       </a>
                       <a
-                        href={`${process.env.NEXT_PUBLIC_API_URL}/sri-documents/${doc.id}/generate-pdf`}
+                        href={`${
+                          process.env.NEXT_PUBLIC_API_URL
+                        }/sri-documents/${doc.id}/generate-pdf?t=${Date.now()}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -590,7 +611,9 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
 
               <div className="flex justify-end space-x-2 mt-4">
                 <a
-                  href={`${process.env.NEXT_PUBLIC_API_URL}/sri-documents/${expandedDocument.id}/generate-xml`}
+                  href={`${process.env.NEXT_PUBLIC_API_URL}/sri-documents/${
+                    expandedDocument.id
+                  }/generate-xml?t=${Date.now()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -600,7 +623,9 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
                   </Button>
                 </a>
                 <a
-                  href={`${process.env.NEXT_PUBLIC_API_URL}/sri-documents/${expandedDocument.id}/generate-pdf`}
+                  href={`${process.env.NEXT_PUBLIC_API_URL}/sri-documents/${
+                    expandedDocument.id
+                  }/generate-pdf?t=${Date.now()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
