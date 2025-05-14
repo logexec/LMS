@@ -39,13 +39,13 @@ interface TableContextType {
 }
 
 // Validation schema
-export const createFormSchema = (type: string) => {
+export const createFormSchema = (type: string, isIncome?: boolean) => {
   const baseSchema = z.object({
     status: z.literal("paid"),
     note: z.string().nonempty("Debes agregar un motivo para respaldar el pago"),
   });
 
-  if (type === "discount" || type === "income") {
+  if (type === "discount" || isIncome) {
     return baseSchema.extend({
       month: z.string().nonempty("Debes escoger un mes"),
       when: z.string().nonempty("Debes indicar cuando se hará el descuento."),
@@ -184,7 +184,11 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
 
   const { setData, data, refreshData } = useTableContext() as TableContextType;
 
-  const schema = useMemo(() => createFormSchema(type), [type]);
+  const isIncome = item.detail![0].includes("I-");
+  const schema = useMemo(
+    () => createFormSchema(type, isIncome),
+    [type, isIncome]
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -217,7 +221,7 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
 
       // Validate required fields for discount type
       if (
-        (type === "discount" || type === "income") &&
+        (type === "discount" || isIncome) &&
         (!values.month || !values.when)
       ) {
         toast.error(
@@ -294,7 +298,7 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
               onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-4"
             >
-              {(type === "discount" || type === "income") && (
+              {(type === "discount" || isIncome) && (
                 <DiscountFields
                   form={form}
                   isSubmitting={isSubmitting}
