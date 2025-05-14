@@ -139,9 +139,23 @@ export const sriApi = {
     return response.data;
   },
   batchUpdateDocuments: async (documents: any[]) => {
+    // Filtrar solo documentos con cambios y asegurar que los valores sean numéricos
+    const docsToUpdate = documents.map((doc) => ({
+      id: doc.id,
+      valor_sin_impuestos:
+        doc.valor_sin_impuestos === "" ? null : Number(doc.valor_sin_impuestos),
+      iva: doc.iva === "" ? null : Number(doc.iva),
+      importe_total:
+        doc.importe_total === "" ? null : Number(doc.importe_total),
+      identificacion_receptor: doc.identificacion_receptor,
+    }));
+
+    console.log("Datos formateados para actualizar:", docsToUpdate);
+
     const response = await api.patch("/sri-documents/batch", {
-      documents,
+      documents: docsToUpdate,
     });
+
     return response.data;
   },
   /**
@@ -372,6 +386,8 @@ export const repositionsApi = {
   getRepositionDetails: async (reposicionId: number) => {
     // We intentionally don't cache this call as it's only triggered on user action
     const response = await api.get(`reposiciones/${reposicionId}`);
+    clearCache(`/reposiciones/${reposicionId}`);
+    clearCache(`/reposiciones`);
     return response.data.requests;
   },
 
