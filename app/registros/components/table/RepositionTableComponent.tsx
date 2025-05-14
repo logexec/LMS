@@ -278,12 +278,12 @@ const createColumns = (): ColumnDef<Reposition>[] => [
       // Verificamos si el mes es válido
       const isValidDate =
         monthValue &&
-        !isNaN(new Date(monthValue).getTime()) &&
+        !isNaN(new Date(`${monthValue}-01`).getTime()) &&
         monthValue.trim() !== "";
 
       // Formateamos la fecha si es válida
       const date = isValidDate
-        ? new Date(monthValue).toLocaleDateString("es-EC", {
+        ? new Date(`${monthValue}-01`).toLocaleDateString("es-EC", {
             year: "numeric",
             month: "2-digit",
           })
