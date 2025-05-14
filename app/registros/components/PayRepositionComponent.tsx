@@ -45,7 +45,7 @@ export const createFormSchema = (type: string) => {
     note: z.string().nonempty("Debes agregar un motivo para respaldar el pago"),
   });
 
-  if (type === "discount") {
+  if (type === "discount" || type === "income") {
     return baseSchema.extend({
       month: z.string().nonempty("Debes escoger un mes"),
       when: z.string().nonempty("Debes indicar cuando se hará el descuento."),
@@ -216,9 +216,14 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
       setIsSubmitting(true);
 
       // Validate required fields for discount type
-      if (type === "discount" && (!values.month || !values.when)) {
+      if (
+        (type === "discount" || type === "income") &&
+        (!values.month || !values.when)
+      ) {
         toast.error(
-          "Por favor, completa los campos requeridos para el descuento."
+          `Por favor, completa los campos requeridos para el ${
+            type === "discount" ? "descuento" : "ingreso"
+          }.`
         );
         return;
       }
@@ -289,7 +294,7 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
               onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-4"
             >
-              {type === "discount" && (
+              {(type === "discount" || type === "income") && (
                 <DiscountFields
                   form={form}
                   isSubmitting={isSubmitting}
