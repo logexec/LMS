@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
+import {
+  RepositionFilters,
+  RepositionUpdateData,
+  RequestFilters,
+  RequestUpdateData,
+} from "@/utils/types";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -11,7 +18,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
-  timeout: 30000, // Default 30-second timeout
+  timeout: 60000, // 60-second timeout (Default 30-second timeout)
 });
 
 // Interceptor to add auth token
@@ -96,41 +103,15 @@ const clearCache = (urlPattern?: string) => {
   }
 };
 
-export interface RequestFilters {
-  period?: "last_week" | "last_month" | "all";
-  project?: string;
-  type?: "expense" | "discount" | "income";
-  status?: "pending" | "rejected" | "approved";
-}
-
-export interface RequestUpdateData {
-  invoice_number?: string;
-  amount?: string;
-  note?: string;
-  // Add more fields if needed
-}
-
-export interface RepositionFilters {
-  period?: "last_week" | "last_month" | "all";
-  project?: string;
-  type?: "expense" | "discount" | "income" | "all";
-  status?: "rejected" | "pending" | "paid" | "all";
-  mode?: "all" | "income";
-}
-
-export interface RepositionUpdateData {
-  total?: number;
-  date?: Date;
-  note: string;
-  status: "rejected" | "paid";
-  when?: string;
-  month?: string;
-}
-
 /**
- * API for SRI document generation
+ * API para interacción con el SRI (Nuevas funcionalidades)
  */
 export const sriApi = {
+  getAllDocuments: async () => {
+    const response = await api.get("/sri-documents");
+    return response.data;
+  },
+
   generateDocuments: async (rows: Record<string, string>[]) => {
     const response = await api.post("/generate-documents", {
       data: rows,
@@ -138,6 +119,7 @@ export const sriApi = {
     clearCache("/generate-documents");
     return response.data;
   },
+
   batchUpdateDocuments: async (documents: any[]) => {
     // Filtrar solo documentos con cambios y asegurar que los valores sean numéricos
     const docsToUpdate = documents.map((doc) => ({
@@ -158,9 +140,7 @@ export const sriApi = {
 
     return response.data;
   },
-  /**
-   * Descarga múltiples documentos en formato ZIP
-   */
+
   downloadMultipleDocuments: async (docIds: number[]) => {
     try {
       const response = await api.post(
@@ -188,6 +168,150 @@ export const sriApi = {
     } catch (error) {
       console.error("Error al descargar documentos:", error);
       throw error;
+    }
+  },
+
+  // Nuevas funciones de consulta SRI
+
+  /**
+   * Consulta información de un contribuyente por RUC
+   */
+  consultarContribuyente: async (ruc: string) => {
+    try {
+      const response = await api.post("/sri/consultar-contribuyente", { ruc });
+      return response.data;
+    } catch (error) {
+      console.error("Error al consultar contribuyente:", error);
+      return {
+        success: false,
+        message: "Error al consultar el contribuyente",
+      };
+    }
+  },
+
+  /**
+   * Consulta información de un comprobante por clave de acceso
+   */
+  consultarComprobante: async (claveAcceso: string) => {
+    try {
+      const response = await api.post("/sri/consultar-comprobante", {
+        claveAcceso,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al consultar comprobante:", error);
+      return {
+        success: false,
+        message: "Error al consultar el comprobante",
+      };
+    }
+  },
+
+  /**
+   * Valida un comprobante en el SRI
+   */
+  validarComprobante: async (claveAcceso: string) => {
+    try {
+      const response = await api.post("/sri/validar-comprobante", {
+        claveAcceso,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al validar comprobante:", error);
+      return {
+        success: false,
+        message: "Error al validar el comprobante",
+      };
+    }
+  },
+
+  /**
+   * Obtiene información completa a partir de la clave de acceso
+   */
+  obtenerInfoDesdeClaveAcceso: async (claveAcceso: string) => {
+    try {
+      // Show loading toast
+      const toastId = toast.loading("Consultando información desde el SRI...");
+
+      const response = await api.post("/sri/obtener-info-desde-clave", {
+        claveAcceso,
+      });
+
+      // Dismiss loading toast on success
+      toast.dismiss(toastId);
+
+      if (response.data.success) {
+        toast.success("Información obtenida correctamente");
+      } else {
+        toast.error(response.data.message || "Error al obtener información");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener info desde clave de acceso:", error);
+      toast.error("Error al consultar información del SRI");
+      return {
+        success: false,
+        message: "Error al obtener información desde el SRI",
+      };
+    }
+  },
+
+  /**
+   * Actualiza un documento con información del RUC
+   */
+  actualizarDocumentoDesdeRuc: async (documentId: number) => {
+    try {
+      const response = await api.post("/sri/actualizar-documento-desde-ruc", {
+        documentId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al actualizar documento desde RUC:", error);
+      return {
+        success: false,
+        message: "Error al actualizar documento desde RUC",
+      };
+    }
+  },
+
+  /**
+   * Actualiza un documento con información completa desde la clave de acceso
+   */
+  actualizarDocumentoDesdeClaveAcceso: async (documentId: number) => {
+    try {
+      const response = await api.post("/sri/actualizar-documento-desde-clave", {
+        documentId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al actualizar documento desde clave:", error);
+      return {
+        success: false,
+        message: "Error al actualizar documento desde clave de acceso",
+      };
+    }
+  },
+
+  /**
+   * Actualiza todos los documentos pendientes con información del SRI
+   */
+  actualizarTodosDocumentos: async (
+    limit: number = 50,
+    force: boolean = false
+  ) => {
+    try {
+      const response = await api.post("/sri/actualizar-todos-documentos", {
+        limit,
+        force,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al actualizar todos los documentos:", error);
+      return {
+        success: false,
+        message: "Error al actualizar todos los documentos",
+      };
     }
   },
 };
@@ -219,11 +343,80 @@ export const reportsApi = {
 
     return true;
   },
+
+  // Nuevas funciones para reportes específicos del SRI
+  reporteIva: async (periodo: string) => {
+    const response = await api.get(`/sri/reportes/iva/${periodo}`);
+    return response.data;
+  },
+
+  reporteRetenciones: async (periodo: string) => {
+    const response = await api.get(`/sri/reportes/retenciones/${periodo}`);
+    return response.data;
+  },
+
+  reporteContribuyentes: async (periodo: string) => {
+    const response = await api.get(`/sri/reportes/contribuyentes/${periodo}`);
+    return response.data;
+  },
+
+  generarAts: async (periodo: string) => {
+    const response = await api.get(`/sri/reportes/generar-ats/${periodo}`, {
+      responseType: "blob",
+    });
+
+    // Crear un enlace para descargar el archivo XML
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `ATS_${periodo}.xml`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    return true;
+  },
 };
 
 /**
- * Enhanced file upload function with retry capability
+ * API para gestión de contribuyentes
  */
+export const contribuyentesApi = {
+  /**
+   * Obtiene un resumen de todos los contribuyentes
+   */
+  getResumenContribuyentes: async () => {
+    const response = await api.get("/contribuyentes");
+    return response.data;
+  },
+
+  /**
+   * Actualiza la información de todos los contribuyentes desde el SRI
+   */
+  actualizarContribuyentes: async () => {
+    const response = await api.post("/contribuyentes/actualizar");
+    return response.data;
+  },
+
+  /**
+   * Valida el RUC ecuatoriano
+   */
+  validarRuc: async (ruc: string) => {
+    const response = await api.post("/contribuyentes/validar-ruc", { ruc });
+    return response.data;
+  },
+
+  /**
+   * Valida una autorización de comprobante
+   */
+  validarAutorizacion: async (autorizacion: string) => {
+    const response = await api.post("/contribuyentes/validar-autorizacion", {
+      autorizacion,
+    });
+    return response.data;
+  },
+};
+
 export const onFileSubmit = async (
   requestIds: string[],
   file: File,
@@ -401,6 +594,5 @@ export const repositionsApi = {
   },
 };
 
-// Export the enhanced API instance and cache utilities
 export default api;
 export { clearCache };
