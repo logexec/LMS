@@ -473,3 +473,35 @@ export interface Installment {
 }
 
 // Fin Préstamos
+
+// API
+export interface RequestFilters {
+  period?: "last_week" | "last_month" | "all";
+  project?: string;
+  type?: "expense" | "discount" | "income";
+  status?: "pending" | "rejected" | "approved";
+}
+
+export interface RequestUpdateData {
+  invoice_number?: string;
+  amount?: string;
+  note?: string;
+  // Add more fields if needed
+}
+
+export interface RepositionFilters {
+  period?: "last_week" | "last_month" | "all";
+  project?: string;
+  type?: "expense" | "discount" | "income" | "all";
+  status?: "rejected" | "pending" | "paid" | "all";
+  mode?: "all" | "income";
+}
+
+export interface RepositionUpdateData {
+  total?: number;
+  date?: Date;
+  note: string;
+  status: "rejected" | "paid";
+  when?: string;
+  month?: string;
+}
