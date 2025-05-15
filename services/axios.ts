@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import {
   RepositionFilters,
   RepositionUpdateData,
   RequestFilters,
   RequestUpdateData,
-} from "@/utils/types";
+} from "./../utils/types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import { toast } from "sonner";
 
