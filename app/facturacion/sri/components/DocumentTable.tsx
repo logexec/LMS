@@ -22,6 +22,7 @@ import {
   DownloadCloudIcon,
   ChevronRightIcon,
   RefreshCcw,
+  Loader2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -96,14 +97,24 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
   }, [documents, searchTerm, dateRange]);
 
   const fetchDocuments = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/sri-documents");
-      setDocuments(response.data);
-    } catch (error) {
-      console.error("Error al cargar documentos:", error);
-    } finally {
-      setLoading(false);
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        setLoading(true);
+        const response = await api.get("/sri-documents");
+        setDocuments(response.data);
+        break; // Success, exit loop
+      } catch (error) {
+        if (retries === 1) {
+          console.error("Error al cargar documentos:", error);
+          toast.error(
+            "Error al cargar documentos. Intente nuevamente más tarde"
+          );
+        }
+        retries--;
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -143,22 +154,6 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
     // Limpiar selecciones cuando cambian los filtros
     setSelectedDocuments([]);
     setSelectAll(false);
-  };
-
-  const handleChange = (id: number, field: string, value: string) => {
-    // Convertir a número si es un campo numérico
-    const numericFields = ["valor_sin_impuestos", "iva", "importe_total"];
-    const processedValue = numericFields.includes(field)
-      ? value === ""
-        ? null
-        : parseFloat(value)
-      : value;
-
-    setDocuments((prev) =>
-      prev.map((doc) =>
-        doc.id === id ? { ...doc, [field]: processedValue } : doc
-      )
-    );
   };
 
   const handleSave = async () => {
@@ -272,6 +267,12 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
 
   return (
     <div className="space-y-4">
+      {loading && (
+        <div className="p-4 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-muted-foreground">Cargando documentos...</p>
+        </div>
+      )}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <h2 className="text-lg font-semibold">Documentos generados</h2>
@@ -456,43 +457,9 @@ const DocumentTable = ({ refreshTrigger = 0 }: DocumentTableProps) => {
                     <TableCell>{doc.tipo_comprobante}</TableCell>
                     <TableCell>{doc.serie_comprobante}</TableCell>
                     <TableCell>{formatDate(doc.fecha_emision)}</TableCell>
-                    <TableCell>
-                      <Input
-                        value={doc.valor_sin_impuestos || ""}
-                        onChange={(e) =>
-                          handleChange(
-                            doc.id,
-                            "valor_sin_impuestos",
-                            e.target.value
-                          )
-                        }
-                        className="h-8 w-24"
-                        type="number"
-                        step="0.01"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={doc.iva || ""}
-                        onChange={(e) =>
-                          handleChange(doc.id, "iva", e.target.value)
-                        }
-                        className="h-8 w-24"
-                        type="number"
-                        step="0.01"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={doc.importe_total || ""}
-                        onChange={(e) =>
-                          handleChange(doc.id, "importe_total", e.target.value)
-                        }
-                        className="h-8 w-24"
-                        type="number"
-                        step="0.01"
-                      />
-                    </TableCell>
+                    <TableCell>{doc.valor_sin_impuestos}</TableCell>
+                    <TableCell>{doc.iva}</TableCell>
+                    <TableCell>{doc.importe_total}</TableCell>
                     <TableCell className="flex space-x-1">
                       <a
                         href={`${

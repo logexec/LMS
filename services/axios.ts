@@ -313,6 +313,120 @@ export const sriApi = {
       };
     }
   },
+
+  /**
+   * Consulta información de un comprobante por clave de acceso
+   */
+  consultarComprobanteSri: async (claveAcceso: string) => {
+    try {
+      // Show loading toast
+      const toastId = toast.loading("Consultando comprobante en el SRI...");
+
+      const response = await api.post("/comprobantes/consultar", {
+        claveAcceso,
+      });
+
+      // Dismiss loading toast on success
+      toast.dismiss(toastId);
+
+      if (response.data.success) {
+        toast.success("Información de comprobante obtenida correctamente");
+      } else {
+        toast.error(
+          response.data.message ||
+            "Error al obtener información del comprobante"
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al consultar comprobante:", error);
+      toast.error("Error al consultar información del comprobante en el SRI");
+      return {
+        success: false,
+        message: "Error al obtener información del comprobante",
+      };
+    }
+  },
+  /**
+   * Guarda un comprobante en la base de datos
+   */
+  guardarComprobanteSri: async (claveAcceso: string) => {
+    try {
+      // Show loading toast
+      const toastId = toast.loading(
+        "Guardando comprobante en la base de datos..."
+      );
+
+      const response = await api.post("/comprobantes/guardar", {
+        claveAcceso,
+      });
+
+      // Dismiss loading toast on success
+      toast.dismiss(toastId);
+
+      if (response.data.success) {
+        toast.success("Comprobante guardado correctamente");
+      } else {
+        toast.error(response.data.message || "Error al guardar el comprobante");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al guardar comprobante:", error);
+      toast.error("Error al guardar el comprobante");
+      return {
+        success: false,
+        message: "Error al guardar el comprobante",
+      };
+    }
+  },
+
+  /**
+   * Guarda varios comprobantes en la base de datos
+   */
+  guardarVariosComprobantesSri: async (clavesAcceso: string[]) => {
+    try {
+      if (clavesAcceso.length === 0) {
+        toast.warning("No hay claves de acceso para guardar");
+        return {
+          success: false,
+          message: "No hay claves de acceso para guardar",
+        };
+      }
+
+      // Show loading toast
+      const toastId = toast.loading(
+        `Guardando ${clavesAcceso.length} comprobantes en la base de datos...`
+      );
+
+      const response = await api.post("/comprobantes/guardar-varios", {
+        clavesAcceso,
+      });
+
+      // Dismiss loading toast on success
+      toast.dismiss(toastId);
+
+      if (response.data.success) {
+        toast.success(
+          `${response.data.documentos.length} comprobantes guardados correctamente`
+        );
+      } else {
+        toast.error(
+          response.data.message || "Error al guardar los comprobantes"
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al guardar comprobantes:", error);
+      toast.error("Error al guardar los comprobantes");
+      return {
+        success: false,
+        message: "Error al guardar los comprobantes",
+      };
+    }
+  },
 };
 
 /**
