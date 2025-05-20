@@ -263,9 +263,16 @@ const createColumns = (): ColumnDef<Reposition>[] => [
   {
     header: "Proyecto",
     accessorKey: "project",
-    cell: ({ row }) => (
-      <Badge variant="secondary">{row.getValue("project")}</Badge>
-    ),
+    cell: ({ row }) => {
+      const rawValue = row.getValue("project") as string;
+      const projects = rawValue.split(",");
+      const display =
+        projects.length > 1
+          ? `${projects[0]} y ${projects.length - 1} más`
+          : projects[0];
+
+      return <Badge variant="secondary">{display}</Badge>;
+    },
     size: 100,
     filterFn: multiColumnFilterFn,
   },
