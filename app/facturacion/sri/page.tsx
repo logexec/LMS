@@ -1,95 +1,65 @@
-"use client";
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { BoxIcon, HouseIcon, BarChart2Icon } from "lucide-react";
-import DocumentTable from "./components/DocumentTable";
-import ReportsTab from "./components/ReportsTab";
-// import ExtendedDocumentTable from "./components/ExtendedDocumentTable";
-import SriDocumentPreview from "./components/SriDocumentPreview";
-import SriDocumentViewer from "./components/SriDocumentViewer";
+import React from 'react'
+import DropZone from './components/DropZone'
+import {
+  Stepper,
+  StepperDescription,
+  StepperIndicator,
+  StepperItem,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from "@/components/ui/stepper"
 
-const SRIPage = () => {
-  const [activeTab, setActiveTab] = useState("tab-1");
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const handleFinishUpload = () => {
-    setActiveTab("tab-2");
-    setRefreshTrigger((prev) => prev + 1);
-  };
+const SriPage = () => {
+    const steps = [
+  {
+    step: 1,
+    title: "Primer Paso",
+    description: "Cargar archivo de excel",
+  },
+  {
+    step: 2,
+    title: "Segundo Paso",
+    description: "Completar los datos",
+  },
+//   {
+//     step: 3,
+//     title: "Tercer paso",
+//     description: "Desc for step three",
+//   },
+];
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <ScrollArea>
-        <TabsList className="before:bg-border relative mb-3 h-auto w-full gap-0.5 bg-transparent p-0 before:absolute before:inset-x-0 before:bottom-0 before:h-px">
-          <TabsTrigger
-            value="tab-1"
-            className="bg-muted overflow-hidden rounded-b-none border-x border-t py-2 data-[state=active]:z-10 data-[state=active]:shadow-none"
-          >
-            <HouseIcon
-              className="-ms-0.5 me-1.5 opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-            Cargar documentos
-          </TabsTrigger>
-          <TabsTrigger
-            value="tab-2"
-            className="bg-muted overflow-hidden rounded-b-none border-x border-t py-2 data-[state=active]:z-10 data-[state=active]:shadow-none"
-          >
-            <BoxIcon
-              className="-ms-0.5 me-1.5 opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-            Documentos SRI
-          </TabsTrigger>
-          <TabsTrigger
-            value="tab-3"
-            className="bg-muted overflow-hidden rounded-b-none border-x border-t py-2 data-[state=active]:z-10 data-[state=active]:shadow-none"
-          >
-            <BarChart2Icon
-              className="-ms-0.5 me-1.5 opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-            Reportes y Métricas
-          </TabsTrigger>
-          <TabsTrigger
-            value="tab-4"
-            className="bg-muted overflow-hidden rounded-b-none border-x border-t py-2 data-[state=active]:z-10 data-[state=active]:shadow-none"
-          >
-            <BoxIcon
-              className="-ms-0.5 me-1.5 opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-            Documentos completos
-          </TabsTrigger>
-        </TabsList>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-      <TabsContent value="tab-1">
-        {/* <div className="p-4 pt-1">
-          <TxtUploader onFinish={handleFinishUpload} />
-        </div> */}
-        <div className="p-4 pt-1">
-          <SriDocumentPreview />
-        </div>
-      </TabsContent>
-      <TabsContent value="tab-2" className="p-4">
-        <DocumentTable refreshTrigger={refreshTrigger} />
-      </TabsContent>
-      <TabsContent value="tab-3" className="p-4">
-        <ReportsTab />
-      </TabsContent>
-      <TabsContent value="tab-4">
-        <div className="p-4 pt-1">
-          <SriDocumentViewer />
-        </div>
-      </TabsContent>
-    </Tabs>
+    <div className="flex flex-col grow">
+      {/* Stepper  */}
+      <div className="space-y-8 text-center">
+        <Stepper defaultValue={2}>
+          {steps.map(({ step, title, description }) => (
+            <StepperItem
+              key={step}
+              step={step}
+              className="not-last:flex-1 max-md:items-start"
+            >
+              <StepperTrigger className="rounded max-md:flex-col">
+                <StepperIndicator />
+                <div className="text-center md:text-left">
+                  <StepperTitle>{title}</StepperTitle>
+                  <StepperDescription className="max-sm:hidden">
+                    {description}
+                  </StepperDescription>
+                </div>
+              </StepperTrigger>
+              {step < steps.length && (
+                <StepperSeparator className="max-md:mt-3.5 md:mx-4" />
+              )}
+            </StepperItem>
+          ))}
+        </Stepper>
+      </div>
+      {/* DropZone */}
+      <DropZone />
+    </div>
   );
-};
+}
 
-export default SRIPage;
+export default SriPage
