@@ -89,6 +89,7 @@ import RepositionDetailsTableComponent from "./RepositionDetailsTableComponent";
 import PayRepositionComponent from "../PayRepositionComponent";
 import RejectRepositionComponent from "../RejectRepositionComponent";
 import { useAuth } from "@/hooks/useAuth";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Period = "last_week" | "last_month" | "all";
 type Status = "rejected" | "pending" | "paid" | "all";
@@ -271,7 +272,22 @@ const createColumns = (): ColumnDef<Reposition>[] => [
           ? `${projects[0]} y ${projects.length - 1} más`
           : projects[0];
 
-      return <Badge variant="secondary">{display}</Badge>;
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="secondary" className="cursor-default">
+                {display}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="max-w-xs whitespace-pre-wrap break-words">
+                {projects.join(", ")}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
     },
     size: 100,
     filterFn: multiColumnFilterFn,
