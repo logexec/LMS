@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import {
@@ -22,7 +24,7 @@ export function PayrollList() {
   //     queryKey: ["payrolls"],
   //     queryFn: () => axios.get("/payrolls").then((res) => res.data),
   //   });
-  const data = [];
+  const data: any = [];
 
   return (
     <Card className="p-6 mt-6 rounded-2xl shadow-sm">
@@ -38,7 +40,7 @@ export function PayrollList() {
         </TableHeader>
         <TableBody>
           {data.length ? (
-            data.map((p) => (
+            data.map((p: any) => (
               <TableRow key={p.id}>
                 <TableCell>{p.user.name}</TableCell>
                 <TableCell>
