@@ -58,6 +58,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { getAuthToken } from "@/services/auth.service";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Opciones para número de filas por página
 const rowsPerPageOptions = [10, 25, 50, 100, 0]; // 0 significa "Todas"
@@ -97,7 +98,7 @@ const PartialDataTable = () => {
       header: () => <span className="font-medium text-sky-600">MES</span>,
       cell: ({ row }) => (
         <Input
-          className="h-8 text-xs w-20 border-sky-600/30 bg-sky-600/5"
+          className="h-8 text-xs w-20 border-sky-600/30"
           defaultValue={row.getValue("mes") as string}
           onChange={(e) => updateRow(row.index, { mes: e.target.value })}
           placeholder="Mes"
@@ -106,32 +107,74 @@ const PartialDataTable = () => {
     },
     {
       accessorKey: "proveedor",
-      header: () => <span className="font-medium text-emerald-600">PROVEEDOR</span>,
-      cell: ({ row }) => <div className="w-28 truncate font-mono">{row.getValue("proveedor")}</div>,
+      header: () => (
+        <span className="font-medium text-emerald-600">PROVEEDOR</span>
+      ),
+      cell: ({ row }) => (
+        <div className="font-mono">
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger className="w-32 truncate">
+                {row.getValue("proveedor")}
+              </TooltipTrigger>
+              <TooltipContent className="bg-white dark:bg-black text-black dark:text-white border border-slate-100 dark:border-slate-900 rounded shadow-sm">
+                {row.getValue("proveedor")}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      ),
     },
     {
       accessorKey: "proveedor_ruc",
       header: () => <span className="font-medium text-emerald-600">RUC</span>,
-      cell: ({ row }) => <div className="w-28 truncate font-mono">{row.getValue("proveedor_ruc")}</div>,
+      cell: ({ row }) => (
+        <div className="w-32 truncate font-mono">
+          {row.getValue("proveedor_ruc")}
+        </div>
+      ),
     },
     {
       accessorKey: "compra",
-      header: () => <span className="font-medium text-emerald-600">Compra</span>,
-      cell: ({ row }) => <div className="w-24 truncate">{row.getValue("compra")}</div>,
+      header: () => (
+        <span className="font-medium text-emerald-600">Compra</span>
+      ),
+      cell: ({ row }) => (
+        <div className="w-24 truncate">{row.getValue("compra")}</div>
+      ),
     },
     {
       accessorKey: "fecha",
       header: () => <span className="font-medium text-emerald-600">Fecha</span>,
-      cell: ({ row }) => <div className="w-24 truncate">{row.getValue("fecha")}</div>,
+      cell: ({ row }) => (
+        <div className="w-24 truncate">{row.getValue("fecha")}</div>
+      ),
     },
     {
       accessorKey: "aut_factura",
-      header: () => <span className="font-medium text-emerald-600">Aut. Factura</span>,
-      cell: ({ row }) => <div className="w-28 truncate">{row.getValue("aut_factura")}</div>,
+      header: () => (
+        <span className="font-medium text-emerald-600">Aut. Factura</span>
+      ),
+      cell: ({ row }) => (
+        <div className="w-32">
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger className="w-32 truncate">
+                {row.getValue("aut_factura")}
+              </TooltipTrigger>
+              <TooltipContent className="bg-white dark:bg-black text-black dark:text-white border border-slate-100 dark:border-slate-900 rounded shadow-sm">
+                {row.getValue("aut_factura")}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      ),
     },
     {
       accessorKey: "precio",
-      header: () => <span className="font-medium text-emerald-600">Precio</span>,
+      header: () => (
+        <span className="font-medium text-emerald-600">Precio</span>
+      ),
       cell: ({ row }) => (
         <div className="w-24 text-right font-medium">
           ${Number(row.getValue("precio")).toFixed(2)}
@@ -147,11 +190,11 @@ const PartialDataTable = () => {
         const rowIndex = row.index;
         const currentValue = row.original.proyecto;
         const selectedId = row.original.proyecto_id;
-        
+
         return (
           <div className="min-w-36 max-w-44">
-            <Popover 
-              open={projectsOpen[rowIndex]} 
+            <Popover
+              open={projectsOpen[rowIndex]}
               onOpenChange={(open) => {
                 const newOpenStates = [...projectsOpen];
                 newOpenStates[rowIndex] = open;
@@ -163,17 +206,21 @@ const PartialDataTable = () => {
                   variant="outline"
                   role="combobox"
                   aria-expanded={projectsOpen[rowIndex]}
-                  className="w-full justify-between h-8 text-xs border-sky-600/30 bg-sky-600/5"
+                  className="w-full justify-between h-8 text-xs border-sky-600/30"
                 >
-                  {selectedId ? 
-                    projects.find((project: any) => project.id === selectedId)?.name : 
-                    currentValue || "Selecciona el proyecto"}
+                  {selectedId
+                    ? projects.find((project: any) => project.id === selectedId)
+                        ?.name
+                    : currentValue || "Selecciona el proyecto"}
                   <ChevronsUpDownIcon className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-56 p-0">
                 <Command>
-                  <CommandInput placeholder="Buscar proyecto..." className="h-9" />
+                  <CommandInput
+                    placeholder="Buscar proyecto..."
+                    className="h-9"
+                  />
                   <CommandEmpty>No hay resultados.</CommandEmpty>
                   <CommandGroup>
                     <CommandList>
@@ -182,9 +229,9 @@ const PartialDataTable = () => {
                           key={project.id}
                           value={project.name}
                           onSelect={() => {
-                            updateRow(rowIndex, { 
+                            updateRow(rowIndex, {
                               proyecto_id: project.id,
-                              proyecto: project.name
+                              proyecto: project.name,
                             });
                             const newOpenStates = [...projectsOpen];
                             newOpenStates[rowIndex] = false;
@@ -194,7 +241,9 @@ const PartialDataTable = () => {
                           <CheckIcon
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedId === project.id ? "opacity-100" : "opacity-0"
+                              selectedId === project.id
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           {project.name}
@@ -216,11 +265,11 @@ const PartialDataTable = () => {
         const rowIndex = row.index;
         const currentValue = row.original.centro_costo;
         const selectedId = row.original.centro_costo_id;
-        
+
         return (
           <div className="min-w-36 max-w-44">
-            <Popover 
-              open={centrosOpen[rowIndex]} 
+            <Popover
+              open={centrosOpen[rowIndex]}
               onOpenChange={(open) => {
                 const newOpenStates = [...centrosOpen];
                 newOpenStates[rowIndex] = open;
@@ -232,17 +281,22 @@ const PartialDataTable = () => {
                   variant="outline"
                   role="combobox"
                   aria-expanded={centrosOpen[rowIndex]}
-                  className="w-full justify-between h-8 text-xs border-sky-600/30 bg-sky-600/5"
+                  className="w-full justify-between h-8 text-xs border-sky-600/30"
                 >
-                  {selectedId ? 
-                    centrosCosto.find((centro: any) => centro.id === selectedId)?.name : 
-                    currentValue || "Selecciona un centro"}
+                  {selectedId
+                    ? centrosCosto.find(
+                        (centro: any) => centro.id === selectedId
+                      )?.name
+                    : currentValue || "Selecciona un centro"}
                   <ChevronsUpDownIcon className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-56 p-0">
                 <Command>
-                  <CommandInput placeholder="Buscar centro..." className="h-9" />
+                  <CommandInput
+                    placeholder="Buscar centro..."
+                    className="h-9"
+                  />
                   <CommandEmpty>No hay resultados.</CommandEmpty>
                   <CommandGroup>
                     <CommandList>
@@ -251,9 +305,9 @@ const PartialDataTable = () => {
                           key={centro.id}
                           value={centro.name}
                           onSelect={() => {
-                            updateRow(rowIndex, { 
+                            updateRow(rowIndex, {
                               centro_costo_id: centro.id,
-                              centro_costo: centro.name
+                              centro_costo: centro.name,
                             });
                             const newOpenStates = [...centrosOpen];
                             newOpenStates[rowIndex] = false;
@@ -263,7 +317,9 @@ const PartialDataTable = () => {
                           <CheckIcon
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedId === centro.id ? "opacity-100" : "opacity-0"
+                              selectedId === centro.id
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           {centro.name}
@@ -284,7 +340,7 @@ const PartialDataTable = () => {
       cell: ({ row }) => {
         return (
           <Input
-            className="h-8 text-xs w-40 border-sky-600/30 bg-sky-600/5"
+            className="h-8 text-xs w-40 border-sky-600/30"
             defaultValue={row.getValue("notas") as string}
             onChange={(e) => updateRow(row.index, { notas: e.target.value })}
             placeholder="Escribe una nota..."
@@ -294,13 +350,17 @@ const PartialDataTable = () => {
     },
     {
       accessorKey: "observacion",
-      header: () => <span className="font-medium text-sky-600">OBSERVACIÓN</span>,
+      header: () => (
+        <span className="font-medium text-sky-600">OBSERVACIÓN</span>
+      ),
       cell: ({ row }) => {
         return (
           <Input
-            className="h-8 text-xs w-40 border-sky-600/30 bg-sky-600/5"
+            className="h-8 text-xs w-40 border-sky-600/30"
             defaultValue={row.getValue("observacion") as string}
-            onChange={(e) => updateRow(row.index, { observacion: e.target.value })}
+            onChange={(e) =>
+              updateRow(row.index, { observacion: e.target.value })
+            }
             placeholder="Escribe la observación..."
           />
         );
@@ -310,13 +370,22 @@ const PartialDataTable = () => {
     // Datos que vienen de la API
     {
       accessorKey: "contabilizado",
-      header: () => <span className="font-medium text-purple-700">CONTABILIZADO</span>,
+      header: () => (
+        <span className="font-medium text-purple-700">CONTABILIZADO</span>
+      ),
       cell: ({ row }) => (
         <div className="w-32 truncate">
           {row.getValue("contabilizado") === "SI" ? (
-            <Badge variant="outline" className="font-normal bg-green-600 text-white">Sí</Badge>
+            <Badge
+              variant="outline"
+              className="font-normal bg-green-600 text-white"
+            >
+              Sí
+            </Badge>
           ) : row.getValue("contabilizado") === "NO" ? (
-            <Badge variant="destructive" className="font-normal">No</Badge>
+            <Badge variant="destructive" className="font-normal">
+              No
+            </Badge>
           ) : (
             <Badge variant="outline" className="font-normal bg-purple-50">
               {row.getValue("contabilizado") || "Pendiente"}
@@ -327,7 +396,9 @@ const PartialDataTable = () => {
     },
     {
       accessorKey: "serie_factura",
-      header: () => <span className="font-medium text-purple-700">Serie Factura</span>,
+      header: () => (
+        <span className="font-medium text-purple-700">Serie Factura</span>
+      ),
       cell: ({ row }) => (
         <div className="w-32 truncate">
           <Badge variant="outline" className="font-normal bg-purple-50">
@@ -338,7 +409,11 @@ const PartialDataTable = () => {
     },
     {
       accessorKey: "proveedor_latinium",
-      header: () => <span className="font-medium text-purple-700">PROVEEDOR (LATINIUM).</span>,
+      header: () => (
+        <span className="font-medium text-purple-700">
+          PROVEEDOR (LATINIUM).
+        </span>
+      ),
       cell: ({ row }) => (
         <div className="w-40 truncate">
           <Badge variant="outline" className="font-normal bg-purple-50">
