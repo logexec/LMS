@@ -251,7 +251,7 @@ export function SriProvider({ children }: { children: ReactNode }) {
             compra: String(row[5] || "").trim(),
             proveedor: String(row[1] || "").trim(),
             proveedor_ruc: String(row[4] || "").trim(),
-            fecha: new Date(row[12]).toDateString(),
+            fecha: String(row[11]),
             aut_factura: String(row[13] || "").trim(),
             precio:
               typeof row[81] === "number"
