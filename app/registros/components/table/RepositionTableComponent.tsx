@@ -842,8 +842,8 @@ export default function RepositionTableComponent({
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
                       className={`${
-                        row.original.status === "rejected" ||
-                        (row.original.status === "paid" && "opacity-50")
+                        (row.original.status === "rejected" ||
+                        row.original.status === "paid") && "opacity-50"
                       }`}
                     >
                       {row.getVisibleCells().map((cell) => (
