@@ -95,14 +95,9 @@ const PartialDataTable = () => {
     // Datos que vienen del Excel (solo lectura)
     {
       accessorKey: "mes",
-      header: () => <span className="font-medium text-sky-600">MES</span>,
+      header: () => <span className="font-medium text-emerald-600">MES</span>,
       cell: ({ row }) => (
-        <Input
-          className="h-8 text-xs w-20 border-sky-600/30"
-          defaultValue={row.getValue("mes") as string}
-          onChange={(e) => updateRow(row.index, { mes: e.target.value })}
-          placeholder="Mes"
-        />
+        row.getValue("mes")
       ),
     },
     {

@@ -27,8 +27,8 @@ export interface Reposition {
   fecha_reposicion?: Date;
   total_reposicion?: number;
   status: "paid" | "rejected" | "pending";
+  requests?: Request[];
   project?: string;
-  detail?: string[];
   month?: string;
   when?: string;
   attachment_url?: string;

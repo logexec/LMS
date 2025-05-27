@@ -188,8 +188,9 @@ export function PayRepositionComponent({ type, item }: EditRepositionProps) {
 
   const { setData, data, refreshData } = useTableContext() as TableContextType;
 
-  const isIncome = item.detail![0].includes("I-");
-  const isLoan = item.detail![0].includes("P-");
+  const firstRequest = item.requests?.[0];
+  const isIncome = firstRequest?.unique_id?.includes("I-") || false;
+  const isLoan = firstRequest?.unique_id?.includes("P-") || false;
   const schema = useMemo(
     () => createFormSchema(type, isIncome, isLoan),
     [type, isIncome, isLoan]

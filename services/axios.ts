@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   RepositionFilters,
   RepositionUpdateData,
@@ -681,7 +680,13 @@ export const repositionsApi = {
     const data = await cachedGet("/reposiciones", params, useCache);
 
     if (filters.mode === "income") {
-      return data.filter((item: any) => !item.detail.includes("D-"));
+      return data.filter((item: any) => {
+        // ✅ Usar la nueva relación requests
+        const hasDiscountRequests = item.requests?.some((req: any) =>
+          req.unique_id?.startsWith("D-")
+        );
+        return !hasDiscountRequests;
+      });
     }
 
     // Filter to remove loans and income

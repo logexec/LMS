@@ -248,7 +248,7 @@ export function SriProvider({ children }: { children: ReactNode }) {
 
           // Extraer valores directamente por posición
           const newRow: ExcelRow = {
-            compra: String(row[5] || "").trim(),
+            compra: String(row[10] || "").trim(),
             proveedor: String(row[1] || "").trim(),
             proveedor_ruc: String(row[4] || "").trim(),
             fecha: String(row[11]),
@@ -259,7 +259,7 @@ export function SriProvider({ children }: { children: ReactNode }) {
                 : parseFloat(String(row[81] || "0")),
 
             // Campos que completa el usuario (inicializados vacíos)
-            mes: "",
+            mes: row[13].toString().slice(2, 4), // Es la fecha de la factura
             proyecto: "",
             centro_costo: "",
             notas: "",

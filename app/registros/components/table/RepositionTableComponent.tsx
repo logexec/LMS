@@ -89,7 +89,12 @@ import RepositionDetailsTableComponent from "./RepositionDetailsTableComponent";
 import PayRepositionComponent from "../PayRepositionComponent";
 import RejectRepositionComponent from "../RejectRepositionComponent";
 import { useAuth } from "@/hooks/useAuth";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Period = "last_week" | "last_month" | "all";
 type Status = "rejected" | "pending" | "paid" | "all";
@@ -164,7 +169,9 @@ const RowActions = React.memo(({ row }: { row: Row<Reposition> }) => {
             <PayRepositionComponent
               item={row.original}
               type={
-                row.original.detail![0].startsWith("D") ? "discount" : "expense"
+                row.original.requests?.[0]?.unique_id?.startsWith("D")
+                  ? "discount"
+                  : "expense" // ✅ Nueva estructura
               }
             />
           </DropdownMenuItem>
@@ -177,7 +184,9 @@ const RowActions = React.memo(({ row }: { row: Row<Reposition> }) => {
           <RejectRepositionComponent
             item={row.original}
             type={
-              row.original.detail![0].startsWith("D") ? "discount" : "expense"
+              row.original.requests?.[0]?.unique_id?.startsWith("D")
+                ? "discount"
+                : "expense" // ✅ Nueva estructura
             }
           />
         </DropdownMenuItem>
@@ -333,42 +342,52 @@ const createColumns = (): ColumnDef<Reposition>[] => [
     size: 120,
   },
   {
-  header: "Tipo",
-  id: "tipo", // Add an explicit id for clarity
-  accessorFn: (row) => {
-    const firstItem = row.detail![0];
-    return firstItem.startsWith("I")
-      ? "Ingreso"
-      : firstItem.startsWith("P")
-      ? "Préstamo"
-      : firstItem.startsWith("D")
-      ? "Descuento"
-      : "Gasto";
-  },
-  cell: ({ row }) => {
-    const firstItem = row.original.detail![0];
-    const typeOfRequest = firstItem.startsWith("I")
-      ? "Ingreso"
-      : firstItem.startsWith("P")
-      ? "Préstamo"
-      : firstItem.startsWith("D")
-      ? "Descuento"
-      : "Gasto";
-    const requestColors = firstItem.startsWith("I")
-      ? "text-emerald-600 dark:text-emerald-400"
-      : firstItem.startsWith("P")
-      ? "text-orange-600 dark:text-orange-400"
-      : firstItem.startsWith("D")
-      ? "text-amber-600 dark:text-amber-400"
-      : "text-rose-600 dark:text-rose-400";
+    header: "Tipo",
+    id: "tipo",
+    accessorFn: (row) => {
+      // ✅ Usar la nueva relación requests
+      const firstRequest = row.requests?.[0];
+      if (!firstRequest) return "Gasto"; // Fallback
 
-    return (
-      <span className={`${requestColors} cursor-default`}>{typeOfRequest}</span>
-    );
+      const firstItem = firstRequest.unique_id;
+      return firstItem.startsWith("I")
+        ? "Ingreso"
+        : firstItem.startsWith("P")
+        ? "Préstamo"
+        : firstItem.startsWith("D")
+        ? "Descuento"
+        : "Gasto";
+    },
+    cell: ({ row }) => {
+      // ✅ Usar la nueva relación requests
+      const firstRequest = row.original.requests?.[0];
+      if (!firstRequest) return <span className="text-rose-600">Gasto</span>;
+
+      const firstItem = firstRequest.unique_id;
+      const typeOfRequest = firstItem.startsWith("I")
+        ? "Ingreso"
+        : firstItem.startsWith("P")
+        ? "Préstamo"
+        : firstItem.startsWith("D")
+        ? "Descuento"
+        : "Gasto";
+      const requestColors = firstItem.startsWith("I")
+        ? "text-emerald-600 dark:text-emerald-400"
+        : firstItem.startsWith("P")
+        ? "text-orange-600 dark:text-orange-400"
+        : firstItem.startsWith("D")
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-rose-600 dark:text-rose-400";
+
+      return (
+        <span className={`${requestColors} cursor-default`}>
+          {typeOfRequest}
+        </span>
+      );
+    },
+    size: 100,
+    enableSorting: true,
   },
-  size: 100,
-  enableSorting: true, // Explicitly enable sorting
-},
   {
     header: "Detalles",
     cell: ({ row }) => {
