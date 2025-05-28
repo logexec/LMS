@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 // Create a simple cache mechanism
 const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 1 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds || minutes * seconds * milliseconds
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -591,7 +591,7 @@ export const onFileSubmit = async (
 // API functions for requests
 export const requestsApi = {
   // Fetch requests with filters
-  fetchRequests: async (filters: RequestFilters = {}, useCache = true) => {
+  fetchRequests: async (filters: RequestFilters = {}, forceRefresh: boolean = false,) => {
     const params: Record<string, string> = {};
 
     if (filters.period) params.period = filters.period;
@@ -599,7 +599,7 @@ export const requestsApi = {
     if (filters.type) params.type = filters.type;
     if (filters.status) params.status = filters.status;
 
-    const data = await cachedGet("/requests", params, useCache);
+    const data = await cachedGet("/requests", params, !forceRefresh);
 
     // Get user email from localStorage
     const user = JSON.parse(localStorage.getItem("user")!);
@@ -651,7 +651,6 @@ export const requestsApi = {
   deleteMultipleRequests: async (ids: string[]) => {
     // If only one ID, use singular endpoint for compatibility
     if (ids.length === 1) {
-      clearCache("/requests");
       return requestsApi.deleteRequest(ids[0]);
     }
 
@@ -670,7 +669,7 @@ export const repositionsApi = {
   // Fetch repositions with filters
   fetchRepositions: async (
     filters: RepositionFilters = {},
-    useCache = false
+    forceRefresh: boolean = false,
   ) => {
     const params: Record<string, string> = {};
 
@@ -678,20 +677,17 @@ export const repositionsApi = {
     if (filters.period) params.period = filters.period;
     if (filters.status) params.status = filters.status;
 
-    const data = await cachedGet("/reposiciones", params, useCache);
+    const data = await cachedGet("/reposiciones", params, !forceRefresh);
 
     if (filters.mode === "income") {
       return data.filter((item: any) => {
         const hasDiscountRequests = item.requests?.some((req: any) =>
           req.unique_id?.startsWith("D-")
         );
-        clearCache(`/reposiciones`);
         return !hasDiscountRequests;
       });
     }
-
     // Filter to remove loans and income
-    clearCache(`/reposiciones`);
     return data;
   },
 
