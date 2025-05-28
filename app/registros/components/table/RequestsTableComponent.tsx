@@ -541,8 +541,14 @@ export default function RequestsTableComponent({
       // Mostrar mensaje de error
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data;
-        const errorMessage =
-          errorData?.message || "Error al crear la reposición";
+        let errorMessage = errorData?.message || "Error al crear la reposición";
+
+        // Check if errors object exists and extract messages
+        if (errorData?.errors) {
+          const errorMessages = Object.values(errorData.errors).flat();
+          errorMessage = errorMessages.join(" "); // Combine all error messages
+        }
+
         toast.error(errorMessage);
       } else {
         toast.error(
