@@ -49,7 +49,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
         {process.env.NODE_ENV === "development" && (
           <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60 cursor-default">
-            LMS | Versión 3.3.0 | Beta
+            LMS | Versión 3.3.2 | Beta
           </div>
         )}
       </div>
