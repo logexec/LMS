@@ -10,13 +10,13 @@ import { toast } from "sonner";
 
 // Create a simple cache mechanism
 const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds || minutes * seconds * milliseconds
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
-  timeout: 60000, // 60-second timeout (Default 30-second timeout)
+  timeout: 120000, // Aumentado a 2 minutos para solicitudes masivas
 });
 
 // Interceptor to add auth token
@@ -37,8 +37,12 @@ api.interceptors.response.use(
       error.message ||
       "Error en la conexión con el servidor";
 
-    // Only show toast if not handling error manually
-    if (!error.config?.skipErrorToast) {
+    // Only show toast if the error doesn't come from batch operations
+    // We'll handle batch errors manually in the components
+    const isBatchOperation = error.config?.url?.includes('/requests') && 
+                           error.config?.data?.includes('batch_data');
+    
+    if (!isBatchOperation) {
       toast.error(errorMessage);
     }
 
@@ -52,30 +56,24 @@ const cachedGet = async (
   params: Record<string, any> = {},
   enableCache = true
 ) => {
-  // Create a unique cache key based on the URL and params
   const queryString = Object.keys(params)
     .map((key) => `${key}=${params[key]}`)
     .join("&");
   const cacheKey = `${url}?${queryString}`;
 
-  // Check if we have a valid cached response
   if (enableCache && cache.has(cacheKey)) {
     const cachedResponse = cache.get(cacheKey)!;
     const now = Date.now();
 
-    // If cache is still valid, return it
     if (now - cachedResponse.timestamp < CACHE_TTL) {
       return cachedResponse.data;
     } else {
-      // Remove expired cache
       cache.delete(cacheKey);
     }
   }
 
-  // Otherwise make the API call
   const response = await api.get(url, { params });
 
-  // Cache the result if caching is enabled
   if (enableCache) {
     cache.set(cacheKey, {
       data: response.data,
@@ -86,24 +84,320 @@ const cachedGet = async (
   return response.data;
 };
 
-// Clear cache function (useful for when data is known to be stale)
+// Clear cache function
 const clearCache = (urlPattern?: string) => {
   if (urlPattern) {
-    // Clear specific pattern
     for (const key of cache.keys()) {
       if (key.includes(urlPattern)) {
         cache.delete(key);
       }
     }
   } else {
-    // Clear all cache
     cache.clear();
   }
 };
 
-/**
- * API para interacción con el SRI (Nuevas funcionalidades)
- */
+// API functions for requests - OPTIMIZADO PARA MASIVOS
+export const requestsApi = {
+  // Fetch requests with filters
+  fetchRequests: async (
+    filters: RequestFilters = {},
+    forceRefresh: boolean = false
+  ) => {
+    const params: Record<string, string> = {};
+
+    if (filters.period) params.period = filters.period;
+    if (filters.project) params.project = filters.project;
+    if (filters.type) params.type = filters.type;
+    if (filters.status) params.status = filters.status;
+
+    const data = await cachedGet("/requests", params, !forceRefresh);
+
+    // Get user email from localStorage
+    const user = JSON.parse(localStorage.getItem("user")!);
+    const email = user?.email || null;
+
+    // List of emails exempt from filtering
+    const exemptEmails = [
+      "ricardo.estrella@logex.ec",
+      "jk@logex.ec",
+      "diego.merisalde@logex.ec",
+      "michelle.quintana@logex.ec",
+      "nicolas.iza@logex.ec",
+      "luis.espinosa@logex.ec",
+    ];
+
+    // Filter only if email is not in exempt list
+    let result = data;
+    if (!exemptEmails.includes(email)) {
+      result = data.filter(
+        (item: any) =>
+          !item.unique_id.startsWith("P-") && !item.unique_id.startsWith("I-")
+      );
+    }
+
+    return result;
+  },
+
+  // Create single request - NUEVO MÉTODO UNIFICADO
+  createRequest: async (requestData: any) => {
+    try {
+      const response = await api.post("/requests", requestData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      clearCache("/requests");
+      return response.data;
+    } catch (error: any) {
+      console.error("Error creating single request:", error);
+      // No mostrar toast automático, dejar que el componente lo maneje
+      throw error;
+    }
+  },
+
+  // Create batch requests - NUEVO MÉTODO PARA MASIVOS
+  createBatchRequests: async (
+    batchData: any[],
+    onProgress?: (progress: {
+      current: number;
+      total: number;
+      percentage: number;
+    }) => void
+  ) => {
+    try {
+      // Validar datos de entrada
+      if (!Array.isArray(batchData) || batchData.length === 0) {
+        throw new Error("Los datos del lote deben ser un array no vacío");
+      }
+
+      const maxBatchSize = 50;
+      if (batchData.length > maxBatchSize) {
+        throw new Error(
+          `El lote excede el máximo de ${maxBatchSize} registros. Actual: ${batchData.length}`
+        );
+      }
+
+      // Solo mostrar toast automático si NO hay callback de progreso
+
+      const response = await api.post(
+        "/requests",
+        {
+          batch_data: batchData,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 300000, // 5 minutos para lotes grandes
+          onUploadProgress: (progressEvent) => {
+            if (onProgress && progressEvent.total) {
+              const percentage = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              onProgress({
+                current: progressEvent.loaded,
+                total: progressEvent.total,
+                percentage,
+              });
+            }
+          },
+        }
+      );
+
+      clearCache("/requests");
+      return response.data;
+    } catch (error: any) {
+      console.error("Error creating batch requests:", error);
+      
+      // Solo mostrar toasts de error si NO hay callback de progreso
+      if (!onProgress) {
+        // Handle specific error types
+        if (error.code === "ECONNABORTED") {
+          toast.error("Tiempo de espera agotado. Intenta con un lote más pequeño.");
+        } else if (error.response?.status === 413) {
+          toast.error("El lote es demasiado grande. Reduce el número de registros.");
+        } else if (error.response?.status === 422) {
+          const errorData = error.response.data;
+          toast.error(`Error de validación: ${errorData.message || "Datos inválidos"}`);
+        } else {
+          toast.error(`Error al procesar lote: ${error.message}`);
+        }
+      }
+      
+      throw error;
+    }
+  },
+
+  // Create requests with FormData (for file uploads) - MEJORADO
+  createRequestWithFile: async (formData: FormData) => {
+    try {
+      const response = await api.post("/requests", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 60000,
+      });
+
+      clearCache("/requests");
+      return response.data;
+    } catch (error: any) {
+      console.error("Error creating request with file:", error);
+      // No mostrar toast automático, dejar que el componente lo maneje
+      throw error;
+    }
+  },
+
+  // Delete a request
+  deleteRequest: async (id: string) => {
+    const response = await api.delete(`/requests/${id}`);
+    clearCache("/requests");
+    return response.data;
+  },
+
+  // Update a request
+  updateRequest: async (id: string, data: RequestUpdateData) => {
+    const response = await api.patch(`/requests/${id}`, data);
+    clearCache("/requests");
+    clearCache(`/requests/${id}`);
+    return response.data;
+  },
+
+  // Delete multiple requests
+  deleteMultipleRequests: async (ids: string[]) => {
+    if (ids.length === 1) {
+      return requestsApi.deleteRequest(ids[0]);
+    }
+
+    const response = await api.post("/requests/batch-delete", {
+      request_ids: ids,
+    });
+    clearCache("/requests");
+    return response.data;
+  },
+
+  // Create reposition (send requests)
+  createReposicion: async (requestIds: string[], file: File) => {
+    const result = await onFileSubmit(requestIds, file);
+    return result;
+  },
+};
+
+// Helper function for handling different request types
+export const createRequestHelper = {
+  // For individual form submissions
+  individual: async (formData: FormData) => {
+    return await requestsApi.createRequestWithFile(formData);
+  },
+
+  // For mass form submissions (JSON data)
+  batch: async (
+    batchData: any[],
+    onProgress?: (progress: {
+      current: number;
+      total: number;
+      percentage: number;
+    }) => void
+  ) => {
+    return await requestsApi.createBatchRequests(batchData, onProgress);
+  },
+
+  // For single JSON submissions
+  single: async (requestData: any) => {
+    return await requestsApi.createRequest(requestData);
+  },
+};
+
+// Existing file upload function (kept for compatibility)
+export const onFileSubmit = async (
+  requestIds: string[],
+  file: File,
+  retries = 2
+): Promise<any> => {
+  const formData = new FormData();
+  formData.append("attachment", file);
+  formData.append("file", file);
+  requestIds.forEach((id) => formData.append("request_ids[]", id));
+
+  const config = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    timeout: 60000,
+  };
+
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await api.post("/reposiciones", formData, config);
+      clearCache("/reposiciones");
+      return response.data;
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `File upload error (attempt ${attempt + 1}/${retries + 1}):`,
+        error
+      );
+
+      if (axios.isAxiosError(error)) {
+        console.error("Response data:", error.response?.data);
+      }
+
+      if (attempt === retries) {
+        throw error;
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000 * Math.pow(2, attempt))
+      );
+    }
+  }
+
+  throw lastError;
+};
+
+// API functions for repositions (unchanged)
+export const repositionsApi = {
+  fetchRepositions: async (
+    filters: RepositionFilters = {},
+    forceRefresh: boolean = false
+  ) => {
+    const params: Record<string, string> = {};
+
+    if (filters.mode) params.mode = filters.mode;
+    if (filters.period) params.period = filters.period;
+    if (filters.status) params.status = filters.status;
+
+    const data = await cachedGet("/reposiciones", params, !forceRefresh);
+
+    if (filters.mode === "income") {
+      return data.filter((item: any) => {
+        const hasDiscountRequests = item.requests?.some((req: any) =>
+          req.unique_id?.startsWith("D-")
+        );
+        return !hasDiscountRequests;
+      });
+    }
+    return data;
+  },
+
+  getRepositionDetails: async (reposicionId: number) => {
+    const response = await api.get(`reposiciones/${reposicionId}`);
+    clearCache(`/reposiciones/${reposicionId}`);
+    clearCache(`/reposiciones`);
+    return response.data.requests;
+  },
+
+  updateReposition: async (id: string, data: RepositionUpdateData) => {
+    const response = await api.patch(`/reposiciones/${id}`, data);
+    clearCache("/reposiciones");
+    clearCache(`/reposiciones/${id}`);
+    return response.data;
+  },
+};
+
+// SRI API (existing functionality preserved)
 export const sriApi = {
   getAllDocuments: async () => {
     const response = await api.get("/sri-documents");
@@ -119,7 +413,6 @@ export const sriApi = {
   },
 
   batchUpdateDocuments: async (documents: any[]) => {
-    // Filtrar solo documentos con cambios y asegurar que los valores sean numéricos
     const docsToUpdate = documents.map((doc) => ({
       id: doc.id,
       valor_sin_impuestos:
@@ -129,8 +422,6 @@ export const sriApi = {
         doc.importe_total === "" ? null : Number(doc.importe_total),
       identificacion_receptor: doc.identificacion_receptor,
     }));
-
-    console.log("Datos formateados para actualizar:", docsToUpdate);
 
     const response = await api.patch("/sri-documents/batch", {
       documents: docsToUpdate,
@@ -169,11 +460,6 @@ export const sriApi = {
     }
   },
 
-  // Nuevas funciones de consulta SRI
-
-  /**
-   * Consulta información de un contribuyente por RUC
-   */
   consultarContribuyente: async (ruc: string) => {
     try {
       const response = await api.post("/sri/consultar-contribuyente", { ruc });
@@ -187,9 +473,6 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Consulta información de un comprobante por clave de acceso
-   */
   consultarComprobante: async (claveAcceso: string) => {
     try {
       const response = await api.post("/sri/consultar-comprobante", {
@@ -205,9 +488,6 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Valida un comprobante en el SRI
-   */
   validarComprobante: async (claveAcceso: string) => {
     try {
       const response = await api.post("/sri/validar-comprobante", {
@@ -223,19 +503,14 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Obtiene información completa a partir de la clave de acceso
-   */
   obtenerInfoDesdeClaveAcceso: async (claveAcceso: string) => {
     try {
-      // Show loading toast
       const toastId = toast.loading("Consultando información desde el SRI...");
 
       const response = await api.post("/sri/obtener-info-desde-clave", {
         claveAcceso,
       });
 
-      // Dismiss loading toast on success
       toast.dismiss(toastId);
 
       if (response.data.success) {
@@ -255,9 +530,6 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Actualiza un documento con información del RUC
-   */
   actualizarDocumentoDesdeRuc: async (documentId: number) => {
     try {
       const response = await api.post("/sri/actualizar-documento-desde-ruc", {
@@ -273,9 +545,6 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Actualiza un documento con información completa desde la clave de acceso
-   */
   actualizarDocumentoDesdeClaveAcceso: async (documentId: number) => {
     try {
       const response = await api.post("/sri/actualizar-documento-desde-clave", {
@@ -291,9 +560,6 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Actualiza todos los documentos pendientes con información del SRI
-   */
   actualizarTodosDocumentos: async (
     limit: number = 50,
     force: boolean = false
@@ -313,19 +579,14 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Consulta información de un comprobante por clave de acceso
-   */
   consultarComprobanteSri: async (claveAcceso: string) => {
     try {
-      // Show loading toast
       const toastId = toast.loading("Consultando comprobante en el SRI...");
 
       const response = await api.post("/comprobantes/consultar", {
         claveAcceso,
       });
 
-      // Dismiss loading toast on success
       toast.dismiss(toastId);
 
       if (response.data.success) {
@@ -347,12 +608,9 @@ export const sriApi = {
       };
     }
   },
-  /**
-   * Guarda un comprobante en la base de datos
-   */
+
   guardarComprobanteSri: async (claveAcceso: string) => {
     try {
-      // Show loading toast
       const toastId = toast.loading(
         "Guardando comprobante en la base de datos..."
       );
@@ -361,7 +619,6 @@ export const sriApi = {
         claveAcceso,
       });
 
-      // Dismiss loading toast on success
       toast.dismiss(toastId);
 
       if (response.data.success) {
@@ -381,9 +638,6 @@ export const sriApi = {
     }
   },
 
-  /**
-   * Guarda varios comprobantes en la base de datos
-   */
   guardarVariosComprobantesSri: async (clavesAcceso: string[]) => {
     try {
       if (clavesAcceso.length === 0) {
@@ -394,7 +648,6 @@ export const sriApi = {
         };
       }
 
-      // Show loading toast
       const toastId = toast.loading(
         `Guardando ${clavesAcceso.length} comprobantes en la base de datos...`
       );
@@ -403,7 +656,6 @@ export const sriApi = {
         clavesAcceso,
       });
 
-      // Dismiss loading toast on success
       toast.dismiss(toastId);
 
       if (response.data.success) {
@@ -428,9 +680,7 @@ export const sriApi = {
   },
 };
 
-/**
- * API for reports
- */
+// Reports API (existing functionality preserved)
 export const reportsApi = {
   generateReport: async (type: string, period: string) => {
     const response = await api.post(
@@ -444,7 +694,6 @@ export const reportsApi = {
       }
     );
 
-    // Crear un enlace para descargar el archivo
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -456,7 +705,6 @@ export const reportsApi = {
     return true;
   },
 
-  // Nuevas funciones para reportes específicos del SRI
   reporteIva: async (periodo: string) => {
     const response = await api.get(`/sri/reportes/iva/${periodo}`);
     return response.data;
@@ -477,7 +725,6 @@ export const reportsApi = {
       responseType: "blob",
     });
 
-    // Crear un enlace para descargar el archivo XML
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -490,222 +737,27 @@ export const reportsApi = {
   },
 };
 
-/**
- * API para gestión de contribuyentes
- */
+// Contribuyentes API (existing functionality preserved)
 export const contribuyentesApi = {
-  /**
-   * Obtiene un resumen de todos los contribuyentes
-   */
   getResumenContribuyentes: async () => {
     const response = await api.get("/contribuyentes");
     return response.data;
   },
 
-  /**
-   * Actualiza la información de todos los contribuyentes desde el SRI
-   */
   actualizarContribuyentes: async () => {
     const response = await api.post("/contribuyentes/actualizar");
     return response.data;
   },
 
-  /**
-   * Valida el RUC ecuatoriano
-   */
   validarRuc: async (ruc: string) => {
     const response = await api.post("/contribuyentes/validar-ruc", { ruc });
     return response.data;
   },
 
-  /**
-   * Valida una autorización de comprobante
-   */
   validarAutorizacion: async (autorizacion: string) => {
     const response = await api.post("/contribuyentes/validar-autorizacion", {
       autorizacion,
     });
-    return response.data;
-  },
-};
-
-export const onFileSubmit = async (
-  requestIds: string[],
-  file: File,
-  retries = 2
-): Promise<any> => {
-  // Create FormData
-  const formData = new FormData();
-
-  // Add file with both names for better compatibility
-  formData.append("attachment", file);
-  formData.append("file", file);
-
-  // Add request IDs
-  requestIds.forEach((id) => formData.append("request_ids[]", id));
-
-  // Config for file uploads
-  const config = {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-    skipErrorToast: true,
-    timeout: 60000, // 60-second timeout for uploads
-  };
-
-  // Implementation with retry logic
-  let lastError;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const response = await api.post("/reposiciones", formData, config);
-      // Clear cache of repositions on successful upload
-      clearCache("/reposiciones");
-      return response.data;
-    } catch (error) {
-      lastError = error;
-      console.error(
-        `File upload error (attempt ${attempt + 1}/${retries + 1}):`,
-        error
-      );
-
-      // Log response data for diagnosis
-      if (axios.isAxiosError(error)) {
-        console.error("Response data:", error.response?.data);
-      }
-
-      // If this was the last attempt, throw the error
-      if (attempt === retries) {
-        throw error;
-      }
-
-      // Wait before retrying (exponential backoff)
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 * Math.pow(2, attempt))
-      );
-    }
-  }
-
-  throw lastError;
-};
-
-// API functions for requests
-export const requestsApi = {
-  // Fetch requests with filters
-  fetchRequests: async (filters: RequestFilters = {}, forceRefresh: boolean = false,) => {
-    const params: Record<string, string> = {};
-
-    if (filters.period) params.period = filters.period;
-    if (filters.project) params.project = filters.project;
-    if (filters.type) params.type = filters.type;
-    if (filters.status) params.status = filters.status;
-
-    const data = await cachedGet("/requests", params, !forceRefresh);
-
-    // Get user email from localStorage
-    const user = JSON.parse(localStorage.getItem("user")!);
-    const email = user?.email || null;
-
-    // List of emails exempt from filtering
-    const exemptEmails = [
-      "ricardo.estrella@logex.ec",
-      "jk@logex.ec",
-      "diego.merisalde@logex.ec",
-      "michelle.quintana@logex.ec",
-      "nicolas.iza@logex.ec",
-      "luis.espinosa@logex.ec",
-    ];
-
-    // Filter only if email is not in exempt list
-    let result = data;
-    if (!exemptEmails.includes(email)) {
-      result = data.filter((item: any) => (!item.unique_id.startsWith("P-")) || !item.unique_id.startsWith("I-"));
-    }
-
-    return result;
-  },
-
-  // Delete a request
-  deleteRequest: async (id: string) => {
-    const response = await api.delete(`/requests/${id}`);
-    // Clear relevant caches
-    clearCache("/requests");
-    return response.data;
-  },
-
-  // Create reposition (send requests)
-  createReposicion: async (requestIds: string[], file: File) => {
-    const result = await onFileSubmit(requestIds, file);
-    return result;
-  },
-
-  // Update a request
-  updateRequest: async (id: string, data: RequestUpdateData) => {
-    const response = await api.patch(`/requests/${id}`, data);
-    // Clear relevant caches
-    clearCache("/requests");
-    clearCache(`/requests/${id}`);
-    return response.data;
-  },
-
-  // Delete multiple requests
-  deleteMultipleRequests: async (ids: string[]) => {
-    // If only one ID, use singular endpoint for compatibility
-    if (ids.length === 1) {
-      return requestsApi.deleteRequest(ids[0]);
-    }
-
-    // For multiple IDs, use batch delete endpoint
-    const response = await api.post("/requests/batch-delete", {
-      request_ids: ids,
-    });
-    // Clear cache after batch delete
-    clearCache("/requests");
-    return response.data;
-  },
-};
-
-// API functions for repositions
-export const repositionsApi = {
-  // Fetch repositions with filters
-  fetchRepositions: async (
-    filters: RepositionFilters = {},
-    forceRefresh: boolean = false,
-  ) => {
-    const params: Record<string, string> = {};
-
-    if (filters.mode) params.mode = filters.mode;
-    if (filters.period) params.period = filters.period;
-    if (filters.status) params.status = filters.status;
-
-    const data = await cachedGet("/reposiciones", params, !forceRefresh);
-
-    if (filters.mode === "income") {
-      return data.filter((item: any) => {
-        const hasDiscountRequests = item.requests?.some((req: any) =>
-          req.unique_id?.startsWith("D-")
-        );
-        return !hasDiscountRequests;
-      });
-    }
-    // Filter to remove loans and income
-    return data;
-  },
-
-  // Get reposition details (used by RepositionDetailsTableComponent)
-  getRepositionDetails: async (reposicionId: number) => {
-    // We intentionally don't cache this call as it's only triggered on user action
-    const response = await api.get(`reposiciones/${reposicionId}`);
-    clearCache(`/reposiciones/${reposicionId}`);
-    clearCache(`/reposiciones`);
-    return response.data.requests;
-  },
-
-  // Update a reposition
-  updateReposition: async (id: string, data: RepositionUpdateData) => {
-    const response = await api.patch(`/reposiciones/${id}`, data);
-    // Clear relevant caches
-    clearCache("/reposiciones");
-    clearCache(`/reposiciones/${id}`);
     return response.data;
   },
 };

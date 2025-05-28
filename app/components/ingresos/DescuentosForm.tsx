@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,9 +9,81 @@ import NormalDiscountForm from "./NormalDiscountForm";
 import MassDiscountForm from "./MassDiscountForm";
 import LoanForm from "./LoanForm";
 import ExcelUploadSection from "./ExcelUploadSection";
-import { fetchWithAuthFormData } from "@/services/auth.service";
+import { createRequestHelper } from "@/services/axios";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/hooks/useAuth";
+
+// Tipo para los datos de lote
+interface BatchRequestData {
+  type: string;
+  personnel_type: string;
+  request_date: string;
+  invoice_number: string;
+  account_id: string;
+  amount: number;
+  project: string;
+  note: string;
+  responsible_id?: string;
+  vehicle_plate?: string;
+  vehicle_number?: string;
+}
+
+// Función para convertir RequestData a BatchRequestData
+const convertToBatchRequestData = (data: RequestData): BatchRequestData => {
+  return {
+    type: data.type,
+    personnel_type: data.personnel_type,
+    request_date: data.request_date,
+    invoice_number: data.invoice_number,
+    account_id: data.account_id,
+    amount:
+      typeof data.amount === "string" ? parseFloat(data.amount) : data.amount,
+    project: data.project,
+    note: data.note,
+    responsible_id: data.responsible_id,
+  };
+};
+
+// Función para validar y convertir datos a BatchRequestData
+const validateAndConvertData = (data: any): BatchRequestData => {
+  // Convertir amount a número si es string
+  if (typeof data.amount === "string") {
+    const numAmount = parseFloat(data.amount);
+    if (isNaN(numAmount)) {
+      throw new Error(`Valor de amount inválido: ${data.amount}`);
+    }
+    data.amount = numAmount;
+  }
+
+  // Validar campos requeridos
+  const requiredFields = [
+    "type",
+    "personnel_type",
+    "request_date",
+    "invoice_number",
+    "account_id",
+    "amount",
+    "project",
+    "note",
+  ];
+  const missingFields = requiredFields.filter((field) => {
+    const value = data[field];
+    return value === undefined || value === null || value === "";
+  });
+
+  if (missingFields.length > 0) {
+    throw new Error(`Campos faltantes: ${missingFields.join(", ")}`);
+  }
+
+  return data as BatchRequestData;
+};
+
+// Tipo unión para los datos que puede recibir handleMassSubmit
+type MassSubmitData =
+  | BatchRequestData[]
+  | RequestData
+  | RequestData[]
+  | FormData;
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -23,51 +97,160 @@ const DescuentosForm = () => {
 
   // Usar el contexto de datos global
   const { options } = useData();
-
   const [activeTab, setActiveTab] = useState("normal");
+
+  // Estado para progreso de lotes
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+    percentage: number;
+  } | null>(null);
 
   const handleNormalSubmit = async (formData: FormData) => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
-      const response = await fetchWithAuthFormData(`/requests`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        toast.success(`Registro ingresado exitosamente`);
-      }
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Error al procesar el descuento"
-      );
+      const response = await createRequestHelper.individual(formData);
+      toast.success("Registro ingresado exitosamente");
+      return response;
+    } catch (error: any) {
+      console.error("Error en envío individual:", error);
+      toast.error("Error al procesar el descuento");
+      throw error;
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
   };
 
-  const handleMassSubmit = async (data: RequestData | FormData) => {
+  const handleMassSubmit = async (data: MassSubmitData): Promise<void> => {
     setLoading((prev) => ({ ...prev, submit: true }));
-    toast.warning("Registrando descuentos...");
+    setBatchProgress({ current: 0, total: 0, percentage: 0 });
+
+    // UN SOLO toast de progreso
+    const progressToastId = toast.loading("Registrando descuentos...");
+
     try {
-      const response = await fetchWithAuthFormData(`/requests`, {
-        method: "POST",
-        body: data instanceof FormData ? data : JSON.stringify(data),
-        headers:
-          data instanceof FormData
-            ? {}
-            : { "Content-Type": "application/json" },
-      });
-      if (!response.ok) {
-        throw new Error("Error al crear los descuentos masivos");
+      let batchData: BatchRequestData[];
+
+      if (data instanceof FormData) {
+        const formDataObj = Object.fromEntries(data.entries());
+
+        if (formDataObj.batch_data) {
+          const parsedData = JSON.parse(formDataObj.batch_data as string);
+          const rawBatchData = Array.isArray(parsedData)
+            ? parsedData
+            : [parsedData];
+          batchData = rawBatchData.map((item, index) => {
+            try {
+              return validateAndConvertData(item);
+            } catch (error) {
+              throw new Error(
+                `Error en elemento ${index + 1}: ${
+                  error instanceof Error ? error.message : "Error desconocido"
+                }`
+              );
+            }
+          });
+        } else if (formDataObj.requests) {
+          const parsedData = JSON.parse(formDataObj.requests as string);
+          const rawBatchData = Array.isArray(parsedData)
+            ? parsedData
+            : [parsedData];
+          batchData = rawBatchData.map((item, index) => {
+            try {
+              return validateAndConvertData(item);
+            } catch (error) {
+              throw new Error(
+                `Error en elemento ${index + 1}: ${
+                  error instanceof Error ? error.message : "Error desconocido"
+                }`
+              );
+            }
+          });
+        } else {
+          const cleanedData: any = {};
+          Object.entries(formDataObj).forEach(([key, value]) => {
+            if (value !== "" && value !== null && value !== undefined) {
+              cleanedData[key] = value;
+            }
+          });
+          batchData = [validateAndConvertData(cleanedData)];
+        }
+      } else if (Array.isArray(data)) {
+        batchData = data.map((item, index) => {
+          try {
+            if ("amount" in item && typeof item.amount === "string") {
+              return validateAndConvertData(
+                convertToBatchRequestData(item as RequestData)
+              );
+            } else {
+              return validateAndConvertData(item);
+            }
+          } catch (error) {
+            throw new Error(
+              `Error en elemento ${index + 1}: ${
+                error instanceof Error ? error.message : "Error desconocido"
+              }`
+            );
+          }
+        });
+      } else {
+        try {
+          if ("amount" in data && typeof data.amount === "string") {
+            batchData = [
+              validateAndConvertData(
+                convertToBatchRequestData(data as RequestData)
+              ),
+            ];
+          } else {
+            batchData = [validateAndConvertData(data as any)];
+          }
+        } catch (error) {
+          throw new Error(
+            `Error en datos: ${
+              error instanceof Error ? error.message : "Error desconocido"
+            }`
+          );
+        }
       }
-    } catch (error) {
-      toast.error("Error al procesar el descuento");
-      console.error("Error al procesar el descuento:", error);
+
+      // Validar que tenemos datos para procesar
+      if (!batchData || batchData.length === 0) {
+        throw new Error("No hay datos para procesar en el lote");
+      }
+
+      // Validación adicional: verificar que todos los amounts sean números válidos
+      const invalidAmounts = batchData.filter((item) => {
+        return (
+          typeof item.amount !== "number" ||
+          isNaN(item.amount) ||
+          item.amount <= 0
+        );
+      });
+
+      if (invalidAmounts.length > 0) {
+        throw new Error(
+          `Se encontraron ${invalidAmounts.length} elementos con valores de amount inválidos`
+        );
+      }
+
+      // Procesar con el backend optimizado
+      const response = await createRequestHelper.batch(batchData);
+
+      // Dismiss toast de progreso
+      toast.dismiss(progressToastId);
+    } catch (error: any) {
+      console.error("Error en envío masivo:", error);
+
+      // Dismiss toast de progreso
+      toast.dismiss(progressToastId);
+
+      // UN SOLO toast de error
+      toast.error("Error al registrar los descuentos");
+
+      throw error;
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
+      setBatchProgress(null);
     }
   };
 
@@ -156,20 +339,22 @@ const DescuentosForm = () => {
                   Masivo
                 </TabsTrigger>
                 {
-                  // Solo se muestra la pestaña a los usuarios nicolas, michelle, diego, john, luis
-                  currentUser.user!.email === "nicolas.iza@logex.ec" ||
-                  currentUser.user!.email === "ricardo.estrella@logex.ec" ||
-                  currentUser.user!.email === "michelle.quintana@logex.ec" ||
-                  currentUser.user!.email === "diego.merisalde@logex.ec" ||
-                  currentUser.user!.email === "luis.espinosa@logex.ec" ||
-                  currentUser.user!.email === "jk@logex.ec" ? (
+                  // Solo se muestra la pestaña a los usuarios autorizados
+                  (currentUser.user?.email === "nicolas.iza@logex.ec" ||
+                    currentUser.user?.email === "ricardo.estrella@logex.ec" ||
+                    currentUser.user?.email === "michelle.quintana@logex.ec" ||
+                    currentUser.user?.email === "diego.merisalde@logex.ec" ||
+                    currentUser.user?.email === "luis.espinosa@logex.ec" ||
+                    currentUser.user?.email === "lorena.herrera@logex.ec" ||
+                    currentUser.user?.email === "claudia.pereira@logex.ec" ||
+                    currentUser.user?.email === "jk@logex.ec") && (
                     <TabsTrigger
                       value="loans"
                       className="rounded-md text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-xs data-[state=active]:text-slate-600 dark:data-[state=active]:text-red-400 transition-all duration-200"
                     >
                       Préstamos
                     </TabsTrigger>
-                  ) : null
+                  )
                 }
               </TabsList>
             </div>

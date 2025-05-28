@@ -2,6 +2,7 @@
 
 import Cookies from "js-cookie";
 import { toast } from "sonner";
+import { createRequestHelper } from "./axios"; // Import the new API
 
 export interface LoginResponse {
   token: string;
@@ -29,10 +30,13 @@ export const getAuthToken = () => {
   return Cookies.get("jwt-token");
 };
 
+// DEPRECATED: Use createRequestHelper from axios.ts instead
 export const fetchWithAuth = async (
   endpoint: string,
   options: RequestInit = {}
 ) => {
+  console.warn("⚠️ fetchWithAuth is deprecated. Use axios.ts API methods instead.");
+  
   const token = getAuthToken();
   if (!token) {
     handleSessionExpired();
@@ -94,10 +98,28 @@ export const fetchWithAuth = async (
   }
 };
 
+// DEPRECATED: Use createRequestHelper.individual from axios.ts instead
 export const fetchWithAuthFormData = async (
   endpoint: string,
   options: RequestInit = {}
 ) => {
+  console.warn("⚠️ fetchWithAuthFormData is deprecated. Use createRequestHelper.individual from axios.ts instead.");
+  
+  // For /requests endpoint, redirect to new API
+  if (endpoint === "/requests" && options.method === "POST") {
+    try {
+      if (options.body instanceof FormData) {
+        return await createRequestHelper.individual(options.body);
+      } else {
+        throw new Error("Expected FormData for individual request");
+      }
+    } catch (error) {
+      // Convert axios error to expected format
+      throw error;
+    }
+  }
+
+  // Fallback to original implementation for other endpoints
   const token = getAuthToken();
   if (!token) {
     handleSessionExpired();
