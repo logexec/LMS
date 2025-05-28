@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 // Create a simple cache mechanism
 const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_TTL = 1 * 60 * 1000; // 5 minutes in milliseconds
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -651,6 +651,7 @@ export const requestsApi = {
   deleteMultipleRequests: async (ids: string[]) => {
     // If only one ID, use singular endpoint for compatibility
     if (ids.length === 1) {
+      clearCache("/requests");
       return requestsApi.deleteRequest(ids[0]);
     }
 
@@ -669,7 +670,7 @@ export const repositionsApi = {
   // Fetch repositions with filters
   fetchRepositions: async (
     filters: RepositionFilters = {},
-    useCache = true
+    useCache = false
   ) => {
     const params: Record<string, string> = {};
 
@@ -681,15 +682,16 @@ export const repositionsApi = {
 
     if (filters.mode === "income") {
       return data.filter((item: any) => {
-        // ✅ Usar la nueva relación requests
         const hasDiscountRequests = item.requests?.some((req: any) =>
           req.unique_id?.startsWith("D-")
         );
+        clearCache(`/reposiciones`);
         return !hasDiscountRequests;
       });
     }
 
     // Filter to remove loans and income
+    clearCache(`/reposiciones`);
     return data;
   },
 
