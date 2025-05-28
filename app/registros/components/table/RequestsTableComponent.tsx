@@ -32,6 +32,7 @@ import {
   FilterIcon,
   ListFilterIcon,
   LoaderCircle,
+  RefreshCcw,
   TrashIcon,
 } from "lucide-react";
 
@@ -397,6 +398,27 @@ export default function RequestsTableComponent({
     }
   };
 
+  // Función para refrescar los datos de manera forzosa
+  const forceRefreshData = async () => {
+    try {
+      setData([]);
+      setIsLoading(true);
+      const freshData = await requestsApi.fetchRequests(
+        {
+          type: mode,
+          period: period,
+        },
+        true
+      );
+      setData(freshData);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      toast.error("No se pudieron actualizar los datos. Inténtalo de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Cargar datos iniciales
   useEffect(() => {
     async function fetchRequests() {
@@ -635,12 +657,21 @@ export default function RequestsTableComponent({
   return (
     <TableContextProvider value={contextValue}>
       <div className="space-y-4">
-        <h3 className="font-medium text-xl border-b pb-2">
+        <h3 className="font-medium text-xl border-b pb-2 flex flex-row items-center gap-x-5">
           {mode === "discount"
             ? "Descuentos"
             : mode === "expense"
             ? "Gastos"
             : "Ingresos"}
+
+          <Button
+            variant="outline"
+            onClick={() => forceRefreshData()}
+            disabled={isLoading}
+            className="disabled:cursor-not-allowed rounded-xl"
+          >
+            <RefreshCcw className={`${isLoading && "animate-spin"}`} />
+          </Button>
         </h3>
         {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3">

@@ -38,6 +38,7 @@ import {
   FilterIcon,
   ListFilterIcon,
   LoaderCircle,
+  RefreshCcw,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -469,7 +470,6 @@ export default function RepositionTableComponent({
   // Fetch data when dependencies change
   useEffect(() => {
     let isMounted = true;
-
     async function fetchRepositions() {
       try {
         setIsLoading(true);
@@ -490,13 +490,33 @@ export default function RepositionTableComponent({
         }
       }
     }
-
     fetchRepositions();
-
     return () => {
       isMounted = false;
     };
   }, [mode, period, status]);
+
+  // Refresh fetched data
+  const rereshRepositionsData = async () => {
+    try {
+      console.log("Clicked!");
+      console.log("Loading...");
+      setIsLoading(true);
+      setData([]);
+      const fetchedData = await repositionsApi.fetchRepositions({
+        mode: mode,
+        period: period,
+        status: status,
+      },
+      true // fuerza la recarga
+    );
+      setData(fetchedData);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Memoize context value to prevent unnecessary re-renders of children
   const contextValue = useMemo(
@@ -589,10 +609,19 @@ export default function RepositionTableComponent({
   return (
     <TableContextProvider value={contextValue}>
       <div className="space-y-4">
-        <h3 className="font-medium text-xl border-b pb-2">
+        <h3 className="font-medium text-xl border-b pb-2 flex flex-row items-center gap-x-3">
           {mode === "all"
             ? "Solicitudes de Reposiciones"
             : "Solicitudes de Reposiciones (Ingresos)"}
+
+          <Button
+            variant="outline"
+            onClick={() => (rereshRepositionsData())}
+            disabled={isLoading}
+            className="disabled:cursor-not-allowed rounded-xl"
+          >
+            <RefreshCcw className={`${isLoading && "animate-spin"}`} />
+          </Button>
         </h3>
         {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -843,7 +872,8 @@ export default function RepositionTableComponent({
                       data-state={row.getIsSelected() && "selected"}
                       className={`${
                         (row.original.status === "rejected" ||
-                        row.original.status === "paid") && "opacity-50"
+                          row.original.status === "paid") &&
+                        "opacity-50"
                       }`}
                     >
                       {row.getVisibleCells().map((cell) => (
