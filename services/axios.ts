@@ -618,7 +618,7 @@ export const requestsApi = {
     // Filter only if email is not in exempt list
     let result = data;
     if (!exemptEmails.includes(email)) {
-      result = data.filter((item: any) => !item.unique_id.startsWith("P-"));
+      result = data.filter((item: any) => (!item.unique_id.startsWith("P-")) || !item.unique_id.startsWith("I-"));
     }
 
     return result;
