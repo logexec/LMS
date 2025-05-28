@@ -420,15 +420,24 @@ export default function RequestsTableComponent({
   };
 
   // Cargar datos iniciales
+
+  useEffect(() => {
+    refreshData();
+  }, []);
+
+  //Actualizar si cambia algo
   useEffect(() => {
     async function fetchRequests() {
       try {
         setIsLoading(true);
-        const data = await requestsApi.fetchRequests({
-          type: mode,
-          period: period,
-          status: "pending",
-        });
+        const data = await requestsApi.fetchRequests(
+          {
+            type: mode,
+            period: period,
+            status: "pending",
+          },
+          true
+        );
         setData(data);
       } catch (error) {
         console.error(error);
