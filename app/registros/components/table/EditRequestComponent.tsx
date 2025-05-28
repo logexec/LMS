@@ -23,6 +23,7 @@ interface AccountProps {
 interface ResponsibleProps {
   id: string;
   nombre_completo: string;
+  proyecto: string;
 }
 
 interface TransportProps {
@@ -30,10 +31,16 @@ interface TransportProps {
   vehicle_number: string;
 }
 
+interface ProjectProps {
+  id: string;
+  name: string;
+}
+
 const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
   const [accounts, setAccounts] = useState<AccountProps[]>([]);
   const [responsibles, setResponsibles] = useState<ResponsibleProps[]>([]);
   const [vehicles, setVehicles] = useState<TransportProps[]>([]);
+  const [projects, setProjects] = useState<ProjectProps[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { refreshData } = useContext(TableContext);
@@ -45,20 +52,27 @@ const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
         setIsLoading(true);
         try {
           // Obtener datos directamente usando axios en lugar de apiService
-          const [accountsResponse, responsiblesResponse, vehiclesResponse] =
-            await Promise.all([
-              axios.get(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
-                withCredentials: true,
-              }),
-              axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo`,
-                { withCredentials: true }
-              ),
-              axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/requests?fields=vehicle_plate,vehicle_number`,
-                { withCredentials: true }
-              ),
-            ]);
+          const [
+            accountsResponse,
+            responsiblesResponse,
+            vehiclesResponse,
+            projectsResponse,
+          ] = await Promise.all([
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/accounts`, {
+              withCredentials: true,
+            }),
+            axios.get(
+              `${process.env.NEXT_PUBLIC_API_URL}/responsibles?fields=id,nombre_completo,proyecto`,
+              { withCredentials: true }
+            ),
+            axios.get(
+              `${process.env.NEXT_PUBLIC_API_URL}/requests?fields=vehicle_plate,vehicle_number`,
+              { withCredentials: true }
+            ),
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
+              withCredentials: true,
+            }),
+          ]);
 
           // Procesar datos de cuentas
           const accountsData =
@@ -67,6 +81,19 @@ const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
           accountsData.forEach((item: any) => {
             if (item && item.name && !uniqueAccounts.has(item.name)) {
               uniqueAccounts.set(item.name, {
+                id: item.id,
+                name: item.name,
+              });
+            }
+          });
+
+          // Procesar datos de proyectos
+          const projectsData =
+            projectsResponse.data?.data || projectsResponse.data || [];
+          const uniqueProjects = new Map<string, ProjectProps>();
+          projectsData.forEach((item: any) => {
+            if (item && item.name && !uniqueProjects.has(item.name)) {
+              uniqueProjects.set(item.name, {
                 id: item.id,
                 name: item.name,
               });
@@ -86,6 +113,7 @@ const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
               uniqueResponsibles.set(item.nombre_completo, {
                 id: item.id,
                 nombre_completo: item.nombre_completo,
+                proyecto: item.proyecto, // Añade esta línea
               });
             }
           });
@@ -110,6 +138,7 @@ const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
           setAccounts(Array.from(uniqueAccounts.values()));
           setResponsibles(Array.from(uniqueResponsibles.values()));
           setVehicles(Array.from(uniqueVehicles.values()));
+          setProjects(Array.from(uniqueProjects.values()));
         } catch (error) {
           console.error("Error loading form data:", error);
           toast.error(
@@ -170,12 +199,7 @@ const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
     }
   };
 
-  // Verificamos si la solicitud puede ser editada
   const canEdit = row.status !== "paid" && row.status !== "rejected";
-  console.log(
-    "Estado de la solicitud (no reposición) en la Base de Datos: ",
-    row.status
-  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -198,6 +222,7 @@ const EditRequestComponent: React.FC<EditRequestComponentProps> = ({ row }) => {
           accounts={accounts}
           responsibles={responsibles}
           vehicles={vehicles}
+          projects={projects}
         />
       )}
     </Dialog>

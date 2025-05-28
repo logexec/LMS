@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AccountProps, ResponsibleProps, TransportProps } from "@/utils/types";
+import { AccountProps, ProjectProps, ResponsibleProps, TransportProps } from "@/utils/types";
 import {
   CalendarIcon,
   Receipt,
@@ -56,6 +56,7 @@ interface EditModalProps {
   onSave: (updatedRow: RequestProps) => void;
   onClose: () => void;
   accounts: AccountProps[];
+  projects: ProjectProps[];
   responsibles: ResponsibleProps[];
   vehicles: TransportProps[];
 }
@@ -102,6 +103,7 @@ const EditModal = ({
   onSave,
   onClose,
   accounts,
+  projects,
   responsibles,
   vehicles,
 }: EditModalProps) => {
@@ -209,32 +211,32 @@ const EditModal = ({
   const getPersonnelTypeText = (type: string): string => {
     return type === "nomina" ? "Nómina" : "Transporte";
   };
-
-  // Limitar a 20 elementos por dropdown para mejorar rendimiento
-  const limitedAccounts = useMemo(() => accounts.slice(0, 50), [accounts]);
-  const limitedResponsibles = useMemo(
-    () => responsibles.slice(0, 50),
-    [responsibles]
-  );
-  const limitedVehicles = useMemo(() => vehicles.slice(0, 50), [vehicles]);
+  
+  // Mostrar todos los datos en el dropdown
+  const limitedAccounts = useMemo(() => accounts, [accounts]);
+  const limitedResponsibles = useMemo(() => {
+  const projectToFilter = formData.project || row.project;
+  
+  const filtered = responsibles.filter(p => p.proyecto === projectToFilter);
+  
+  return filtered;
+}, [responsibles, formData.project, row.project]);
+  const limitedVehicles = useMemo(() => vehicles, [vehicles]);
+  const everyProject = useMemo(() => projects, [projects]);
 
   return (
-    <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden bg-white">
-      <div className="bg-linear-to-r from-rose-500 to-red-600 p-6">
+    <DialogContent className="sm:max-w-[650px] md:max-w-8/12 p-0 overflow-hidden bg-white">
+      <div className="pl-5 pt-5">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white flex items-center">
+          <DialogTitle className="text-xl font-bold flex items-center">
             Editando la solicitud {row.unique_id}
           </DialogTitle>
-          <p className="text-blue-100 text-sm mt-1">
-            Completa los campos editables a continuación para actualizar la
-            solicitud
-          </p>
         </DialogHeader>
       </div>
 
       <div className="p-6">
         {/* Sección de información no editable */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-4 mb-6">
           <div
             className={`flex flex-col rounded-lg border p-3 ${getTypeClass(
               row.type!
@@ -267,10 +269,8 @@ const EditModal = ({
               {row.month || "No especificado"}
             </span>
           </div>
-        </div>
 
-        {/* Campo de área como no editable */}
-        <div className="mb-6">
+          {/* Campo de área como no editable */}
           <div className="flex flex-col rounded-lg border p-3 bg-gray-50 border-gray-200">
             <span className="text-xs font-medium uppercase tracking-wider text-gray-500 flex items-center">
               <User className="h-4 w-4 mr-1.5 text-gray-400" />
@@ -377,58 +377,10 @@ const EditModal = ({
                 <Briefcase className="h-4 w-4 mr-1.5 text-gray-400" />
                 Proyecto
               </label>
-              <Input
-                id="project"
-                name="project"
+              <Select
                 value={formData.project}
-                onChange={handleChange}
-                className="w-full focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nombre del proyecto"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="responsible_id"
-                className="text-sm font-medium text-gray-700 flex items-center"
-              >
-                <User className="h-4 w-4 mr-1.5 text-gray-400" />
-                Responsable
-              </label>
-              <Select
-                value={formData.responsible_id}
                 onValueChange={(value) =>
-                  handleSelectChange("responsible_id", value)
-                }
-              >
-                <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
-                  <SelectValue placeholder="Selecciona un responsable" />
-                </SelectTrigger>
-                <SelectContent>
-                  {renderSelectOptions(
-                    limitedResponsibles,
-                    "nombre_completo",
-                    "nombre_completo"
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Tercera sección: Datos de vehículo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <label
-                htmlFor="vehicle_plate"
-                className="text-sm font-medium text-gray-700 flex items-center"
-              >
-                <Car className="h-4 w-4 mr-1.5 text-gray-400" />
-                Placa
-              </label>
-              <Select
-                value={formData.vehicle_plate}
-                onValueChange={(value) =>
-                  handleSelectChange("vehicle_plate", value)
+                  handleSelectChange("project", value)
                 }
               >
                 <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
@@ -436,13 +388,96 @@ const EditModal = ({
                 </SelectTrigger>
                 <SelectContent>
                   {renderSelectOptions(
-                    limitedVehicles,
-                    "vehicle_plate",
-                    "vehicle_plate"
+                    everyProject,
+                    "name",
+                    "name"
                   )}
                 </SelectContent>
               </Select>
             </div>
+
+            {row.personnel_type === "nomina" ? (
+              <div className="space-y-2">
+                <label
+                  htmlFor="responsible_id"
+                  className="text-sm font-medium text-gray-700 flex items-center"
+                >
+                  <User className="h-4 w-4 mr-1.5 text-gray-400" />
+                  Responsable
+                </label>
+                <Select
+                  value={formData.responsible_id}
+                  onValueChange={(value) =>
+                    handleSelectChange("responsible_id", value)
+                  }
+                >
+                  <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
+                    <SelectValue placeholder="Selecciona un responsable" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {renderSelectOptions(
+                      limitedResponsibles,
+                      "nombre_completo",
+                      "nombre_completo"
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label
+                  htmlFor="responsible_id"
+                  className="text-sm font-medium text-gray-700 flex items-center"
+                >
+                  <User className="h-4 w-4 mr-1.5 text-gray-400" />
+                  Responsable
+                </label>
+                <Input value="No aplica" readOnly disabled />
+              </div>
+            )}
+          </div>
+
+          {/* Tercera sección: Datos de vehículo */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {row.personnel_type !== "nomina" ? (
+              <div className="space-y-2">
+                <label
+                  htmlFor="vehicle_plate"
+                  className="text-sm font-medium text-gray-700 flex items-center"
+                >
+                  <Car className="h-4 w-4 mr-1.5 text-gray-400" />
+                  Placa
+                </label>
+                <Select
+                  value={formData.vehicle_plate}
+                  onValueChange={(value) =>
+                    handleSelectChange("vehicle_plate", value)
+                  }
+                >
+                  <SelectTrigger className="w-full focus:ring-blue-500 focus:border-blue-500">
+                    <SelectValue placeholder="Selecciona una placa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {renderSelectOptions(
+                      limitedVehicles,
+                      "vehicle_plate",
+                      "vehicle_plate"
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label
+                  htmlFor="vehicle_plate"
+                  className="text-sm font-medium text-gray-700 flex items-center"
+                >
+                  <Car className="h-4 w-4 mr-1.5 text-gray-400" />
+                  Placa
+                </label>
+                <Input value="No aplica" readOnly disabled />
+              </div>
+            )}
 
             <div className="space-y-2">
               <label

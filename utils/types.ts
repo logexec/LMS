@@ -55,11 +55,17 @@ export interface AccountProps extends BaseEntity {
 export interface ResponsibleProps {
   id: string | number;
   nombre_completo: string;
+  proyecto: string;
 }
 
 export interface TransportProps {
   vehicle_plate: string;
   vehicle_number: string;
+}
+
+export interface ProjectProps {
+  id: string;
+  name: string;
 }
 
 export interface ReposicionProps {

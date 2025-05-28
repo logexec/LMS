@@ -17,7 +17,7 @@ import {
 import { Request } from "@/contexts/TableContext";
 import api from "@/services/axios";
 import { toast } from "sonner";
-import { LoaderCircle, NotepadText, Download, Eye } from "lucide-react";
+import { LoaderCircle, NotepadText, Download, Eye, RefreshCcw } from "lucide-react";
 import {
   AlertDialogCancel,
   AlertDialogTitle,
@@ -30,6 +30,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import EditRequestComponent from "./EditRequestComponent";
+import { Button } from "@/components/ui/button";
 
 interface RepositionDetailsProp {
   reposition: number;
@@ -72,6 +73,44 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
   // Cargar detalles de la reposición
   async function getRepositionDetails(reposition: number) {
     try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get(`reposiciones/${reposition}`);
+
+      if (
+        response.data &&
+        response.data.requests &&
+        Array.isArray(response.data.requests)
+      ) {
+        setRequestData(response.data.requests);
+        if (response.data.attachment_url && response.data.attachment_name) {
+          setAttachment({
+            fileName: response.data.attachment_name,
+            filePath: response.data.attachment_url,
+          });
+        }
+      } else {
+        setRequestData([]);
+        toast.info(
+          "No se encontraron solicitudes asociadas a esta reposición."
+        );
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Error desconocido";
+      setError(errorMessage);
+      toast.error(
+        "No se pudo cargar la información. Por favor, inténtalo nuevamente."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Recargar detalles de la reposición
+  async function refreshRepositionDetails(reposition: number) {
+    try {
+      setRequestData([]);
       setLoading(true);
       setError(null);
       const response = await api.get(`reposiciones/${reposition}`);
@@ -263,8 +302,16 @@ const RepositionDetailsTableComponent: React.FC<RepositionDetailsProp> = ({
         <AlertDialogContent className="max-w-11/12">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex flex-row space-x-4 items-center">
-              <span className="font-semibold text-lg border-r border-slate-500 pr-4">
+              <span className="font-semibold text-lg border-r border-slate-500 pr-4 flex items-center gap-x-3">
                 Viendo reposición No. {reposition}
+                <Button
+                  variant="outline"
+                  onClick={() => refreshRepositionDetails(reposition)}
+                  disabled={loading}
+                  className="disabled:cursor-not-allowed rounded-xl"
+                >
+                  <RefreshCcw className={`${loading && "animate-spin"}`} />
+                </Button>
               </span>
               {attachment && (
                 <>
