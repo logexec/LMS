@@ -351,30 +351,34 @@ export default function LoanForm({
 
   // Effect: Calculate installments when amount or installments change
   useEffect(() => {
-    const amount = parseFloat(currentAmount);
-    const numInstallments = parseInt(currentInstallments);
+  const amount = parseFloat(currentAmount);
+  const numInstallments = parseInt(currentInstallments);
 
-    if (amount > 0 && numInstallments > 0) {
-      const baseAmount = Math.floor((amount * 100) / numInstallments) / 100;
-      const remainder =
-        (amount * 100 - baseAmount * 100 * numInstallments) / 100;
+  if (amount > 0 && numInstallments > 0) {
+    const rawBase = amount / numInstallments;
+    const baseAmount = Math.floor(rawBase * 100) / 100;
 
-      const newInstallments = Array.from(
-        { length: numInstallments },
-        (_, i) => {
-          const extra = i < remainder * 100 ? 0.01 : 0;
-          return {
-            date: installmentDates[i] || "",
-            amount: baseAmount + extra,
-          };
-        }
-      );
+    const total = baseAmount * numInstallments;
+    let difference = Math.round((amount - total) * 100); // en centavos
 
-      setInstallments(newInstallments);
-    } else {
-      setInstallments([]);
-    }
-  }, [currentAmount, currentInstallments, installmentDates]);
+    const newInstallments = Array.from({ length: numInstallments }, (_, i) => {
+      let extra = 0;
+      if (difference > 0) {
+        extra = 0.01;
+        difference -= 1;
+      }
+
+      return {
+        date: installmentDates[i] || "",
+        amount: parseFloat((baseAmount + extra).toFixed(2)),
+      };
+    });
+
+    setInstallments(newInstallments);
+  } else {
+    setInstallments([]);
+  }
+}, [currentAmount, currentInstallments, installmentDates]);
 
   // Handle project change (for parent component)
   const handleProjectChange = (value: string) => {
