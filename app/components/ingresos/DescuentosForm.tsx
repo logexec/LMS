@@ -20,13 +20,21 @@ interface BatchRequestData {
   request_date: string;
   invoice_number: string;
   account_id: string;
-  amount: number;
+  amount: number;  // <- NÚMERO, no string
   project: string;
   note: string;
   responsible_id?: string;
   vehicle_plate?: string;
   vehicle_number?: string;
 }
+
+// Tipo unión actualizado
+type MassSubmitData =
+  | BatchRequestData[]        // Array de datos batch
+  | BatchRequestData          // Objeto batch individual
+  | RequestData[]             // Array de datos legacy (con amount string)
+  | RequestData               // Objeto legacy individual
+  | FormData;                 // FormData tradicional
 
 // Función para convertir RequestData a BatchRequestData
 const convertToBatchRequestData = (data: RequestData): BatchRequestData => {
@@ -36,15 +44,14 @@ const convertToBatchRequestData = (data: RequestData): BatchRequestData => {
     request_date: data.request_date,
     invoice_number: data.invoice_number,
     account_id: data.account_id,
-    amount:
-      typeof data.amount === "string" ? parseFloat(data.amount) : data.amount,
+    amount: typeof data.amount === "string" ? parseFloat(data.amount) : data.amount,
     project: data.project,
     note: data.note,
     responsible_id: data.responsible_id,
   };
 };
 
-// Función para validar y convertir datos a BatchRequestData
+// Función validateAndConvertData actualizada
 const validateAndConvertData = (data: any): BatchRequestData => {
   // Convertir amount a número si es string
   if (typeof data.amount === "string") {
@@ -55,10 +62,15 @@ const validateAndConvertData = (data: any): BatchRequestData => {
     data.amount = numAmount;
   }
 
+  // Asegurar que amount sea un número con máximo 2 decimales
+  if (typeof data.amount === "number") {
+    data.amount = Number(data.amount.toFixed(2));
+  }
+
   // Validar campos requeridos
   const requiredFields = [
     "type",
-    "personnel_type",
+    "personnel_type", 
     "request_date",
     "invoice_number",
     "account_id",
@@ -66,6 +78,7 @@ const validateAndConvertData = (data: any): BatchRequestData => {
     "project",
     "note",
   ];
+
   const missingFields = requiredFields.filter((field) => {
     const value = data[field];
     return value === undefined || value === null || value === "";
@@ -75,15 +88,27 @@ const validateAndConvertData = (data: any): BatchRequestData => {
     throw new Error(`Campos faltantes: ${missingFields.join(", ")}`);
   }
 
+  // Validar tipos específicos
+  if (typeof data.amount !== "number" || data.amount <= 0) {
+    throw new Error(`Amount debe ser un número positivo: ${data.amount}`);
+  }
+
+  if (!["expense", "discount", "income"].includes(data.type)) {
+    throw new Error(`Tipo inválido: ${data.type}`);
+  }
+
+  if (!["nomina", "transportista"].includes(data.personnel_type)) {
+    throw new Error(`Tipo de personal inválido: ${data.personnel_type}`);
+  }
+
+  // Validar fecha
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(data.request_date)) {
+    throw new Error(`Formato de fecha inválido: ${data.request_date}`);
+  }
+
   return data as BatchRequestData;
 };
-
-// Tipo unión para los datos que puede recibir handleMassSubmit
-type MassSubmitData =
-  | BatchRequestData[]
-  | RequestData
-  | RequestData[]
-  | FormData;
 
 const DescuentosForm = () => {
   const [loading, setLoading] = useState<LoadingState>({
@@ -121,70 +146,28 @@ const DescuentosForm = () => {
     }
   };
 
-  const handleMassSubmit = async (data: MassSubmitData): Promise<void> => {
-    setLoading((prev) => ({ ...prev, submit: true }));
-    setBatchProgress({ current: 0, total: 0, percentage: 0 });
+  // Función handleMassSubmit corregida para batch submit
+const handleMassSubmit = async (data: MassSubmitData): Promise<void> => {
+  setLoading((prev) => ({ ...prev, submit: true }));
+  setBatchProgress({ current: 0, total: 0, percentage: 0 });
 
-    // UN SOLO toast de progreso
-    const progressToastId = toast.loading("Registrando descuentos...");
+  const progressToastId = toast.loading("Registrando descuentos...");
 
-    try {
-      let batchData: BatchRequestData[];
+  try {
+    let batchData: BatchRequestData[];
 
-      if (data instanceof FormData) {
-        const formDataObj = Object.fromEntries(data.entries());
-
-        if (formDataObj.batch_data) {
-          const parsedData = JSON.parse(formDataObj.batch_data as string);
-          const rawBatchData = Array.isArray(parsedData)
-            ? parsedData
-            : [parsedData];
-          batchData = rawBatchData.map((item, index) => {
-            try {
-              return validateAndConvertData(item);
-            } catch (error) {
-              throw new Error(
-                `Error en elemento ${index + 1}: ${
-                  error instanceof Error ? error.message : "Error desconocido"
-                }`
-              );
-            }
-          });
-        } else if (formDataObj.requests) {
-          const parsedData = JSON.parse(formDataObj.requests as string);
-          const rawBatchData = Array.isArray(parsedData)
-            ? parsedData
-            : [parsedData];
-          batchData = rawBatchData.map((item, index) => {
-            try {
-              return validateAndConvertData(item);
-            } catch (error) {
-              throw new Error(
-                `Error en elemento ${index + 1}: ${
-                  error instanceof Error ? error.message : "Error desconocido"
-                }`
-              );
-            }
-          });
-        } else {
-          const cleanedData: any = {};
-          Object.entries(formDataObj).forEach(([key, value]) => {
-            if (value !== "" && value !== null && value !== undefined) {
-              cleanedData[key] = value;
-            }
-          });
-          batchData = [validateAndConvertData(cleanedData)];
-        }
-      } else if (Array.isArray(data)) {
-        batchData = data.map((item, index) => {
+    // Procesar datos según el tipo de entrada
+    if (data instanceof FormData) {
+      const batchDataString = data.get('batch_data') as string;
+      
+      if (batchDataString) {
+        const parsedBatchData = JSON.parse(batchDataString);
+        const rawBatchData = Array.isArray(parsedBatchData) ? parsedBatchData : [parsedBatchData];
+        
+        // CORREGIDO: Validar y convertir cada elemento
+        batchData = rawBatchData.map((item, index) => {
           try {
-            if ("amount" in item && typeof item.amount === "string") {
-              return validateAndConvertData(
-                convertToBatchRequestData(item as RequestData)
-              );
-            } else {
-              return validateAndConvertData(item);
-            }
+            return validateAndConvertData(item);
           } catch (error) {
             throw new Error(
               `Error en elemento ${index + 1}: ${
@@ -194,65 +177,188 @@ const DescuentosForm = () => {
           }
         });
       } else {
+        const formDataObj = Object.fromEntries(data.entries());
+        const cleanedData: any = {};
+        Object.entries(formDataObj).forEach(([key, value]) => {
+          if (value !== "" && value !== null && value !== undefined) {
+            cleanedData[key] = value;
+          }
+        });
+        batchData = [validateAndConvertData(cleanedData)];
+      }
+    } else if (Array.isArray(data)) {
+      // CORREGIDO: Validar y convertir array de datos
+      batchData = data.map((item, index) => {
         try {
-          if ("amount" in data && typeof data.amount === "string") {
-            batchData = [
-              validateAndConvertData(
-                convertToBatchRequestData(data as RequestData)
-              ),
-            ];
+          // Si es RequestData (con amount string), convertir a BatchRequestData
+          if ('amount' in item && typeof item.amount === 'string') {
+            return validateAndConvertData(convertToBatchRequestData(item as RequestData));
           } else {
-            batchData = [validateAndConvertData(data as any)];
+            return validateAndConvertData(item);
           }
         } catch (error) {
           throw new Error(
-            `Error en datos: ${
+            `Error en elemento ${index + 1}: ${
               error instanceof Error ? error.message : "Error desconocido"
             }`
           );
         }
-      }
-
-      // Validar que tenemos datos para procesar
-      if (!batchData || batchData.length === 0) {
-        throw new Error("No hay datos para procesar en el lote");
-      }
-
-      // Validación adicional: verificar que todos los amounts sean números válidos
-      const invalidAmounts = batchData.filter((item) => {
-        return (
-          typeof item.amount !== "number" ||
-          isNaN(item.amount) ||
-          item.amount <= 0
-        );
       });
-
-      if (invalidAmounts.length > 0) {
+    } else {
+      // CORREGIDO: Validar y convertir objeto individual
+      try {
+        if ('amount' in data && typeof data.amount === 'string') {
+          batchData = [validateAndConvertData(convertToBatchRequestData(data as RequestData))];
+        } else {
+          batchData = [validateAndConvertData(data as any)];
+        }
+      } catch (error) {
         throw new Error(
-          `Se encontraron ${invalidAmounts.length} elementos con valores de amount inválidos`
+          `Error en datos: ${
+            error instanceof Error ? error.message : "Error desconocido"
+          }`
         );
       }
-
-      // Procesar con el backend optimizado
-      const response = await createRequestHelper.batch(batchData);
-
-      // Dismiss toast de progreso
-      toast.dismiss(progressToastId);
-    } catch (error: any) {
-      console.error("Error en envío masivo:", error);
-
-      // Dismiss toast de progreso
-      toast.dismiss(progressToastId);
-
-      // UN SOLO toast de error
-      toast.error("Error al registrar los descuentos");
-
-      throw error;
-    } finally {
-      setLoading((prev) => ({ ...prev, submit: false }));
-      setBatchProgress(null);
     }
-  };
+
+    if (!batchData || batchData.length === 0) {
+      throw new Error("No hay datos para procesar en el lote");
+    }
+
+    console.log(`Procesando batch de ${batchData.length} registros`);
+
+    // Decidir entre batch normal o chunked según el tamaño
+    let response;
+    if (batchData.length <= 500) {
+      // Usar batch normal para lotes pequeños-medianos
+      response = await createRequestHelper.createBatchRequests(
+        batchData,
+        (progress: {
+          current: number;
+          total: number;
+          percentage: number;
+        }) => {
+          setBatchProgress({
+            current: progress.current,
+            total: progress.total,
+            percentage: progress.percentage,
+          });
+        }
+      );
+    } else {
+      // Usar batch chunked para lotes grandes
+      response = await createRequestHelper.createBatchRequestsChunked(
+        batchData,
+        200, // Tamaño de chunk
+        (progress: {
+          current: number;
+          total: number;
+          percentage: number;
+          chunk: number;
+          totalChunks: number;
+        }) => {
+          setBatchProgress({
+            current: progress.current,
+            total: progress.total,
+            percentage: progress.percentage,
+          });
+          
+          // Actualizar el toast con información del chunk
+          toast.loading(
+            `Procesando chunk ${progress.chunk}/${progress.totalChunks} (${progress.percentage}%)`,
+            { id: progressToastId }
+          );
+        }
+      );
+    }
+
+    toast.dismiss(progressToastId);
+    
+    // Mostrar resultado según el tipo de respuesta
+    if (response.chunks) {
+      toast.success(`${response.total_items} registros creados en ${response.chunks} chunks`);
+    } else if (response.summary) {
+      toast.success(
+        `${response.summary.success} registros creados exitosamente${
+          response.summary.errors > 0 ? `, ${response.summary.errors} errores` : ''
+        }`
+      );
+    } else {
+      toast.success(`${batchData.length} registros creados exitosamente`);
+    }
+
+  } catch (error: any) {
+    console.error("Error en envío masivo:", error);
+    toast.dismiss(progressToastId);
+    
+    const errorMessage = error?.message || "Error al registrar los descuentos";
+    toast.error(errorMessage);
+    
+    throw error;
+  } finally {
+    setLoading((prev) => ({ ...prev, submit: false }));
+    setBatchProgress(null);
+  }
+};
+
+// Función validateAndConvertData actualizada
+const validateAndConvertData = (data: any): BatchRequestData => {
+  // Convertir amount a número si es string
+  if (typeof data.amount === "string") {
+    const numAmount = parseFloat(data.amount);
+    if (isNaN(numAmount)) {
+      throw new Error(`Valor de amount inválido: ${data.amount}`);
+    }
+    data.amount = numAmount;
+  }
+
+  // Asegurar que amount sea un número con máximo 2 decimales
+  if (typeof data.amount === "number") {
+    data.amount = Number(data.amount.toFixed(2));
+  }
+
+  // Validar campos requeridos
+  const requiredFields = [
+    "type",
+    "personnel_type", 
+    "request_date",
+    "invoice_number",
+    "account_id",
+    "amount",
+    "project",
+    "note",
+  ];
+
+  const missingFields = requiredFields.filter((field) => {
+    const value = data[field];
+    return value === undefined || value === null || value === "";
+  });
+
+  if (missingFields.length > 0) {
+    throw new Error(`Campos faltantes: ${missingFields.join(", ")}`);
+  }
+
+  // Validar tipos específicos
+  if (typeof data.amount !== "number" || data.amount <= 0) {
+    throw new Error(`Amount debe ser un número positivo: ${data.amount}`);
+  }
+
+  if (!["expense", "discount", "income"].includes(data.type)) {
+    throw new Error(`Tipo inválido: ${data.type}`);
+  }
+
+  if (!["nomina", "transportista"].includes(data.personnel_type)) {
+    throw new Error(`Tipo de personal inválido: ${data.personnel_type}`);
+  }
+
+  // Validar fecha
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(data.request_date)) {
+    throw new Error(`Formato de fecha inválido: ${data.request_date}`);
+  }
+
+  return data as BatchRequestData;
+};
 
   // Variantes de animación para una transición más fluida
   const containerVariants = {

@@ -170,70 +170,6 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     areas: [],
   };
 
-  // Función para cargar empleados basados en proyecto y área
-  // const fetchEmployees = useMemo(
-  //   () =>
-  //     debounce(async (proyecto: string, area: string) => {
-  //       if (!proyecto) {
-  //         toast.error("Debes seleccionar un proyecto");
-  //         return;
-  //       }
-  //       if (!area) {
-  //         toast.error("Debes seleccionar un área");
-  //         return;
-  //       }
-
-  //       setIsLoading(true);
-  //       try {
-  //         const url = `${process.env.NEXT_PUBLIC_API_URL}/responsibles?proyecto=${proyecto}&area=${area}&fields=id,nombre_completo,area,proyecto`;
-
-  //         const response = await fetchWithAuth(
-  //           url.replace(process.env.NEXT_PUBLIC_API_URL || "", "")
-  //         );
-
-  //         // Convertir el objeto en un arreglo
-  //         const employeesArray: EmployeeResponse[] = Object.values(
-  //           response
-  //         ).filter(
-  //           (item): item is EmployeeResponse =>
-  //             item !== null &&
-  //             typeof item === "object" &&
-  //             "id" in item &&
-  //             "nombre_completo" in item
-  //         );
-
-  //         if (employeesArray.length === 0) {
-  //           toast.warning(
-  //             "No se encontraron responsables para este proyecto y área."
-  //           );
-  //           return; // No cambiar al paso de empleados si no hay resultados
-  //         }
-
-  //         const mappedEmployees: Employee[] = employeesArray.map((emp) => ({
-  //           id: emp.nombre_completo,
-  //           name: emp.nombre_completo,
-  //           area: emp.area,
-  //           project: emp.proyecto,
-  //           selected: false,
-  //         }));
-
-  //         setEmployees(mappedEmployees);
-  //         console.log("Empleados cargados:", mappedEmployees.length);
-
-  //         // Cambiamos a la vista de empleados si tenemos empleados para mostrar
-  //         if (mappedEmployees.length > 0) {
-  //           setFormStep("employees");
-  //         }
-  //       } catch (error) {
-  //         console.error("Error fetching employees:", error);
-  //         toast.error("Error al cargar los empleados");
-  //       } finally {
-  //         setIsLoading(false);
-  //       }
-  //     }, 300),
-  //   []
-  // );
-
   // Handler para el cambio de selección en MassDiscountTable
   const handleSelectionChange = (employeeId: string) => {
     setEmployees((prev) => {
@@ -307,7 +243,39 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     });
   };
 
-  // Función para procesar el envío del formulario
+  // Función para distribuir un monto exactamente entre empleados
+  function distributeAmountExactly(
+    totalAmount: number,
+    numberOfEmployees: number
+  ): number[] {
+    if (numberOfEmployees <= 0) return [];
+
+    // Convertir a centavos para evitar problemas de punto flotante
+    const totalCents = Math.round(totalAmount * 100);
+
+    // Calcular el monto base por empleado en centavos
+    const baseCentsPerEmployee = Math.floor(totalCents / numberOfEmployees);
+
+    // Calcular cuántos centavos sobran
+    const remainderCents = totalCents % numberOfEmployees;
+
+    // Crear array con los montos
+    const amounts: number[] = [];
+
+    for (let i = 0; i < numberOfEmployees; i++) {
+      // Los primeros 'remainderCents' empleados reciben un centavo extra
+      const employeeAmount =
+        i < remainderCents
+          ? (baseCentsPerEmployee + 1) / 100
+          : baseCentsPerEmployee / 100;
+
+      amounts.push(Number(employeeAmount.toFixed(2)));
+    }
+
+    return amounts;
+  }
+
+  // NUEVA función onSubmitForm - UNA SOLA SOLICITUD BATCH
   const onSubmitForm = async (values: z.infer<typeof massDiscountSchema>) => {
     const selectedEmployees = employees.filter((emp) => emp.selected);
     if (selectedEmployees.length === 0) {
@@ -318,39 +286,45 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     setIsLoading(true);
 
     try {
-      const amountPerEmployee = (
-        parseFloat(values.valor) / selectedEmployees.length
-      ).toFixed(2);
-
-      console.log("Empleados seleccionados:", selectedEmployees);
-      console.log(
-        `Procesando ${selectedEmployees.length} empleados, $${amountPerEmployee} cada uno`
+      // Usar la función de distribución exacta
+      const totalAmount = parseFloat(values.valor);
+      const amounts = distributeAmountExactly(
+        totalAmount,
+        selectedEmployees.length
       );
 
-      for (const employee of selectedEmployees) {
-        const formData = new FormData();
-        formData.append("request_date", values.fechaGasto);
-        formData.append("type", "discount");
-        formData.append("status", "pending");
-        formData.append("invoice_number", `${values.factura}-${employee.id}`); // Hacer único
-        formData.append("account_id", values.cuenta);
-        formData.append("amount", amountPerEmployee);
-        formData.append("project", values.proyecto);
-        formData.append("responsible_id", employee.id);
-        formData.append("note", values.observacion);
-        formData.append("personnel_type", "nomina");
+      console.log("Empleados seleccionados:", selectedEmployees);
+      console.log(`Procesando ${selectedEmployees.length} empleados`);
+      console.log(
+        `Total: $${totalAmount}, Suma distribuida: $${amounts
+          .reduce((sum, amount) => sum + amount, 0)
+          .toFixed(2)}`
+      );
 
-        console.log(`Enviando datos para empleado: ${employee.name}`);
-        try {
-          await onSubmit(formData);
-          console.log(`Registro creado para ${employee.name}`);
-        } catch (error) {
-          console.error(`Error al procesar empleado ${employee.name}:`, error);
-          toast.error(`Error al procesar el descuento para ${employee.name}`);
-        }
-      }
+      // Preparar TODOS los registros para una sola solicitud batch
+      const batchData = selectedEmployees.map((employee, index) => ({
+        type: "discount",
+        personnel_type: "nomina",
+        request_date: values.fechaGasto,
+        invoice_number: `${values.factura}-${employee.id}`, // Hacer único por empleado
+        account_id: values.cuenta,
+        amount: amounts[index], // Usar el monto exacto calculado
+        project: values.proyecto,
+        note: values.observacion,
+        responsible_id: employee.id,
+      }));
 
-      toast.success("Registros creados con éxito");
+      console.log("Enviando batch de", batchData.length, "registros");
+
+      // Enviar UNA SOLA solicitud con todos los datos
+      const formData = new FormData();
+      formData.append("batch_data", JSON.stringify(batchData));
+
+      await onSubmit(formData); // <- UNA SOLA SOLICITUD
+
+      toast.success(
+        `${selectedEmployees.length} registros creados exitosamente`
+      );
       resetForm();
     } catch (error) {
       toast.error("Error al procesar los descuentos");

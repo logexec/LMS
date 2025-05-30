@@ -39,9 +39,10 @@ api.interceptors.response.use(
 
     // Only show toast if the error doesn't come from batch operations
     // We'll handle batch errors manually in the components
-    const isBatchOperation = error.config?.url?.includes('/requests') && 
-                           error.config?.data?.includes('batch_data');
-    
+    const isBatchOperation =
+      error.config?.url?.includes("/requests") &&
+      error.config?.data?.includes("batch_data");
+
     if (!isBatchOperation) {
       toast.error(errorMessage);
     }
@@ -172,15 +173,17 @@ export const requestsApi = {
         throw new Error("Los datos del lote deben ser un array no vacío");
       }
 
-      const maxBatchSize = 50;
+      // Límite más realista para operaciones masivas
+      const maxBatchSize = 1000; // Aumentado para permitir descuentos masivos
       if (batchData.length > maxBatchSize) {
         throw new Error(
           `El lote excede el máximo de ${maxBatchSize} registros. Actual: ${batchData.length}`
         );
       }
 
-      // Solo mostrar toast automático si NO hay callback de progreso
+      console.log(`Enviando lote de ${batchData.length} registros`);
 
+      // CORRECCIÓN: Usar el endpoint correcto para batch
       const response = await api.post(
         "/requests",
         {
@@ -190,7 +193,7 @@ export const requestsApi = {
           headers: {
             "Content-Type": "application/json",
           },
-          timeout: 300000, // 5 minutos para lotes grandes
+          timeout: 600000, // 10 minutos para lotes muy grandes
           onUploadProgress: (progressEvent) => {
             if (onProgress && progressEvent.total) {
               const percentage = Math.round(
@@ -206,28 +209,123 @@ export const requestsApi = {
         }
       );
 
+      console.log(`Lote procesado exitosamente:`, response.data);
       clearCache("/requests");
       return response.data;
     } catch (error: any) {
       console.error("Error creating batch requests:", error);
-      
-      // Solo mostrar toasts de error si NO hay callback de progreso
+
+      // Mejorar el manejo de errores
       if (!onProgress) {
-        // Handle specific error types
         if (error.code === "ECONNABORTED") {
-          toast.error("Tiempo de espera agotado. Intenta con un lote más pequeño.");
+          toast.error(
+            "Tiempo de espera agotado. El lote es muy grande, intenta dividirlo."
+          );
         } else if (error.response?.status === 413) {
-          toast.error("El lote es demasiado grande. Reduce el número de registros.");
+          toast.error(
+            "El lote es demasiado grande. Reduce el número de registros."
+          );
         } else if (error.response?.status === 422) {
           const errorData = error.response.data;
-          toast.error(`Error de validación: ${errorData.message || "Datos inválidos"}`);
+          const errorMessage = errorData.message || "Datos inválidos";
+          toast.error(`Error de validación: ${errorMessage}`);
+
+          // Log detalles de errores de validación para debugging
+          if (errorData.results?.errors) {
+            console.error(
+              "Errores de validación detallados:",
+              errorData.results.errors
+            );
+          }
+        } else if (error.response?.status === 500) {
+          toast.error("Error interno del servidor. Contacta al administrador.");
         } else {
-          toast.error(`Error al procesar lote: ${error.message}`);
+          const errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Error desconocido";
+          toast.error(`Error al procesar lote: ${errorMessage}`);
         }
       }
-      
+
       throw error;
     }
+  },
+  createBatchRequestsChunked: async (
+    batchData: any[],
+    chunkSize: number = 200,
+    onProgress?: (progress: {
+      current: number;
+      total: number;
+      percentage: number;
+      chunk: number;
+      totalChunks: number;
+    }) => void
+  ) => {
+    const chunks = [];
+    for (let i = 0; i < batchData.length; i += chunkSize) {
+      chunks.push(batchData.slice(i, i + chunkSize));
+    }
+
+    const results = [];
+    let processedItems = 0;
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+
+      try {
+        console.log(
+          `Procesando chunk ${i + 1}/${chunks.length} (${chunk.length} items)`
+        );
+
+        const chunkResult = await api.post(
+          "/requests/batch",
+          {
+            batch_data: chunk,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            timeout: 300000, // 5 minutos por chunk
+          }
+        );
+
+        results.push(chunkResult.data);
+        processedItems += chunk.length;
+
+        // Reportar progreso
+        if (onProgress) {
+          onProgress({
+            current: processedItems,
+            total: batchData.length,
+            percentage: Math.round((processedItems / batchData.length) * 100),
+            chunk: i + 1,
+            totalChunks: chunks.length,
+          });
+        }
+
+        // Pausa entre chunks para no sobrecargar el servidor
+        if (i < chunks.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 segundo
+        }
+      } catch (error) {
+        console.error(`Error en chunk ${i + 1}:`, error);
+        throw new Error(
+          `Error en chunk ${i + 1}: ${
+            error instanceof Error ? error.message : "Error desconocido"
+          }`
+        );
+      }
+    }
+
+    clearCache("/requests");
+
+    // Consolidar resultados
+    return {
+      message: `${chunks.length} chunks procesados exitosamente`,
+      chunks: results.length,
+      total_items: processedItems,
+      results: results,
+    };
   },
 
   // Create requests with FormData (for file uploads) - MEJORADO
@@ -291,7 +389,7 @@ export const createRequestHelper = {
     return await requestsApi.createRequestWithFile(formData);
   },
 
-  // For mass form submissions (JSON data)
+  // For mass form submissions (JSON data) - CORREGIDO
   batch: async (
     batchData: any[],
     onProgress?: (progress: {
@@ -301,6 +399,33 @@ export const createRequestHelper = {
     }) => void
   ) => {
     return await requestsApi.createBatchRequests(batchData, onProgress);
+  },
+
+  // AGREGADO: Método chunked que faltaba
+  createBatchRequests: async (
+    batchData: any[],
+    onProgress?: (progress: {
+      current: number;
+      total: number;
+      percentage: number;
+    }) => void
+  ) => {
+    return await requestsApi.createBatchRequests(batchData, onProgress);
+  },
+
+  // AGREGADO: Método chunked que faltaba
+  createBatchRequestsChunked: async (
+    batchData: any[],
+    chunkSize: number = 200,
+    onProgress?: (progress: {
+      current: number;
+      total: number;
+      percentage: number;
+      chunk: number;
+      totalChunks: number;
+    }) => void
+  ) => {
+    return await requestsApi.createBatchRequestsChunked(batchData, chunkSize, onProgress);
   },
 
   // For single JSON submissions
