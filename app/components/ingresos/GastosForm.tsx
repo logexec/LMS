@@ -231,7 +231,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
   useEffect(() => {
     if (selectedPersonnel !== lastFetchedPersonnel.current) {
       fetchVehicles();
-      fetchAccounts("transportista", "expense");
+      fetchAccounts(selectedPersonnel, "expense");
       lastFetchedPersonnel.current = selectedPersonnel;
     }
   }, [selectedPersonnel]);
