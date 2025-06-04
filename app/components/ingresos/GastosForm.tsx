@@ -40,13 +40,14 @@ import {
   RefreshCw,
   Calendar as CalendarIcon,
   FileText,
-  Building2,
   User,
   HashIcon,
   DollarSign,
   ChevronsUpDown,
   Check,
   ClipboardList,
+  CarTaxiFront,
+  Building2,
 } from "lucide-react";
 import {
   Command,
@@ -59,22 +60,24 @@ import {
 
 // Services & Utils
 import { getAuthToken } from "@/services/auth.service";
-import { LoadingState } from "@/utils/types";
+import { LoadingState, VehicleProps } from "@/utils/types";
 import ExcelUploadSection from "./ExcelUploadSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useData } from "@/contexts/DataContext";
 import CalendarComponent from "@/components/comp-487";
+import api from "@/services/axios";
 
 // Form Schema
 const formSchema = z.object({
   fechaGasto: z.date({
     required_error: "Debes seleccionar una fecha",
   }),
-  tipo: z.string().readonly().default("nomina").optional(),
+  tipo: z.string(),
   proyecto: z.string().min(2, "El proyecto es obligatorio"),
   cuenta: z.string().min(2, "La cuenta es obligatoria"),
-  responsable: z.string().min(1, "Debes seleccionar un responsable"),
+  responsable: z.string().optional(),
   vehicle_number: z.string().optional(),
+  vehicle_plate: z.string().optional(),
   factura: z
     .string()
     .min(3, "El número de factura debe tener al menos 3 caracteres"),
@@ -157,6 +160,20 @@ const GastosForm: React.FC<GastosFormProps> = ({
     fetchResponsibles,
   } = useData();
 
+  const fetchVehicles = async () => {
+    try {
+      const response = await api.get("/transports?fields=name");
+      console.log("Data fetched:", response.data);
+      setVehicles(response.data);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron recuperar las placas"
+      );
+    }
+  };
+
   // Form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -167,6 +184,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       cuenta: "",
       responsable: "",
       vehicle_number: "",
+      vehicle_plate: "",
       factura: "",
       valor: "",
       observacion: "",
@@ -182,22 +200,6 @@ const GastosForm: React.FC<GastosFormProps> = ({
     firstAllowedDate = new Date(today.getFullYear(), today.getMonth(), 1);
     lastAllowedDate = new Date(today.getFullYear(), today.getMonth() + 1, 5);
   }
-
-  // const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"];
-
-  // console.log("Día de hoy: ", today.getDate());
-  // console.log(
-  //   "Primer día disponible para gastos: " +
-  //     new Date(firstAllowedDate).getDate() +
-  //     " de " +
-  //     months[new Date(firstAllowedDate).getMonth()]
-  // );
-  // console.log(
-  //   "Ultimo día disponible para gastos: " +
-  //     new Date(lastAllowedDate).getDate() +
-  //     " de " +
-  //     months[new Date(lastAllowedDate).getMonth()]
-  // );
   // Fetch cuentas cuando se carga el componente
   useEffect(() => {
     fetchAccounts("nomina", "expense");
@@ -219,7 +221,20 @@ const GastosForm: React.FC<GastosFormProps> = ({
       fetchResponsibles(selectedProject);
       lastFetchedProject.current = selectedProject;
     }
-  }, [selectedProject, fetchResponsibles]);
+  }, [selectedProject]);
+
+  const selectedPersonnel = form.watch("tipo");
+  const lastFetchedPersonnel = React.useRef<string | null>(null);
+
+  const [vehicles, setVehicles] = useState<VehicleProps[]>([]);
+
+  useEffect(() => {
+    if (selectedPersonnel !== lastFetchedPersonnel.current) {
+      fetchVehicles();
+      fetchAccounts("transportista", "expense");
+      lastFetchedPersonnel.current = selectedPersonnel;
+    }
+  }, [selectedPersonnel]);
 
   // Form submission
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -238,7 +253,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       formDataToSend.append("amount", values.valor);
       formDataToSend.append("project", values.proyecto);
       formDataToSend.append("note", values.observacion);
-      formDataToSend.append("personnel_type", "nomina");
+      formDataToSend.append("personnel_type", values.tipo);
 
       // Conditional fields
       if (values.responsable) {
@@ -246,6 +261,9 @@ const GastosForm: React.FC<GastosFormProps> = ({
       }
       if (values.vehicle_number) {
         formDataToSend.append("vehicle_number", values.vehicle_number);
+      }
+      if (values.vehicle_plate) {
+        formDataToSend.append("vehicle_plate", values.vehicle_plate);
       }
 
       await onSubmit(formDataToSend);
@@ -285,12 +303,24 @@ const GastosForm: React.FC<GastosFormProps> = ({
         cuenta: "",
         responsable: "",
         vehicle_number: "",
+        vehicle_plate: "",
         factura: "",
         valor: "",
         observacion: "",
       });
     }, 100);
   };
+
+  const tipos = [
+    {
+      label: "Nomina",
+      value: "nomina",
+    },
+    {
+      label: "Transportista",
+      value: "transportista",
+    },
+  ];
 
   return (
     <motion.div
@@ -315,7 +345,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
             Registro de Gastos
           </CardTitle>
           <CardDescription className="mt-1">
-            Complete todos los campos requeridos para registrar un nuevo gasto
+            Completa todos los campos requeridos para registrar un nuevo gasto
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -379,7 +409,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                             Tipo:
                           </span>
                           <span className="font-medium text-slate-800 dark:text-slate-200">
-                            Nómina
+                            {form.watch("tipo") || "No seleccionado"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
@@ -529,21 +559,74 @@ const GastosForm: React.FC<GastosFormProps> = ({
                         <FormField
                           control={form.control}
                           name="tipo"
-                          render={() => (
-                            <FormItem>
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
                               <FormLabel className="flex items-center text-xs font-medium">
                                 <User className="w-3.5 h-3.5 mr-1.5 text-rose-500 dark:text-rose-400" />
                                 Tipo
                               </FormLabel>
-                              <FormControl>
-                                <Button
-                                  variant="outline"
-                                  className="w-full justify-between text-sm h-9 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950"
-                                  disabled
-                                >
-                                  Nómina
-                                </Button>
-                              </FormControl>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                        "w-full justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm h-9",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? (
+                                        <span className="truncate">
+                                          {tipos.find(
+                                            (tipo) => tipo.value === field.value
+                                          )?.label || field.value}
+                                        </span>
+                                      ) : (
+                                        "-- Selecciona --"
+                                      )}
+                                      <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0 border-slate-200 dark:border-slate-700 shadow-lg">
+                                  <Command className="rounded-lg border-0">
+                                    <CommandInput className="h-9" />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        No hay tipos disponibles.
+                                      </CommandEmpty>
+                                      <CommandGroup>
+                                        {tipos.map((tipo) => (
+                                          <CommandItem
+                                            value={tipo.label}
+                                            key={tipo.value}
+                                            onSelect={() => {
+                                              form.setValue("tipo", tipo.value);
+                                              form.trigger("tipo");
+                                            }}
+                                            className="text-sm"
+                                          >
+                                            <div className="flex items-center">
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
+                                                  tipo.value === field.value
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                                )}
+                                              />
+                                              <span className="truncate">
+                                                {tipo.label}
+                                              </span>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <FormMessage className="text-xs" />
                             </FormItem>
                           )}
@@ -762,110 +845,217 @@ const GastosForm: React.FC<GastosFormProps> = ({
                               />
                             </motion.div>
 
-                            {/* Responsable */}
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.2 }}
-                              exit={{ opacity: 0, x: -20 }}
-                            >
-                              <FormField
-                                control={form.control}
-                                name="responsable"
-                                render={({ field }) => (
-                                  <FormItem className="flex flex-col">
-                                    <FormLabel className="flex items-center text-xs font-medium">
-                                      <User className="w-3.5 h-3.5 mr-1.5 text-rose-500 dark:text-rose-400" />
-                                      Responsable
-                                    </FormLabel>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <FormControl>
-                                          <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className={cn(
-                                              "w-full justify-between text-sm h-9 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950",
-                                              !field.value &&
-                                                "text-muted-foreground"
-                                            )}
-                                            disabled={
-                                              contextLoading.responsibles
-                                            }
-                                          >
-                                            {contextLoading.responsibles ? (
-                                              <span className="flex items-center">
-                                                <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
-                                                Cargando...
-                                              </span>
-                                            ) : field.value ? (
-                                              <span className="truncate max-w-[180px]">
-                                                {options.responsibles.find(
-                                                  (resp) =>
-                                                    resp.value === field.value
-                                                )?.label || field.value}
-                                              </span>
-                                            ) : (
-                                              "-- Selecciona --"
-                                            )}
-                                            <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
-                                          </Button>
-                                        </FormControl>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-full p-0 border-slate-200 dark:border-slate-700 shadow-lg">
-                                        <Command className="rounded-lg border-0">
-                                          <CommandInput
-                                            placeholder="Buscar responsable..."
-                                            className="h-9"
-                                          />
-                                          <CommandList>
-                                            <CommandEmpty>
-                                              No se encontraron responsables.
-                                            </CommandEmpty>
-                                            <CommandGroup>
-                                              {options.responsibles.map(
-                                                (responsible) => (
-                                                  <CommandItem
-                                                    value={responsible.label}
-                                                    key={responsible.value}
-                                                    onSelect={() => {
-                                                      form.setValue(
-                                                        "responsable",
-                                                        responsible.value
-                                                      );
-                                                      form.trigger(
-                                                        "responsable"
-                                                      );
-                                                    }}
-                                                    className="text-sm"
-                                                  >
-                                                    <div className="flex items-center">
-                                                      <Check
-                                                        className={cn(
-                                                          "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
-                                                          responsible.value ===
-                                                            field.value
-                                                            ? "opacity-100"
-                                                            : "opacity-0"
-                                                        )}
-                                                      />
-                                                      <span className="truncate">
-                                                        {responsible.label}
-                                                      </span>
-                                                    </div>
-                                                  </CommandItem>
-                                                )
+                            {/* Responsable / Placa */}
+                            {form.watch("tipo") === "nomina" ? (
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.2 }}
+                                exit={{ opacity: 0, x: -20 }}
+                              >
+                                <FormField
+                                  control={form.control}
+                                  name="responsable"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                      <FormLabel className="flex items-center text-xs font-medium">
+                                        <User className="w-3.5 h-3.5 mr-1.5 text-rose-500 dark:text-rose-400" />
+                                        Responsable
+                                      </FormLabel>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <FormControl>
+                                            <Button
+                                              variant="outline"
+                                              role="combobox"
+                                              className={cn(
+                                                "w-full justify-between text-sm h-9 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950",
+                                                !field.value &&
+                                                  "text-muted-foreground"
                                               )}
-                                            </CommandGroup>
-                                          </CommandList>
-                                        </Command>
-                                      </PopoverContent>
-                                    </Popover>
-                                    <FormMessage className="text-xs" />
-                                  </FormItem>
-                                )}
-                              />
-                            </motion.div>
+                                              disabled={
+                                                contextLoading.responsibles
+                                              }
+                                            >
+                                              {contextLoading.responsibles ? (
+                                                <span className="flex items-center">
+                                                  <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
+                                                  Cargando...
+                                                </span>
+                                              ) : field.value ? (
+                                                <span className="truncate max-w-[180px]">
+                                                  {options.responsibles.find(
+                                                    (resp) =>
+                                                      resp.value === field.value
+                                                  )?.label || field.value}
+                                                </span>
+                                              ) : (
+                                                "-- Selecciona --"
+                                              )}
+                                              <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+                                            </Button>
+                                          </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0 border-slate-200 dark:border-slate-700 shadow-lg">
+                                          <Command className="rounded-lg border-0">
+                                            <CommandInput
+                                              placeholder="Buscar responsable..."
+                                              className="h-9"
+                                            />
+                                            <CommandList>
+                                              <CommandEmpty>
+                                                No se encontraron responsables.
+                                              </CommandEmpty>
+                                              <CommandGroup>
+                                                {options.responsibles.map(
+                                                  (responsible) => (
+                                                    <CommandItem
+                                                      value={responsible.label}
+                                                      key={responsible.value}
+                                                      onSelect={() => {
+                                                        form.setValue(
+                                                          "responsable",
+                                                          responsible.value
+                                                        );
+                                                        form.trigger(
+                                                          "responsable"
+                                                        );
+                                                      }}
+                                                      className="text-sm"
+                                                    >
+                                                      <div className="flex items-center">
+                                                        <Check
+                                                          className={cn(
+                                                            "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
+                                                            responsible.value ===
+                                                              field.value
+                                                              ? "opacity-100"
+                                                              : "opacity-0"
+                                                          )}
+                                                        />
+                                                        <span className="truncate">
+                                                          {responsible.label}
+                                                        </span>
+                                                      </div>
+                                                    </CommandItem>
+                                                  )
+                                                )}
+                                              </CommandGroup>
+                                            </CommandList>
+                                          </Command>
+                                        </PopoverContent>
+                                      </Popover>
+                                      <FormMessage className="text-xs" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </motion.div>
+                            ) : (
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.2 }}
+                                exit={{ opacity: 0, x: -20 }}
+                              >
+                                <FormField
+                                  control={form.control}
+                                  name="vehicle_plate"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                      <FormLabel className="flex items-center text-xs font-medium">
+                                        <CarTaxiFront className="w-3.5 h-3.5 mr-1.5 text-rose-500 dark:text-rose-400" />
+                                        Placa
+                                      </FormLabel>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <FormControl>
+                                            <Button
+                                              variant="outline"
+                                              role="combobox"
+                                              className={cn(
+                                                "w-full justify-between text-sm h-9 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950",
+                                                !field.value &&
+                                                  "text-muted-foreground"
+                                              )}
+                                              disabled={
+                                                contextLoading.transports
+                                              }
+                                            >
+                                              {contextLoading.transports ? (
+                                                <span className="flex items-center">
+                                                  <Loader2 className="w-3 h-3 rounded-full text-rose-500 dark:text-rose-400 animate-spin mr-2" />
+                                                  Cargando...
+                                                </span>
+                                              ) : field.value ? (
+                                                <span className="truncate max-w-[180px]">
+                                                  {vehicles!.find(
+                                                    (placa) =>
+                                                      placa.name ===
+                                                      field.value
+                                                  )?.name || field.value}
+                                                </span>
+                                              ) : (
+                                                "-- Selecciona --"
+                                              )}
+                                              <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+                                            </Button>
+                                          </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0 border-slate-200 dark:border-slate-700 shadow-lg">
+                                          <Command className="rounded-lg border-0">
+                                            <CommandInput
+                                              placeholder="Buscar placas..."
+                                              className="h-9"
+                                            />
+                                            <CommandList>
+                                              <CommandEmpty>
+                                                No se encontraron placas.
+                                              </CommandEmpty>
+                                              <CommandGroup>
+                                                {vehicles.map(
+                                                  (vehicle) => (
+                                                    <CommandItem
+                                                      value={vehicle.name}
+                                                      key={vehicle.name}
+                                                      onSelect={() => {
+                                                        form.setValue(
+                                                          "vehicle_plate",
+                                                          vehicle.name
+                                                        );
+                                                        form.trigger(
+                                                          "vehicle_plate"
+                                                        );
+                                                      }}
+                                                      className="text-sm"
+                                                    >
+                                                      <div className="flex items-center">
+                                                        <Check
+                                                          className={cn(
+                                                            "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
+                                                            vehicle.name ===
+                                                              field.name
+                                                              ? "opacity-100"
+                                                              : "opacity-0"
+                                                          )}
+                                                        />
+                                                        <span className="truncate">
+                                                          {vehicle.name}
+                                                        </span>
+                                                      </div>
+                                                    </CommandItem>
+                                                  )
+                                                )}
+                                              </CommandGroup>
+                                            </CommandList>
+                                          </Command>
+                                        </PopoverContent>
+                                      </Popover>
+                                      <FormMessage className="text-xs" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </motion.div>
+                            )}
 
                             {/* Nº Transporte */}
                             <motion.div

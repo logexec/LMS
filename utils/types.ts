@@ -63,6 +63,10 @@ export interface TransportProps {
   vehicle_number: string;
 }
 
+export interface VehicleProps {
+  name: string;
+}
+
 export interface ProjectProps {
   id: string;
   name: string;
