@@ -163,7 +163,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
   const fetchVehicles = async () => {
     try {
       const response = await api.get("/transports?fields=name");
-      console.log("Data fetched:", response.data);
+      // console.log("Data fetched:", response.data);
       setVehicles(response.data);
     } catch (error) {
       toast.error(
