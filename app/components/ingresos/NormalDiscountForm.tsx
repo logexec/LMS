@@ -174,11 +174,13 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
     try {
       setIsSubmitting(true);
       const formData = new FormData();
+      const cleanAmount = parseFloat(values.valor).toFixed(2);
       formData.append("request_date", format(values.fechaGasto, "yyyy-MM-dd"));
       formData.append("type", type === "discount" ? "discount" : "income");
       formData.append("status", "pending");
       formData.append("invoice_number", values.factura.toString());
       formData.append("account_id", values.cuenta);
+      formData.append("amount", cleanAmount);
       formData.append("amount", values.valor.toString());
       formData.append("project", values.proyecto);
       if (values.responsable) {

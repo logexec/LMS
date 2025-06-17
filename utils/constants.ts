@@ -4,7 +4,7 @@ import {
   Landmark,
   Wallet,
   PiggyBank,
-  Receipt,
+  // Receipt,
   Banknote,
   HandHelping,
   CircleDollarSign,
@@ -76,20 +76,30 @@ export const sidenavLinks: NavLink[] = [
     category: "Facturación",
     requiredPermissions: [Permission.MANAGE_BUDGET],
     links: [
+      // {
+      //   label: "Facturación",
+      //   url: "/facturacion/facturacion",
+      //   icon: RiReceiptLine,
+      // },
+      // {
+      //   label: "SRI",
+      //   url: "/facturacion/sri",
+      //   icon: ReceiptText,
+      // },
+      // {
+      //   label: "Órdenes de Compra",
+      //   url: "/facturacion/ordenes-compra",
+      //   icon: Receipt,
+      // },
       {
-        label: "Facturación",
-        url: "/facturacion/facturacion",
+        label: "Importar XML",
+        url: "/facturas/importar",
         icon: RiReceiptLine,
       },
       {
-        label: "SRI",
-        url: "/facturacion/sri",
+        label: "Facturas",
+        url: "/facturas",
         icon: ReceiptText,
-      },
-      {
-        label: "Órdenes de Compra",
-        url: "/facturacion/ordenes-compra",
-        icon: Receipt,
       },
     ],
   },

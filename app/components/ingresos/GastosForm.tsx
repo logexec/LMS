@@ -242,6 +242,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
 
     try {
       const formDataToSend = new FormData();
+      const cleanAmount = parseFloat(values.valor).toFixed(2);
       formDataToSend.append(
         "request_date",
         format(values.fechaGasto, "yyyy-MM-dd")
@@ -250,7 +251,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
       formDataToSend.append("status", "pending");
       formDataToSend.append("invoice_number", values.factura);
       formDataToSend.append("account_id", values.cuenta);
-      formDataToSend.append("amount", values.valor);
+      formDataToSend.append("amount", cleanAmount);
       formDataToSend.append("project", values.proyecto);
       formDataToSend.append("note", values.observacion);
       formDataToSend.append("personnel_type", values.tipo);
@@ -990,8 +991,7 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                                 <span className="truncate max-w-[180px]">
                                                   {vehicles!.find(
                                                     (placa) =>
-                                                      placa.name ===
-                                                      field.value
+                                                      placa.name === field.value
                                                   )?.name || field.value}
                                                 </span>
                                               ) : (
@@ -1012,39 +1012,37 @@ const GastosForm: React.FC<GastosFormProps> = ({
                                                 No se encontraron placas.
                                               </CommandEmpty>
                                               <CommandGroup>
-                                                {vehicles.map(
-                                                  (vehicle) => (
-                                                    <CommandItem
-                                                      value={vehicle.name}
-                                                      key={vehicle.name}
-                                                      onSelect={() => {
-                                                        form.setValue(
-                                                          "vehicle_plate",
-                                                          vehicle.name
-                                                        );
-                                                        form.trigger(
-                                                          "vehicle_plate"
-                                                        );
-                                                      }}
-                                                      className="text-sm"
-                                                    >
-                                                      <div className="flex items-center">
-                                                        <Check
-                                                          className={cn(
-                                                            "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
-                                                            vehicle.name ===
-                                                              field.name
-                                                              ? "opacity-100"
-                                                              : "opacity-0"
-                                                          )}
-                                                        />
-                                                        <span className="truncate">
-                                                          {vehicle.name}
-                                                        </span>
-                                                      </div>
-                                                    </CommandItem>
-                                                  )
-                                                )}
+                                                {vehicles.map((vehicle) => (
+                                                  <CommandItem
+                                                    value={vehicle.name}
+                                                    key={vehicle.name}
+                                                    onSelect={() => {
+                                                      form.setValue(
+                                                        "vehicle_plate",
+                                                        vehicle.name
+                                                      );
+                                                      form.trigger(
+                                                        "vehicle_plate"
+                                                      );
+                                                    }}
+                                                    className="text-sm"
+                                                  >
+                                                    <div className="flex items-center">
+                                                      <Check
+                                                        className={cn(
+                                                          "mr-2 h-3.5 w-3.5 text-rose-500 dark:text-rose-400",
+                                                          vehicle.name ===
+                                                            field.name
+                                                            ? "opacity-100"
+                                                            : "opacity-0"
+                                                        )}
+                                                      />
+                                                      <span className="truncate">
+                                                        {vehicle.name}
+                                                      </span>
+                                                    </div>
+                                                  </CommandItem>
+                                                ))}
                                               </CommandGroup>
                                             </CommandList>
                                           </Command>
