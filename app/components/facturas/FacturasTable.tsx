@@ -18,9 +18,23 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ApiNote {
   id: number;
@@ -42,10 +56,21 @@ interface Factura {
   centro_costo: string | null;
   notas: string;
   observacion: string | null;
-  contabilizado: boolean;
+  contabilizado: string | null;
   tipo: string | null;
   proveedor_latinium: string | null;
   nota_latinium: string | null;
+}
+
+interface ProyectoLatinium {
+  value: string;
+  label: string;
+}
+
+interface ComboProyectoProps {
+  selected: string | null;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
 }
 
 const apiClient: AxiosInstance = axios.create({
@@ -54,6 +79,53 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 120000,
 });
 
+// Combobox para proyectos
+function ComboProyecto({ selected, options, onChange }: ComboProyectoProps) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((o) => o.value === selected);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          className="w-[130px] justify-between"
+        >
+          {current?.label ?? "Selecciona"}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[130px] max-h-[400px] p-0 overflow-y-auto">
+        <Command>
+          <CommandInput placeholder="Buscar..." />
+          <CommandEmpty>No encontrado</CommandEmpty>
+          <CommandGroup>
+            {options.map((o) => (
+              <CommandItem
+                key={o.value}
+                value={o.label}
+                onSelect={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    o.value === selected ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {o.label}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function FacturasTable() {
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,6 +133,24 @@ export default function FacturasTable() {
   const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
   const [filterTipo, setFilterTipo] = useState<string>("");
+
+  const [proyectosLatinium, setProyectosLatinium] = useState<
+    ProyectoLatinium[]
+  >([]);
+
+  useEffect(() => {
+    const fetchProyectos = async () => {
+      try {
+        const response: AxiosResponse<{ data: ProyectoLatinium[] }> =
+          await apiClient.get("/latinium/projects");
+        setProyectosLatinium(response.data.data);
+      } catch (err) {
+        toast.error("No se pudieron cargar los proyectos de Latinium");
+        console.error(err);
+      }
+    };
+    fetchProyectos();
+  }, []);
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
@@ -128,7 +218,7 @@ export default function FacturasTable() {
     onChange: (v: string) => void
   ) => (
     <Select value={value || "0"} onValueChange={onChange}>
-      <SelectTrigger className="w-[140px]">
+      <SelectTrigger className="w-[120px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -160,11 +250,11 @@ export default function FacturasTable() {
         </div>
         <div className="relative">
           <small className="absolute -top-5 left-0">Proyecto</small>
-          {renderSelect(
-            filterProyecto,
-            ["Proyecto A", "Proyecto B"],
-            setFilterProyecto
-          )}
+          <ComboProyecto
+            selected={filterProyecto}
+            options={proyectosLatinium}
+            onChange={setFilterProyecto}
+          />
         </div>
         <div className="relative">
           <small className="absolute -top-5 left-0">Centro Costo</small>
@@ -229,11 +319,11 @@ export default function FacturasTable() {
                   </TableCell>
                   <TableCell>${f.importe_total.toFixed(2)}</TableCell>
                   <TableCell>
-                    {renderSelect(
-                      f.project,
-                      ["Proyecto A", "Proyecto B"],
-                      (v) => updateFactura(f.id, { project: v })
-                    )}
+                    <ComboProyecto
+                      selected={f.project}
+                      options={proyectosLatinium}
+                      onChange={(v) => updateFactura(f.id, { project: v })}
+                    />
                   </TableCell>
                   <TableCell>
                     {renderSelect(f.centro_costo, ["CC101", "CC202"], (v) =>
@@ -259,12 +349,7 @@ export default function FacturasTable() {
                     />
                   </TableCell>
                   <TableCell>
-                    <Checkbox
-                      checked={f.contabilizado}
-                      onCheckedChange={(v) =>
-                        updateFactura(f.id, { contabilizado: v === true })
-                      }
-                    />
+                    <span className="w-max p-0.5 flex">{f.contabilizado ?? "Sin contabilizar"}</span>
                   </TableCell>
                   <TableCell>
                     {renderSelect(f.tipo, ["Bienes", "Servicios"], (v) =>
