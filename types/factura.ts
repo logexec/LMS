@@ -24,7 +24,8 @@ export interface Factura {
   identificacion_comprador: string;
   razon_social_comprador: string;
   direccion_comprador: string | null;
-  descripcion: InvoiceDescription;
+  details: InvoiceDescription;
+  descripcion?: InvoiceDescription;
 
   // Datos de factura
   estab: string;

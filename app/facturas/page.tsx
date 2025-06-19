@@ -3,15 +3,114 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FacturasTable from "../components/facturas/FacturasTable";
 import { CheckIcon, ClockFadingIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
+import { Factura } from "@/types/factura";
+import api from "@/services/axios";
+import { toast } from "sonner";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
+
+const apiClient: AxiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: true,
+  timeout: 120_000,
+});
 
 export default function FacturasPage() {
   const [selectedValue, setSelectedValue] = useState("PREBAM");
-  const year = new Date().getFullYear();
-  const month = new Date().getMonth();
-  const day = new Date().getDate();
-  const today = new Date(year, month, day, 0);
+  const [facturas, setFacturas] = useState<Factura[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFacturas = useCallback(async () => {
+    setLoading(true);
+    try {
+      const resp: AxiosResponse<{ data: Factura[] }> = await apiClient.get(
+        "/facturas",
+        {
+          params: {
+            empresa:
+              selectedValue === "PREBAM" ? "0992301066001" : "1792162696001",
+          },
+        }
+      );
+      setFacturas(
+        resp.data.data.map((item) => ({
+          id: item.id,
+          clave_acceso: item.clave_acceso,
+          ruc_emisor: item.ruc_emisor,
+          razon_social_emisor: item.razon_social_emisor,
+          nombre_comercial_emisor: item.nombre_comercial_emisor,
+          identificacion_comprador: item.identificacion_comprador,
+          razon_social_comprador: item.razon_social_comprador,
+          direccion_comprador: item.direccion_comprador,
+          details: {
+            id: item.details.id,
+            descripcion: item.details.descripcion,
+          },
+          descripcion: {
+            id: item.details.id,
+            descripcion: item.details.descripcion,
+          },
+          estab: item.estab,
+          pto_emi: item.pto_emi,
+          secuencial: item.secuencial,
+          invoice_serial: item.invoice_serial,
+          ambiente: item.ambiente,
+          fecha_emision: item.fecha_emision,
+          fecha_autorizacion: item.fecha_autorizacion,
+          tipo_identificacion_comprador: item.tipo_identificacion_comprador,
+          cod_doc: item.cod_doc,
+          total_sin_impuestos: item.total_sin_impuestos,
+          importe_total: item.importe_total,
+          iva: item.iva != null ? item.iva : null,
+          propina: item.propina != null ? item.propina : null,
+          moneda: item.moneda,
+          forma_pago: item.forma_pago,
+          placa: item.placa,
+          mes: item.mes,
+          project: item.project,
+          centro_costo: item.centro_costo,
+          notas: item.notas,
+          observacion: item.observacion,
+          contabilizado: item.contabilizado ? "CONTABILIZADO" : "PENDIENTE",
+          cuenta_contable: item.cuenta_contable,
+          proveedor_latinium: item.proveedor_latinium,
+          nota_latinium: item.nota_latinium,
+          estado: item.estado,
+          numero_asiento: item.numero_asiento,
+          numero_transferencia: item.numero_transferencia,
+          correo_pago: item.correo_pago,
+          purchase_order_id: item.purchase_order_id,
+          empresa: item.empresa,
+          xml_path: item.xml_path,
+          pdf_path: item.pdf_path,
+          deleted_at: item.deleted_at,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+        }))
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedValue]);
+
+  useEffect(() => {
+    fetchFacturas();
+  }, [fetchFacturas]);
+
+  const updateFactura = async (id: number, data: Partial<Factura>) => {
+    try {
+      await api.patch(`/facturas/${id}`, data);
+      setFacturas((prev) =>
+        prev.map((f) => (f.id === id ? ({ ...f, ...data } as Factura) : f))
+      );
+      toast.success("Factura actualizada");
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo actualizar");
+    }
+  };
+
   return (
     <main>
       <Tabs defaultValue="tab-1" className="items-center">
@@ -57,7 +156,6 @@ export default function FacturasPage() {
               <input
                 type="date"
                 id="from"
-                value={today}
                 className="border border-gray-300 rouded pl-4 py-1"
               />
             </div>
@@ -77,10 +175,18 @@ export default function FacturasPage() {
         {/** Contenido **/}
 
         <TabsContent value="tab-1" className="p-6">
-          <FacturasTable />
+          <FacturasTable
+            facturas={facturas}
+            loading={loading}
+            updateFactura={updateFactura} // si lo necesitas
+          />
         </TabsContent>
         <TabsContent value="tab-2" className="p-6">
-          <FacturasTable />
+          <FacturasTable
+            facturas={facturas}
+            loading={loading}
+            updateFactura={updateFactura} // si lo necesitas
+          />
         </TabsContent>
       </Tabs>
     </main>

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -13,7 +13,7 @@ import {
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosInstance } from "axios";
 import ComboBox from "../ui/Combobox";
 import { CheckIcon, DownloadIcon, XIcon } from "lucide-react";
 import { Factura } from "@/types/factura";
@@ -30,9 +30,16 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 120_000,
 });
 
-export default function FacturasTable() {
-  const [facturas, setFacturas] = useState<Factura[]>([]);
-  const [loading, setLoading] = useState(false);
+interface FacturasTableProps {
+  facturas: Factura[];
+  loading: boolean;
+  updateFactura: (id: number, data: Partial<Factura>) => void;
+}
+export default function FacturasTable({
+  facturas,
+  loading,
+  updateFactura,
+}: FacturasTableProps) {
   const [filterMes, setFilterMes] = useState<string>("");
   const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
@@ -80,98 +87,6 @@ export default function FacturasTable() {
     return itemRank.passed;
   };
 
-  // Fetch invoices
-  const fetchFacturas = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, any> = {};
-      if (filterMes) params.mes = parseInt(filterMes.split("-")[1], 10);
-      if (filterProyecto) params.project = filterProyecto;
-      if (filterCentro) params.centro_costo = filterCentro;
-      if (filterCuentaContable) params.cuenta_contable = filterCuentaContable;
-
-      const response: AxiosResponse<{ data: any[] }> = await apiClient.get(
-        "/facturas",
-        { params }
-      );
-      setFacturas(
-        response.data.data.map((item) => ({
-          id: item.id,
-          clave_acceso: item.clave_acceso,
-          ruc_emisor: item.ruc_emisor,
-          razon_social_emisor: item.razon_social_emisor,
-          nombre_comercial_emisor: item.nombre_comercial_emisor,
-          identificacion_comprador: item.identificacion_comprador,
-          razon_social_comprador: item.razon_social_comprador,
-          direccion_comprador: item.direccion_comprador,
-          descripcion: {
-            id: item.details.id,
-            descripcion: item.details.descripcion,
-          },
-          estab: item.estab,
-          pto_emi: item.pto_emi,
-          secuencial: item.secuencial,
-          invoice_serial: item.invoice_serial,
-          ambiente: item.ambiente,
-          fecha_emision: item.fecha_emision,
-          fecha_autorizacion: item.fecha_autorizacion,
-          tipo_identificacion_comprador: item.tipo_identificacion_comprador,
-          cod_doc: item.cod_doc,
-          total_sin_impuestos: parseFloat(item.total_sin_impuestos),
-          importe_total: parseFloat(item.importe_total),
-          iva: item.iva != null ? parseFloat(item.iva) : null,
-          propina: item.propina != null ? parseFloat(item.propina) : null,
-          moneda: item.moneda,
-          forma_pago: item.forma_pago,
-          placa: item.placa,
-          mes: item.mes,
-          project: item.project,
-          centro_costo: item.centro_costo,
-          notas: item.notas,
-          observacion: item.observacion,
-          contabilizado: item.contabilizado ? "CONTABILIZADO" : "PENDIENTE",
-          cuenta_contable: item.cuenta_contable,
-          proveedor_latinium: item.proveedor_latinium,
-          nota_latinium: item.nota_latinium,
-          estado: item.estado,
-          numero_asiento: item.numero_asiento,
-          numero_transferencia: item.numero_transferencia,
-          correo_pago: item.correo_pago,
-          purchase_order_id: item.purchase_order_id,
-          empresa: item.empresa,
-          xml_path: item.xml_path,
-          pdf_path: item.pdf_path,
-          deleted_at: item.deleted_at,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error("Error al cargar facturas");
-    } finally {
-      setLoading(false);
-    }
-  }, [filterMes, filterProyecto, filterCentro, filterCuentaContable]);
-
-  useEffect(() => {
-    fetchFacturas();
-  }, [fetchFacturas]);
-
-  // Update invoice
-  const updateFactura = async (id: number, data: Partial<Factura>) => {
-    try {
-      await apiClient.patch(`/facturas/${id}`, data);
-      setFacturas((prev) =>
-        prev.map((f) => (f.id === id ? ({ ...f, ...data } as Factura) : f))
-      );
-      toast.success("Factura actualizada");
-    } catch (err) {
-      console.error(err);
-      toast.error("No se pudo actualizar");
-    }
-  };
-
   // Define columns
   const columns = useMemo<ColumnDef<Factura, any>[]>(
     () => [
@@ -212,7 +127,7 @@ export default function FacturasTable() {
         ),
       },
       {
-        accessorFn: (row) => `$${row.importe_total.toFixed(2)}`,
+        accessorFn: (row) => `$${row.importe_total}`,
         id: "importe_total",
         header: "Precio",
       },
@@ -243,15 +158,15 @@ export default function FacturasTable() {
         ),
       },
       {
-        accessorFn: (row) => row.descripcion.descripcion,
+        accessorFn: "descripcion",
         id: "descripcion",
         header: "Descripción",
         cell: ({ row }) => (
           <span
             className="max-w-64 inline-flex truncate"
-            title={row.original.descripcion.descripcion}
+            title={row.original.descripcion!.descripcion}
           >
-            {row.original.descripcion.descripcion}
+            {row.original.descripcion!.descripcion}
           </span>
         ),
       },
@@ -260,15 +175,18 @@ export default function FacturasTable() {
         header: "Observación",
         cell: ({ row }) => {
           return (
-          <Input
-            className="w-max max-w-lg"
-            onBlur={(e) =>
-              updateFactura(row.original.id, {
-                observacion: e.target.value,
-              })
-            }
-          />
-        )},
+            <Input
+              value={row.original.observacion ?? ""}
+              onChange={(e) => e.target.value}
+              className="w-max max-w-lg"
+              onBlur={(e) =>
+                updateFactura(row.original.id, {
+                  observacion: e.target.value,
+                })
+              }
+            />
+          );
+        },
       },
       {
         accessorKey: "contabilizado",
@@ -339,7 +257,7 @@ export default function FacturasTable() {
         ),
       },
     ],
-    [proyectosLatinium, centrosCosto, accounts]
+    [proyectosLatinium, centrosCosto, accounts, updateFactura]
   );
 
   // Build table instance
