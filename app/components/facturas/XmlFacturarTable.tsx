@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Table,
@@ -7,33 +7,40 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { ParsedFactura } from '@/types/factura'
-import { ColumnDef, useReactTable, getCoreRowModel, getFilteredRowModel, flexRender } from '@tanstack/react-table'
-import { useState, useMemo } from 'react'
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { ParsedFactura } from "@/types/factura";
+import {
+  ColumnDef,
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  flexRender,
+} from "@tanstack/react-table";
+import { useState, useMemo } from "react";
 
 interface Props {
-  data: ParsedFactura[]
+  data: ParsedFactura[];
 }
 
 export function XmlFacturaTable({ data }: Props) {
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const columns = useMemo<ColumnDef<ParsedFactura>[]>(
     () => [
-      { accessorKey: 'archivoOriginal', header: 'Archivo' },
-      { accessorKey: 'razonSocialEmisor', header: 'Emisor' },
-      { accessorKey: 'razonSocialComprador', header: 'Cliente' },
-      { accessorKey: 'fechaEmision', header: 'Fecha' },
+      { accessorKey: "archivoOriginal", header: "Archivo" },
+      { accessorKey: "razonSocialEmisor", header: "Emisor" },
+      { accessorKey: "razonSocialComprador", header: "Cliente" },
+      { accessorKey: "fechaEmision", header: "Fecha" },
       {
-        accessorKey: 'importeTotal',
-        header: 'Total',
-        cell: ({ row }) => `$${row.getValue<number>('importeTotal').toFixed(2)}`
+        accessorKey: "importeTotal",
+        header: "Total",
+        cell: ({ row }) =>
+          `$${row.getValue<number>("importeTotal").toFixed(2)}`,
       },
     ],
     []
-  )
+  );
 
   const table = useReactTable({
     data,
@@ -43,7 +50,7 @@ export function XmlFacturaTable({ data }: Props) {
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  })
+  });
 
   return (
     <div className="space-y-4">
@@ -61,7 +68,10 @@ export function XmlFacturaTable({ data }: Props) {
               <TableRow key={group.id}>
                 {group.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -82,5 +92,5 @@ export function XmlFacturaTable({ data }: Props) {
         </Table>
       </div>
     </div>
-  )
+  );
 }

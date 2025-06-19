@@ -43,6 +43,12 @@ export default function Client() {
                   toast.success(
                     `✓ ${result.imported.length} facturas importadas correctamente`
                   );
+                  toast.info(
+                    `Redirigiendo...`
+                  );
+                  setTimeout(() => {
+                    window.location.href = "/facturas"
+                  }, 2500);
                 }
               } catch (err) {
                 toast.error("No se pudieron importar las facturas.");
