@@ -258,24 +258,24 @@ export default function FacturasTable() {
       {
         accessorKey: "observacion",
         header: "Observación",
-        cell: (info) => (
+        cell: ({ row }) => {
+          return (
           <Input
-            value={info.getValue() ?? ""}
             className="w-max max-w-lg"
             onBlur={(e) =>
-              updateFactura(info.row.original.id, {
+              updateFactura(row.original.id, {
                 observacion: e.target.value,
               })
             }
           />
-        ),
+        )},
       },
       {
         accessorKey: "contabilizado",
         header: "Contabilizado",
-        cell: (info) => (
+        cell: ({ row }) => (
           <span className="flex justify-center">
-            {info.getValue() === "CONTABILIZADO" ? (
+            {row.original.contabilizado === "CONTABILIZADO" ? (
               <CheckIcon className="h-4 w-4 text-green-500" />
             ) : (
               <XIcon className="h-4 w-4 text-red-500" />
@@ -286,12 +286,12 @@ export default function FacturasTable() {
       {
         accessorKey: "cuenta_contable",
         header: "Cuenta Contable",
-        cell: (info) => (
+        cell: ({ row }) => (
           <ComboBox
-            selected={info.getValue()}
+            selected={row.original.cuenta_contable}
             options={accounts}
             onChange={(v) =>
-              updateFactura(info.row.original.id, { cuenta_contable: v })
+              updateFactura(row.original.id, { cuenta_contable: v })
             }
           />
         ),
@@ -326,7 +326,7 @@ export default function FacturasTable() {
         ),
       },
       {
-        header: "",
+        header: "Factura PDF",
         id: "download",
         cell: ({ row }) => (
           <Button
