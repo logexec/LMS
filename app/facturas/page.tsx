@@ -21,6 +21,14 @@ export default function FacturasPage() {
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const now = new Date();
+  const today = now.toISOString().split("T")[0];
+  const from = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    .toISOString()
+    .split("T")[0];
+  const [fromDate, setFromDate] = useState(from);
+  const [toDate, setToDate] = useState(today);
+
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
     try {
@@ -30,6 +38,8 @@ export default function FacturasPage() {
           params: {
             empresa:
               selectedValue === "PREBAM" ? "0992301066001" : "1792162696001",
+            desde: fromDate,
+            hasta: toDate,
           },
         }
       );
@@ -92,7 +102,7 @@ export default function FacturasPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedValue]);
+  }, [selectedValue, fromDate, toDate]);
 
   useEffect(() => {
     fetchFacturas();
@@ -141,26 +151,6 @@ export default function FacturasPage() {
 
         {/* Seccion de Filtros */}
         <div className="bg-white rounded-md border border-gray-200 shadow px-5 py-4 my-2 flex items-center justify-between">
-          {/* Mostrar unicamente en la pestana de completas */}
-          <div className="flex flex-row items-center justify-evenly space-x-8">
-            <div className="flex flex-col">
-              <Label htmlFor="from">Desde:</Label>
-              <input
-                type="date"
-                id="from"
-                className="border border-gray-300 rouded pl-4 py-1"
-              />
-            </div>
-            <div className="flex flex-col">
-              <Label htmlFor="to">Hasta:</Label>
-              <input
-                type="date"
-                id="from"
-                className="border border-gray-300 rouded pl-4 py-1"
-              />
-            </div>
-          </div>
-
           {/* Mostrar siempre */}
           <RadioOptions
             selectedValue={selectedValue}
@@ -170,6 +160,30 @@ export default function FacturasPage() {
               )
             }
           />
+
+          {/* Se muestra solo en completas */}
+          <div className="flex flex-row items-center justify-evenly space-x-8 mb-4">
+            <div className="flex flex-col">
+              <Label htmlFor="from">Desde:</Label>
+              <input
+                type="date"
+                id="from"
+                className="border border-gray-300 rounded pl-4 py-1"
+                defaultValue={fromDate}
+                onChange={e => setFromDate(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="to">Hasta:</Label>
+              <input
+                type="date"
+                id="to"
+                className="border border-gray-300 rounded pl-4 py-1"
+                defaultValue={toDate}
+                onChange={e => setToDate(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
         {/** Contenido **/}
@@ -205,20 +219,20 @@ function RadioOptions({
       <RadioGroup
         value={selectedValue}
         onValueChange={onChange}
-        className="group after:bg-background has-focus-visible:after:border-ring has-focus-visible:after:ring-ring/50 relative inline-grid grid-cols-[1fr_1fr] items-center gap-0 text-sm font-medium after:absolute after:inset-y-0 after:w-1/2 after:rounded-sm after:shadow-xs after:transition-[translate,box-shadow] after:duration-300 after:ease-[cubic-bezier(0.16,1,0.3,1)] has-focus-visible:after:ring-[3px] data-[state=SERSUPPORT]:after:translate-x-0 data-[state=PREBAM]:after:translate-x-full"
+        className="group after:bg-background has-focus-visible:after:border-ring has-focus-visible:after:ring-ring/50 relative inline-grid grid-cols-[1fr_1fr] items-center gap-0 text-sm font-medium after:absolute after:inset-y-0 after:w-1/2 after:rounded-sm after:shadow-xs after:transition-[translate,box-shadow] after:duration-300 after:ease-[cubic-bezier(0.16,1,0.3,1)] has-focus-visible:after:ring-[3px] data-[state=PREBAM]:after:translate-x-0 data-[state=SERSUPPORT]:after:translate-x-full"
         data-state={selectedValue}
       >
-        <label className="group-data-[state=PREBAM]:text-muted-foreground/70 relative z-10 inline-flex h-full min-w-8 cursor-pointer items-center justify-center px-4 whitespace-nowrap transition-colors select-none">
-          SERSUPPORT
+        <label className="group-data-[state=SERSUPPORT]:text-muted-foreground/70 relative z-10 inline-flex h-full min-w-8 cursor-pointer items-center justify-center px-4 whitespace-nowrap transition-colors select-none">
+          PREBAM
           <RadioGroupItem
-            id={`SERSUPPORT`}
-            value="SERSUPPORT"
+            id={`PREBAM`}
+            value="PREBAM"
             className="sr-only"
           />
         </label>
-        <label className="group-data-[state=SERSUPPORT]:text-muted-foreground/70 relative z-10 inline-flex h-full min-w-8 cursor-pointer items-center justify-center px-4 whitespace-nowrap transition-colors select-none">
-          <span>PREBAM</span>
-          <RadioGroupItem id={`PREBAM`} value="PREBAM" className="sr-only" />
+        <label className="group-data-[state=PREBAM]:text-muted-foreground/70 relative z-10 inline-flex h-full min-w-8 cursor-pointer items-center justify-center px-4 whitespace-nowrap transition-colors select-none">
+          <span>SERSUPPORT</span>
+          <RadioGroupItem id={`SERSUPPORT`} value="SERSUPPORT" className="sr-only" />
         </label>
       </RadioGroup>
     </div>

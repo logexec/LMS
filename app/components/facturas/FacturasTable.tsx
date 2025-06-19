@@ -40,7 +40,6 @@ export default function FacturasTable({
   loading,
   updateFactura,
 }: FacturasTableProps) {
-  const [filterMes, setFilterMes] = useState<string>("");
   const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
   const [filterCuentaContable, setFilterCuentaContable] = useState<string>("");
@@ -274,15 +273,6 @@ export default function FacturasTable({
     <div className="space-y-6">
       {/* filtros */}
       <div className="flex gap-4 flex-wrap pt-3">
-        <div className="relative">
-          <small className="absolute -top-5 left-0">Mes</small>
-          <Input
-            type="month"
-            value={filterMes}
-            onChange={(e) => setFilterMes(e.target.value)}
-            className="max-w-[180px]"
-          />
-        </div>
         <div className="relative">
           <small className="absolute -top-5 left-0">Proyecto</small>
           <ComboBox
