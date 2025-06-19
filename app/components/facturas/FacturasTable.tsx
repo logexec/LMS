@@ -1,23 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableHead,
-  TableRow,
-} from "@/components/ui/table";
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  flexRender,
+  ColumnDef,
+  Row,
+} from "@tanstack/react-table";
+import { rankItem } from "@tanstack/match-sorter-utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import ComboBox from "../ui/Combobox";
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, DownloadIcon, XIcon } from "lucide-react";
 import { Factura } from "@/types/factura";
+import { Button } from "@/components/ui/button";
 
-interface ProyectoLatinium {
+interface Option {
   value: string;
   label: string;
 }
@@ -25,7 +27,7 @@ interface ProyectoLatinium {
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
-  timeout: 120000,
+  timeout: 120_000,
 });
 
 export default function FacturasTable() {
@@ -35,35 +37,32 @@ export default function FacturasTable() {
   const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
   const [filterCuentaContable, setFilterCuentaContable] = useState<string>("");
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
-  const [proyectosLatinium, setProyectosLatinium] = useState<
-    ProyectoLatinium[]
-  >([]);
-  const [centrosCosto, setCentrosCosto] = useState<ProyectoLatinium[]>([]);
-  const [accounts, setAccounts] = useState<ProyectoLatinium[]>([]);
+  const [proyectosLatinium, setProyectosLatinium] = useState<Option[]>([]);
+  const [centrosCosto, setCentrosCosto] = useState<Option[]>([]);
+  const [accounts, setAccounts] = useState<Option[]>([]);
 
+  // Fetch combo options
   useEffect(() => {
-    // Fetch proyectos
     apiClient
-      .get<{ data: ProyectoLatinium[] }>("/latinium/projects")
+      .get<{ data: Option[] }>("/latinium/projects")
       .then((res) => setProyectosLatinium(res.data.data))
       .catch((err) => {
         console.error(err);
         toast.error("No se pudieron cargar los proyectos");
       });
 
-    // Fetch centros de costo
     apiClient
-      .get<{ data: ProyectoLatinium[] }>("/latinium/centro-costo")
+      .get<{ data: Option[] }>("/latinium/centro-costo")
       .then((res) => setCentrosCosto(res.data.data))
       .catch((err) => {
         console.error(err);
         toast.error("No se pudieron cargar los centros de costo");
       });
 
-    // Fetch cuentas contables
     apiClient
-      .get<{ data: ProyectoLatinium[] }>("/latinium/accounts")
+      .get<{ data: Option[] }>("/latinium/accounts")
       .then((res) => setAccounts(res.data.data))
       .catch((err) => {
         console.error(err);
@@ -71,6 +70,17 @@ export default function FacturasTable() {
       });
   }, []);
 
+  // Global fuzzy filter function
+  const fuzzyFilter = <TData,>(
+    row: Row<TData>,
+    columnId: string,
+    filterValue: string
+  ) => {
+    const itemRank = rankItem(row.getValue<any>(columnId), filterValue);
+    return itemRank.passed;
+  };
+
+  // Fetch invoices
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
     try {
@@ -84,74 +94,58 @@ export default function FacturasTable() {
         "/facturas",
         { params }
       );
-      const mapped: Factura[] = response.data.data.map((item) => ({
-        id: item.id,
-        clave_acceso: item.clave_acceso,
-
-        // Emisor y Comprador
-        ruc_emisor: item.ruc_emisor,
-        razon_social_emisor: item.razon_social_emisor,
-        nombre_comercial_emisor: item.nombre_comercial_emisor,
-        identificacion_comprador: item.identificacion_comprador,
-        razon_social_comprador: item.razon_social_comprador,
-        direccion_comprador: item.direccion_comprador,
-
-        // Descripción (ahora un objeto)
-        descripcion: {
-          id: item.details.id,
-          descripcion: item.details.descripcion,
-        },
-
-        // Datos de factura
-        estab: item.estab,
-        pto_emi: item.pto_emi,
-        secuencial: item.secuencial,
-        invoice_serial: item.invoice_serial,
-        ambiente: item.ambiente,
-        fecha_emision: item.fecha_emision,
-        fecha_autorizacion: item.fecha_autorizacion,
-        tipo_identificacion_comprador: item.tipo_identificacion_comprador,
-        cod_doc: item.cod_doc,
-
-        // Valores económicos
-        total_sin_impuestos: parseFloat(item.total_sin_impuestos),
-        importe_total: parseFloat(item.importe_total),
-        iva: item.iva != null ? parseFloat(item.iva) : null,
-        propina: item.propina != null ? parseFloat(item.propina) : null,
-        moneda: item.moneda,
-        forma_pago: item.forma_pago,
-        placa: item.placa,
-
-        // Campos editables / de flujo
-        mes: item.mes,
-        project: item.project,
-        centro_costo: item.centro_costo,
-        notas: item.notas,
-        observacion: item.observacion,
-        contabilizado: item.contabilizado ? "CONTABILIZADO" : "PENDIENTE",
-        cuenta_contable: item.cuenta_contable,
-        proveedor_latinium: item.proveedor_latinium,
-        nota_latinium: item.nota_latinium,
-
-        // Estado y referencias contables
-        estado: item.estado,
-        numero_asiento: item.numero_asiento,
-        numero_transferencia: item.numero_transferencia,
-        correo_pago: item.correo_pago,
-
-        // Asociación y almacenamiento
-        purchase_order_id: item.purchase_order_id,
-        empresa: item.empresa,
-        xml_path: item.xml_path,
-        pdf_path: item.pdf_path,
-
-        // Timestamps y soft delete
-        deleted_at: item.deleted_at,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-      }));
-
-      setFacturas(mapped);
+      setFacturas(
+        response.data.data.map((item) => ({
+          id: item.id,
+          clave_acceso: item.clave_acceso,
+          ruc_emisor: item.ruc_emisor,
+          razon_social_emisor: item.razon_social_emisor,
+          nombre_comercial_emisor: item.nombre_comercial_emisor,
+          identificacion_comprador: item.identificacion_comprador,
+          razon_social_comprador: item.razon_social_comprador,
+          direccion_comprador: item.direccion_comprador,
+          descripcion: {
+            id: item.details.id,
+            descripcion: item.details.descripcion,
+          },
+          estab: item.estab,
+          pto_emi: item.pto_emi,
+          secuencial: item.secuencial,
+          invoice_serial: item.invoice_serial,
+          ambiente: item.ambiente,
+          fecha_emision: item.fecha_emision,
+          fecha_autorizacion: item.fecha_autorizacion,
+          tipo_identificacion_comprador: item.tipo_identificacion_comprador,
+          cod_doc: item.cod_doc,
+          total_sin_impuestos: parseFloat(item.total_sin_impuestos),
+          importe_total: parseFloat(item.importe_total),
+          iva: item.iva != null ? parseFloat(item.iva) : null,
+          propina: item.propina != null ? parseFloat(item.propina) : null,
+          moneda: item.moneda,
+          forma_pago: item.forma_pago,
+          placa: item.placa,
+          mes: item.mes,
+          project: item.project,
+          centro_costo: item.centro_costo,
+          notas: item.notas,
+          observacion: item.observacion,
+          contabilizado: item.contabilizado ? "CONTABILIZADO" : "PENDIENTE",
+          cuenta_contable: item.cuenta_contable,
+          proveedor_latinium: item.proveedor_latinium,
+          nota_latinium: item.nota_latinium,
+          estado: item.estado,
+          numero_asiento: item.numero_asiento,
+          numero_transferencia: item.numero_transferencia,
+          correo_pago: item.correo_pago,
+          purchase_order_id: item.purchase_order_id,
+          empresa: item.empresa,
+          xml_path: item.xml_path,
+          pdf_path: item.pdf_path,
+          deleted_at: item.deleted_at,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+        }))
+      );
     } catch (err) {
       console.error(err);
       toast.error("Error al cargar facturas");
@@ -164,6 +158,7 @@ export default function FacturasTable() {
     fetchFacturas();
   }, [fetchFacturas]);
 
+  // Update invoice
   const updateFactura = async (id: number, data: Partial<Factura>) => {
     try {
       await apiClient.patch(`/facturas/${id}`, data);
@@ -176,6 +171,186 @@ export default function FacturasTable() {
       toast.error("No se pudo actualizar");
     }
   };
+
+  // Define columns
+  const columns = useMemo<ColumnDef<Factura, any>[]>(
+    () => [
+      { accessorKey: "mes", header: "Mes" },
+      {
+        accessorKey: "razon_social_emisor",
+        header: "Proveedor",
+        cell: ({ row }) => (
+          <span
+            className="inline-flex min-w-16 max-w-48 truncate"
+            title={row.original.razon_social_emisor}
+          >
+            {row.original.razon_social_emisor}
+          </span>
+        ),
+      },
+      { accessorKey: "ruc_emisor", header: "RUC" },
+      { accessorKey: "secuencial", header: "Secuencial" },
+      {
+        accessorKey: "fecha_emision",
+        header: "Fecha Emisión",
+        cell: ({ row }) => (
+          <span className="w-max inline-flex px-4">
+            {row.original.fecha_emision?.split("T")[0]}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "clave_acceso",
+        header: "Autorización",
+        cell: ({ row }) => (
+          <span
+            className="max-w-24 inline-flex truncate"
+            title={row.original.clave_acceso}
+          >
+            {row.original.clave_acceso}
+          </span>
+        ),
+      },
+      {
+        accessorFn: (row) => `$${row.importe_total.toFixed(2)}`,
+        id: "importe_total",
+        header: "Precio",
+      },
+      {
+        accessorKey: "project",
+        header: "Proyecto",
+        cell: (info) => (
+          <ComboBox
+            selected={info.getValue()}
+            options={proyectosLatinium}
+            onChange={(v) =>
+              updateFactura(info.row.original.id, { project: v })
+            }
+          />
+        ),
+      },
+      {
+        accessorKey: "centro_costo",
+        header: "Centro Costo",
+        cell: (info) => (
+          <ComboBox
+            selected={info.getValue()}
+            options={centrosCosto}
+            onChange={(v) =>
+              updateFactura(info.row.original.id, { centro_costo: v })
+            }
+          />
+        ),
+      },
+      {
+        accessorFn: (row) => row.descripcion.descripcion,
+        id: "descripcion",
+        header: "Descripción",
+        cell: ({ row }) => (
+          <span
+            className="max-w-64 inline-flex truncate"
+            title={row.original.descripcion.descripcion}
+          >
+            {row.original.descripcion.descripcion}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "observacion",
+        header: "Observación",
+        cell: (info) => (
+          <Input
+            value={info.getValue() ?? ""}
+            className="w-max max-w-lg"
+            onBlur={(e) =>
+              updateFactura(info.row.original.id, {
+                observacion: e.target.value,
+              })
+            }
+          />
+        ),
+      },
+      {
+        accessorKey: "contabilizado",
+        header: "Contabilizado",
+        cell: (info) => (
+          <span className="flex justify-center">
+            {info.getValue() === "CONTABILIZADO" ? (
+              <CheckIcon className="h-4 w-4 text-green-500" />
+            ) : (
+              <XIcon className="h-4 w-4 text-red-500" />
+            )}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "cuenta_contable",
+        header: "Cuenta Contable",
+        cell: (info) => (
+          <ComboBox
+            selected={info.getValue()}
+            options={accounts}
+            onChange={(v) =>
+              updateFactura(info.row.original.id, { cuenta_contable: v })
+            }
+          />
+        ),
+      },
+      {
+        accessorKey: "proveedor_latinium",
+        header: "Proveedor Latinium",
+        cell: ({ row }) => (
+          <span
+            className={`w-max inline-flex ${
+              !row.original.proveedor_latinium &&
+              "text-gray-400 font-normal italic text-sm"
+            }`}
+          >
+            {row.original.proveedor_latinium ??
+              "El proveedor no se encuentra registrado en LATINIUM"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "nota_latinium",
+        header: "Nota Latinium",
+        cell: ({ row }) => (
+          <span
+            className={`w-max inline-flex ${
+              !row.original.nota_latinium &&
+              "text-gray-400 font-normal italic text-sm"
+            }`}
+          >
+            {row.original.nota_latinium ?? "Faltan datos para generar la nota"}
+          </span>
+        ),
+      },
+      {
+        header: "",
+        id: "download",
+        cell: ({ row }) => (
+          <Button
+            variant="outline"
+            title="Descargar Factura"
+            onClick={() => console.log(row.original.id)}
+          >
+            <DownloadIcon size={4} />
+          </Button>
+        ),
+      },
+    ],
+    [proyectosLatinium, centrosCosto, accounts]
+  );
+
+  // Build table instance
+  const table = useReactTable({
+    data: facturas,
+    columns,
+    state: { globalFilter },
+    globalFilterFn: fuzzyFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
 
   return (
     <div className="space-y-6">
@@ -204,7 +379,6 @@ export default function FacturasTable() {
             selected={filterCentro}
             options={centrosCosto}
             onChange={setFilterCentro}
-            isDisabled={centrosCosto.length === 0}
           />
         </div>
         <div className="relative">
@@ -213,129 +387,63 @@ export default function FacturasTable() {
             selected={filterCuentaContable}
             options={accounts}
             onChange={setFilterCuentaContable}
-            isDisabled={accounts.length === 0}
           />
         </div>
       </div>
+      <div className="relative flex-1 max-w-sm">
+        <Input
+          placeholder="Buscar en toda la tabla…"
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+        />
+      </div>
 
-      <div className="h-full overflow-auto border border-gray-200 rounded-xl p-2">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {[
-                "Mes",
-                "Proveedor",
-                "RUC",
-                "Serie Factura",
-                "Fecha Emisión",
-                "Autorización",
-                "Precio",
-                "Proyecto",
-                "Centro Costo",
-                "Descripción",
-                "Observación",
-                "Contabilizado",
-                "Cuenta Contable",
-                "Proveedor Latinium",
-                "Nota Latinium",
-              ].map((h) => (
-                <TableHead key={h}>{h}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      {/* tabla */}
+      <div className="overflow-auto border border-gray-200 rounded-xl p-2">
+        <table className="min-w-full">
+          <thead className="sticky top-0 bg-gray-50">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id} className="px-4 py-2 text-left">
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={15} className="text-center p-4">
+              <tr>
+                <td colSpan={15} className="text-center p-4">
                   Cargando...
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : facturas.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={15} className="text-center p-4">
+              <tr>
+                <td colSpan={15} className="text-center p-4">
                   No hay facturas
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : (
-              facturas.map((f) => {
-                console.table(f);
-                return (
-                  <TableRow key={f.id}>
-                    <TableCell>{f.mes}</TableCell>
-                    <TableCell>{f.razon_social_emisor}</TableCell>
-                    <TableCell>{f.ruc_emisor}</TableCell>
-                    <TableCell>{f.secuencial}</TableCell>
-                    <TableCell>{f.fecha_emision}</TableCell>
-                    <TableCell>{f.fecha_autorizacion}</TableCell>
-                    <TableCell>${f.importe_total}</TableCell>
-                    <TableCell>
-                      <ComboBox
-                        selected={f.project}
-                        options={proyectosLatinium}
-                        onChange={(v) => updateFactura(f.id, { project: v })}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <ComboBox
-                        selected={f.centro_costo}
-                        options={centrosCosto}
-                        onChange={(v) =>
-                          updateFactura(f.id, { centro_costo: v })
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>{f.descripcion.descripcion}</TableCell>
-                    <TableCell>
-                      <Input
-                        value={f.observacion || ""}
-                        className="w-max max-w-lg"
-                        onBlur={(e) =>
-                          updateFactura(f.id, { observacion: e.target.value })
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <span className="w-full p-0.5 flex justify-center items-center">
-                        {f.contabilizado === "CONTABILIZADO" ? (
-                          <CheckIcon className="size-4 text-green-500" />
-                        ) : (
-                          <XIcon className="size-4 text-red-500" />
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <ComboBox
-                        selected={f.cuenta_contable}
-                        options={accounts}
-                        onChange={(v) =>
-                          updateFactura(f.id, { cuenta_contable: v })
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={f.proveedor_latinium || ""}
-                        onBlur={(e) =>
-                          updateFactura(f.id, {
-                            proveedor_latinium: e.target.value,
-                          })
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={f.nota_latinium || ""}
-                        onBlur={(e) =>
-                          updateFactura(f.id, { nota_latinium: e.target.value })
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+              table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className="even:bg-gray-100">
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="px-4 py-2 align-top">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </div>
   );
