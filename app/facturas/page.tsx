@@ -20,6 +20,7 @@ export default function FacturasPage() {
   const [selectedValue, setSelectedValue] = useState("PREBAM");
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("tab-1");
 
   const now = new Date();
   const today = now.toISOString().split("T")[0];
@@ -40,6 +41,7 @@ export default function FacturasPage() {
               selectedValue === "PREBAM" ? "0992301066001" : "1792162696001",
             desde: fromDate,
             hasta: toDate,
+            ready: activeTab === "tab-2" ? true : false,
           },
         }
       );
@@ -102,11 +104,11 @@ export default function FacturasPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedValue, fromDate, toDate]);
+  }, [selectedValue, fromDate, toDate, activeTab]);
 
   useEffect(() => {
     fetchFacturas();
-  }, [fetchFacturas]);
+  }, [activeTab, fromDate, toDate, fetchFacturas]);
 
   const updateFactura = async (id: number, data: Partial<Factura>) => {
     try {
@@ -123,7 +125,11 @@ export default function FacturasPage() {
 
   return (
     <main>
-      <Tabs defaultValue="tab-1" className="items-center">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as "tab-1" | "tab-2")}
+        className="items-center"
+      >
         <TabsList className="h-auto rounded-none border-b bg-transparent p-0">
           <TabsTrigger
             value="tab-1"
@@ -170,7 +176,7 @@ export default function FacturasPage() {
                 id="from"
                 className="border border-gray-300 rounded pl-4 py-1"
                 defaultValue={fromDate}
-                onChange={e => setFromDate(e.target.value)}
+                onChange={(e) => setFromDate(e.target.value)}
               />
             </div>
             <div className="flex flex-col">
@@ -180,7 +186,7 @@ export default function FacturasPage() {
                 id="to"
                 className="border border-gray-300 rounded pl-4 py-1"
                 defaultValue={toDate}
-                onChange={e => setToDate(e.target.value)}
+                onChange={(e) => setToDate(e.target.value)}
               />
             </div>
           </div>
@@ -224,15 +230,15 @@ function RadioOptions({
       >
         <label className="group-data-[state=SERSUPPORT]:text-muted-foreground/70 relative z-10 inline-flex h-full min-w-8 cursor-pointer items-center justify-center px-4 whitespace-nowrap transition-colors select-none">
           PREBAM
-          <RadioGroupItem
-            id={`PREBAM`}
-            value="PREBAM"
-            className="sr-only"
-          />
+          <RadioGroupItem id={`PREBAM`} value="PREBAM" className="sr-only" />
         </label>
         <label className="group-data-[state=PREBAM]:text-muted-foreground/70 relative z-10 inline-flex h-full min-w-8 cursor-pointer items-center justify-center px-4 whitespace-nowrap transition-colors select-none">
           <span>SERSUPPORT</span>
-          <RadioGroupItem id={`SERSUPPORT`} value="SERSUPPORT" className="sr-only" />
+          <RadioGroupItem
+            id={`SERSUPPORT`}
+            value="SERSUPPORT"
+            className="sr-only"
+          />
         </label>
       </RadioGroup>
     </div>

@@ -49,6 +49,8 @@ export default function FacturasTable({
   const [centrosCosto, setCentrosCosto] = useState<Option[]>([]);
   const [accounts, setAccounts] = useState<Option[]>([]);
 
+  const isCompleteView = facturas.some((f) => f.nota_latinium != null);
+
   // Fetch combo options
   useEffect(() => {
     apiClient
@@ -259,9 +261,31 @@ export default function FacturasTable({
     [proyectosLatinium, centrosCosto, accounts, updateFactura]
   );
 
-  // Build table instance
+  // Aplica primero los filtros locales si estamos en vista "completas"
+  const data = useMemo(() => {
+    let d = facturas;
+    if (isCompleteView) {
+      if (filterProyecto) {
+        d = d.filter((f) => f.project === filterProyecto);
+      }
+      if (filterCentro) {
+        d = d.filter((f) => f.centro_costo === filterCentro);
+      }
+      if (filterCuentaContable) {
+        d = d.filter((f) => f.cuenta_contable === filterCuentaContable);
+      }
+    }
+    return d;
+  }, [
+    facturas,
+    isCompleteView,
+    filterProyecto,
+    filterCentro,
+    filterCuentaContable,
+  ]);
+
   const table = useReactTable({
-    data: facturas,
+    data,
     columns,
     state: { globalFilter },
     globalFilterFn: fuzzyFilter,
@@ -272,38 +296,45 @@ export default function FacturasTable({
   return (
     <div className="space-y-6">
       {/* filtros */}
-      <div className="flex gap-4 flex-wrap pt-3">
-        <div className="relative">
-          <small className="absolute -top-5 left-0">Proyecto</small>
-          <ComboBox
-            selected={filterProyecto}
-            options={proyectosLatinium}
-            onChange={setFilterProyecto}
+      <div className="flex gap-4 flex-wrap pt-3 items-end">
+        {isCompleteView && (
+          <>
+            <div className="relative">
+              <small className="absolute -top-5 left-0">Proyecto</small>
+              <ComboBox
+                selected={filterProyecto}
+                options={proyectosLatinium}
+                onChange={setFilterProyecto}
+              />
+            </div>
+            <div className="relative">
+              <small className="absolute -top-5 left-0">Centro Costo</small>
+              <ComboBox
+                selected={filterCentro}
+                options={centrosCosto}
+                onChange={setFilterCentro}
+              />
+            </div>
+            <div className="relative">
+              <small className="absolute -top-5 left-0">Cuenta Contable</small>
+              <ComboBox
+                selected={filterCuentaContable}
+                options={accounts}
+                onChange={setFilterCuentaContable}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Siempre */}
+        <div className="relative flex-1 max-w-sm">
+          <small className="absolute -top-5 left-0">Buscar</small>
+          <Input
+            placeholder="Buscar…"
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
           />
         </div>
-        <div className="relative">
-          <small className="absolute -top-5 left-0">Centro Costo</small>
-          <ComboBox
-            selected={filterCentro}
-            options={centrosCosto}
-            onChange={setFilterCentro}
-          />
-        </div>
-        <div className="relative">
-          <small className="absolute -top-5 left-0">Cuenta Contable</small>
-          <ComboBox
-            selected={filterCuentaContable}
-            options={accounts}
-            onChange={setFilterCuentaContable}
-          />
-        </div>
-      </div>
-      <div className="relative flex-1 max-w-sm">
-        <Input
-          placeholder="Buscar en toda la tabla…"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-        />
       </div>
 
       {/* tabla */}
