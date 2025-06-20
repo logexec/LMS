@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -51,6 +51,31 @@ export default function FacturasTable({
 
   const isCompleteView = facturas.some((f) => f.nota_latinium != null);
 
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [edits, setEdits] = useState<Record<number, Partial<Factura>>>({});
+  const hasEdits = Object.keys(edits).length > 0;
+
+  const onEditCell = (rowId: number, field: keyof Factura, value: any) => {
+    // 1) Guardamos el cambio en edits[rowId]
+    setEdits((prev) => ({
+      ...prev,
+      [rowId]: { ...prev[rowId], [field]: value },
+    }));
+    // 2) Autoseleccionamos la fila
+    setSelectedRows((prev) => (prev.includes(rowId) ? prev : [...prev, rowId]));
+  };
+
+  const handleSave = () => {
+    // Recorro cada rowId en edits y disparo updateFactura
+    Object.entries(edits).forEach(([idStr, changes]) => {
+      const id = parseInt(idStr, 10);
+      updateFactura(id, changes);
+    });
+    // Limpiamos estado
+    setEdits({});
+    setSelectedRows([]);
+  };
+
   // Fetch combo options
   useEffect(() => {
     apiClient
@@ -88,9 +113,62 @@ export default function FacturasTable({
     return itemRank.passed;
   };
 
+  // Aplica primero los filtros locales si estamos en vista "completas"
+  const data = useMemo(() => {
+    let d = facturas;
+    if (isCompleteView) {
+      if (filterProyecto) {
+        d = d.filter((f) => f.project === filterProyecto);
+      }
+      if (filterCentro) {
+        d = d.filter((f) => f.centro_costo === filterCentro);
+      }
+      if (filterCuentaContable) {
+        d = d.filter((f) => f.cuenta_contable === filterCuentaContable);
+      }
+    }
+    return d;
+  }, [
+    facturas,
+    isCompleteView,
+    filterProyecto,
+    filterCentro,
+    filterCuentaContable,
+  ]);
+
+  // Handlers memoizados para selection masiva
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedRows((prev) =>
+      prev.length === data.length ? [] : data.map((f) => f.id)
+    );
+  }, [data]);
+
   // Define columns
   const columns = useMemo<ColumnDef<Factura, any>[]>(
     () => [
+      {
+        id: "select",
+        header: () => (
+          <input
+            type="checkbox"
+            checked={selectedRows.length === data.length}
+            onChange={toggleSelectAll}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={selectedRows.includes(row.original.id)}
+            onChange={() => toggleSelect(row.original.id)}
+          />
+        ),
+      },
       { accessorKey: "mes", header: "Mes" },
       {
         accessorKey: "razon_social_emisor",
@@ -135,28 +213,30 @@ export default function FacturasTable({
       {
         accessorKey: "project",
         header: "Proyecto",
-        cell: (info) => (
-          <ComboBox
-            selected={info.getValue()}
-            options={proyectosLatinium}
-            onChange={(v) =>
-              updateFactura(info.row.original.id, { project: v })
-            }
-          />
-        ),
+        cell: ({ row }) => {
+          const id = row.original.id;
+          return (
+            <ComboBox
+              selected={edits[id]?.project ?? row.original.project}
+              options={proyectosLatinium}
+              onChange={(val) => onEditCell(id, "project", val)}
+            />
+          );
+        },
       },
       {
         accessorKey: "centro_costo",
         header: "Centro Costo",
-        cell: (info) => (
-          <ComboBox
-            selected={info.getValue()}
-            options={centrosCosto}
-            onChange={(v) =>
-              updateFactura(info.row.original.id, { centro_costo: v })
-            }
-          />
-        ),
+        cell: ({ row }) => {
+          const id = row.original.id;
+          return (
+            <ComboBox
+              selected={edits[id]?.centro_costo ?? row.original.centro_costo}
+              options={centrosCosto}
+              onChange={(val) => onEditCell(id, "centro_costo", val)}
+            />
+          );
+        },
       },
       {
         accessorFn: "descripcion",
@@ -175,19 +255,15 @@ export default function FacturasTable({
         accessorKey: "observacion",
         header: "Observación",
         cell: ({ row }) => {
-          return (
-            <Input
-              value={row.original.observacion ?? ""}
-              onChange={(e) => e.target.value}
-              className="w-max max-w-lg"
-              onBlur={(e) =>
-                updateFactura(row.original.id, {
-                  observacion: e.target.value,
-                })
-              }
-            />
-          );
-        },
+        const id = row.original.id;
+        return (
+          <Input
+            className="max-w-lg"
+            defaultValue={edits[id]?.observacion ?? row.original.observacion ?? ""}
+            onBlur={e => onEditCell(id, "observacion", e.target.value)}
+          />
+        );
+      },
       },
       {
         accessorKey: "contabilizado",
@@ -205,15 +281,18 @@ export default function FacturasTable({
       {
         accessorKey: "cuenta_contable",
         header: "Cuenta Contable",
-        cell: ({ row }) => (
-          <ComboBox
-            selected={row.original.cuenta_contable}
-            options={accounts}
-            onChange={(v) =>
-              updateFactura(row.original.id, { cuenta_contable: v })
-            }
-          />
-        ),
+        cell: ({ row }) => {
+          const id = row.original.id;
+          return (
+            <ComboBox
+              selected={
+                edits[id]?.cuenta_contable ?? row.original.cuenta_contable
+              }
+              options={accounts}
+              onChange={(val) => onEditCell(id, "cuenta_contable", val)}
+            />
+          );
+        },
       },
       {
         accessorKey: "proveedor_latinium",
@@ -251,38 +330,24 @@ export default function FacturasTable({
           <Button
             variant="outline"
             title="Descargar Factura"
-            onClick={() => console.log(row.original.id)}
+            onClick={() => {console.log(row.original.id); window.alert("Si puedes leer este mensaje, es porque olvide de darle funcionalidad para generar la factura en PDF.")}}
           >
             <DownloadIcon size={4} />
           </Button>
         ),
       },
     ],
-    [proyectosLatinium, centrosCosto, accounts, updateFactura]
+    [
+      data,
+      selectedRows,
+      accounts,
+      centrosCosto,
+      proyectosLatinium,
+      toggleSelect,
+      toggleSelectAll,
+      edits,
+    ]
   );
-
-  // Aplica primero los filtros locales si estamos en vista "completas"
-  const data = useMemo(() => {
-    let d = facturas;
-    if (isCompleteView) {
-      if (filterProyecto) {
-        d = d.filter((f) => f.project === filterProyecto);
-      }
-      if (filterCentro) {
-        d = d.filter((f) => f.centro_costo === filterCentro);
-      }
-      if (filterCuentaContable) {
-        d = d.filter((f) => f.cuenta_contable === filterCuentaContable);
-      }
-    }
-    return d;
-  }, [
-    facturas,
-    isCompleteView,
-    filterProyecto,
-    filterCentro,
-    filterCuentaContable,
-  ]);
 
   const table = useReactTable({
     data,
@@ -335,6 +400,15 @@ export default function FacturasTable({
             onChange={(e) => setGlobalFilter(e.target.value)}
           />
         </div>
+        {hasEdits && (
+          <Button
+            variant="outline"
+            onClick={handleSave}
+            className="bg-red-500 text-white py-2 px-5 font-bold"
+          >
+            Guardar cambios ({Object.keys(edits).length} filas)
+          </Button>
+        )}
       </div>
 
       {/* tabla */}
