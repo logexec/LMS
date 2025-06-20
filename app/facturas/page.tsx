@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { XmlDropzone } from "../components/facturas/XmlDropzone";
 import { enviarFacturas } from "./importar/actions";
+import { Button } from "@/components/ui/button";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -142,6 +142,21 @@ export default function FacturasPage() {
     }
   };
 
+  const escKeyEvent = new KeyboardEvent("keydown", {
+    altKey: false,
+    code: "Escape",
+    ctrlKey: false,
+    isComposing: false,
+    key: "Escape",
+    location: 0,
+    metaKey: false,
+    repeat: false,
+    shiftKey: false,
+    which: 27,
+    charCode: 0,
+    keyCode: 27,
+  });
+
   return (
     <main>
       <Tabs
@@ -180,7 +195,7 @@ export default function FacturasPage() {
               <FileUpIcon className="size-5" />
               <span>Subir XML</span>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-h-[450ox] max-w-[810px] overflow-auto">
+            <AlertDialogContent className="max-h-[450px] max-w-[810px] overflow-auto">
               <AlertDialogTitle>Adjuntar facturas</AlertDialogTitle>
               <AlertDialogDescription>
                 Carga aqu&iacute; los archivos xml &uacute;nicamente o un
@@ -191,7 +206,7 @@ export default function FacturasPage() {
               />
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
+                <Button
                   onClick={async () => {
                     const toastId = toast.loading("Importando facturas...");
                     try {
@@ -218,6 +233,14 @@ export default function FacturasPage() {
                         );
                         fetchFacturas();
                       }
+
+                      if (!result.imported.length && !result.errors.length) {
+                        window.dispatchEvent(escKeyEvent);
+                        toast.info(
+                          `Las facturas que intentas cargar al sistema ya existen.`
+                        );
+                        fetchFacturas();
+                      }
                     } catch (err) {
                       toast.error("No se pudieron importar las facturas.");
                       console.error(err);
@@ -225,7 +248,7 @@ export default function FacturasPage() {
                   }}
                 >
                   <UploadIcon /> Cargar XML
-                </AlertDialogAction>
+                </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
