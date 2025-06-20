@@ -3,11 +3,15 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  flexRender,
   ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  getFilteredRowModel,
+  useReactTable,
   Row,
 } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
@@ -15,9 +19,42 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import axios, { AxiosInstance } from "axios";
 import ComboBox from "../ui/Combobox";
-import { CheckIcon, DownloadIcon, XIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronFirstIcon,
+  ChevronLastIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  DownloadIcon,
+  XIcon,
+} from "lucide-react";
 import { Factura } from "@/types/factura";
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+// import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface Option {
   value: string;
@@ -255,15 +292,21 @@ export default function FacturasTable({
         accessorKey: "observacion",
         header: "Observación",
         cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <Input
-            className="max-w-lg"
-            defaultValue={edits[id]?.observacion ?? row.original.observacion ?? ""}
-            onBlur={e => onEditCell(id, "observacion", e.target.value)}
-          />
-        );
-      },
+          const id = row.original.id;
+          return (
+            <Input
+              className="min-w-64 max-w-lg"
+              defaultValue={
+                edits[id]?.observacion ?? row.original.observacion ?? ""
+              }
+              onBlur={(e) => {
+                const val = e.target.value;
+                // deferimos el setState para que el próximo click en otro input no se pierda
+                setTimeout(() => onEditCell(id, "observacion", val), 0);
+              }}
+            />
+          );
+        },
       },
       {
         accessorKey: "contabilizado",
@@ -330,7 +373,11 @@ export default function FacturasTable({
           <Button
             variant="outline"
             title="Descargar Factura"
-            onClick={() => {console.log(row.original.id); window.alert("Si puedes leer este mensaje, es porque olvide de darle funcionalidad para generar la factura en PDF.")}}
+            onClick={() => {
+              window.alert(
+                `Si puedes leer este mensaje, es porque olvide de darle funcionalidad para generar la factura en PDF. Con todo, esta factura pertenece a ${row.original.nombre_comercial_emisor}. Su secuencial es ${row.original.secuencial} :)`
+              );
+            }}
           >
             <DownloadIcon size={4} />
           </Button>
@@ -349,13 +396,33 @@ export default function FacturasTable({
     ]
   );
 
+  {
+    /* Para la Paginacion y Ordenamiento */
+  }
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 50,
+  });
+
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "name",
+      desc: false,
+    },
+  ]);
+
   const table = useReactTable({
     data,
     columns,
-    state: { globalFilter },
-    globalFilterFn: fuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    enableSortingRemoval: false,
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
+    globalFilterFn: fuzzyFilter,
+    state: { globalFilter, sorting, pagination },
   });
 
   return (
@@ -412,51 +479,203 @@ export default function FacturasTable({
       </div>
 
       {/* tabla */}
-      <div className="overflow-auto border border-gray-200 rounded-xl p-2">
-        <table className="min-w-full">
-          <thead className="sticky top-0 bg-gray-50">
+
+      <div className="bg-background overflow-hidden rounded-md border">
+        <Table className="min-w-full">
+          <TableHeader className="sticky top-0 bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="px-4 py-2 text-left">
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
+                  <TableHead
+                    key={header.id}
+                    style={{ width: `${header.getSize()}px` }}
+                    className="h-11"
+                  >
+                    <div
+                      className={cn(
+                        header.column.getCanSort() &&
+                          "flex h-full cursor-pointer items-center justify-between gap-2 select-none"
+                      )}
+                      onClick={header.column.getToggleSortingHandler()}
+                      onKeyDown={(e) => {
+                        // Enhanced keyboard handling for sorting
+                        if (
+                          header.column.getCanSort() &&
+                          (e.key === "Enter" || e.key === " ")
+                        ) {
+                          e.preventDefault();
+                          header.column.getToggleSortingHandler()?.(e);
+                        }
+                      }}
+                      tabIndex={header.column.getCanSort() ? 0 : undefined}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {{
+                        asc: (
+                          <ChevronUpIcon
+                            className="shrink-0 opacity-60"
+                            size={16}
+                            aria-hidden="true"
+                          />
+                        ),
+                        desc: (
+                          <ChevronDownIcon
+                            className="shrink-0 opacity-60"
+                            size={16}
+                            aria-hidden="true"
+                          />
+                        ),
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  </TableHead>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
-          <tbody>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td colSpan={15} className="text-center p-4">
+              <TableRow>
+                <TableCell colSpan={15} className="text-center p-4">
                   Cargando...
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : facturas.length === 0 ? (
-              <tr>
-                <td colSpan={15} className="text-center p-4">
+              <TableRow>
+                <TableCell colSpan={15} className="text-center p-4">
                   No hay facturas
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="even:bg-gray-100">
+                <TableRow key={row.id} className="even:bg-gray-100">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-2 align-top">
+                    <TableCell key={cell.id} className="px-4 py-2 align-top">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
+      </div>
+      {/* Pagination */}
+      <div className="flex items-center justify-between gap-8">
+        {/* Results per page */}
+        <div className="flex items-center gap-3">
+          <Label htmlFor={"pagination"} className="max-sm:sr-only">
+            Filas por p&aacute;gina
+          </Label>
+          <Select
+            value={table.getState().pagination.pageSize.toString()}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value));
+            }}
+          >
+            <SelectTrigger id={"pagination"} className="w-fit whitespace-nowrap">
+              <SelectValue placeholder="Selecciona el numero de resultados" />
+            </SelectTrigger>
+            <SelectContent className="[&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2">
+              {[50, 100, 250, 500].map((pageSize) => (
+                <SelectItem key={pageSize} value={pageSize.toString()}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Page number information */}
+        <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
+          <p
+            className="text-muted-foreground text-sm whitespace-nowrap"
+            aria-live="polite"
+          >
+            <span className="text-foreground">
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}
+              -
+              {Math.min(
+                Math.max(
+                  table.getState().pagination.pageIndex *
+                    table.getState().pagination.pageSize +
+                    table.getState().pagination.pageSize,
+                  0
+                ),
+                table.getRowCount()
+              )}
+            </span>{" "}
+            de{" "}
+            <span className="text-foreground">
+              {table.getRowCount().toString()}
+            </span>
+          </p>
+        </div>
+        {/* Pagination buttons */}
+        <div>
+          <Pagination>
+            <PaginationContent>
+              {/* First page button */}
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.firstPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  aria-label="Ir a la primera página"
+                >
+                  <ChevronFirstIcon size={16} aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+              {/* Previous page button */}
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeftIcon size={16} aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+              {/* Next page button */}
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  aria-label="Siguiente página"
+                >
+                  <ChevronRightIcon size={16} aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+              {/* Last page button */}
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.lastPage()}
+                  disabled={!table.getCanNextPage()}
+                  aria-label="Ir a la ultima página"
+                >
+                  <ChevronLastIcon size={16} aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </div>
   );
