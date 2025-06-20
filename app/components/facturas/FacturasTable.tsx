@@ -71,11 +71,13 @@ interface FacturasTableProps {
   facturas: Factura[];
   loading: boolean;
   updateFactura: (id: number, data: Partial<Factura>) => void;
+  fetchFacturas: () => void,
 }
 export default function FacturasTable({
   facturas,
   loading,
   updateFactura,
+  fetchFacturas,
 }: FacturasTableProps) {
   const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
@@ -103,11 +105,23 @@ export default function FacturasTable({
   };
 
   const handleSave = () => {
-    // Recorro cada rowId en edits y disparo updateFactura
-    Object.entries(edits).forEach(([idStr, changes]) => {
-      const id = parseInt(idStr, 10);
-      updateFactura(id, changes);
-    });
+    const editedRowIds = Object.keys(edits).map((id) => parseInt(id, 10));
+
+    // Si hay varias filas seleccionadas pero solo un conjunto de cambios,
+    // aplicamos esos cambios a todas las filas marcadas
+    if (selectedRows.length > 1 && editedRowIds.length === 1) {
+      const onlyChanges = edits[editedRowIds[0]];
+      selectedRows.forEach((rowId) => {
+        updateFactura(rowId, onlyChanges!);
+      });
+      fetchFacturas();
+    } else {
+      // Casos normales: cada fila con su propio cambio
+      editedRowIds.forEach((rowId) => {
+        updateFactura(rowId, edits[rowId]!);
+      });
+    }
+
     // Limpiamos estado
     setEdits({});
     setSelectedRows([]);
@@ -473,7 +487,7 @@ export default function FacturasTable({
             onClick={handleSave}
             className="bg-red-500 text-white py-2 px-5 font-bold"
           >
-            Guardar cambios ({Object.keys(edits).length} filas)
+            Guardar cambios ({Object.keys(selectedRows).length} filas)
           </Button>
         )}
       </div>

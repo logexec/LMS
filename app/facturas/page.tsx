@@ -281,6 +281,7 @@ export default function FacturasPage() {
             facturas={facturas}
             loading={loading}
             updateFactura={updateFactura} // si lo necesitas
+            fetchFacturas={fetchFacturas}
           />
         </TabsContent>
         <TabsContent value="tab-2" className="p-6">
@@ -288,6 +289,7 @@ export default function FacturasPage() {
             facturas={facturas}
             loading={loading}
             updateFactura={updateFactura} // si lo necesitas
+            fetchFacturas={fetchFacturas}
           />
         </TabsContent>
       </Tabs>
