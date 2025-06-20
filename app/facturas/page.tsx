@@ -1,14 +1,31 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FacturasTable from "../components/facturas/FacturasTable";
-import { CheckIcon, ClockFadingIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ClockFadingIcon,
+  FileUpIcon,
+  UploadIcon,
+} from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Factura } from "@/types/factura";
+import { Factura, ParsedFactura } from "@/types/factura";
 import api from "@/services/axios";
 import { toast } from "sonner";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { XmlDropzone } from "../components/facturas/XmlDropzone";
+import { enviarFacturas } from "./importar/actions";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -29,6 +46,8 @@ export default function FacturasPage() {
     .split("T")[0];
   const [fromDate, setFromDate] = useState(from);
   const [toDate, setToDate] = useState(today);
+
+  const [uploadedFacturas, setUploadedFacturas] = useState<ParsedFactura[]>([]);
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
@@ -130,33 +149,94 @@ export default function FacturasPage() {
         onValueChange={(v) => setActiveTab(v as "tab-1" | "tab-2")}
         className="items-center"
       >
-        <TabsList className="h-auto rounded-none border-b bg-transparent p-0">
-          <TabsTrigger
-            value="tab-1"
-            className="data-[state=active]:after:bg-primary relative flex-col rounded-none px-4 py-2 text-xs after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-red-700"
-          >
-            <ClockFadingIcon
-              className="mb-1.5 opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-            Pendientes
-          </TabsTrigger>
-          <TabsTrigger
-            value="tab-2"
-            className="data-[state=active]:after:bg-primary relative flex-col rounded-none px-4 py-2 text-xs after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-red-700"
-          >
-            <CheckIcon
-              className="mb-1.5 opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-            Completas
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <TabsList className="h-auto rounded-none border-b bg-transparent p-0">
+            <TabsTrigger
+              value="tab-1"
+              className="data-[state=active]:after:bg-primary relative flex-col rounded-none px-4 py-2 text-xs after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-red-700"
+            >
+              <ClockFadingIcon
+                className="mb-1.5 opacity-60"
+                size={16}
+                aria-hidden="true"
+              />
+              Pendientes
+            </TabsTrigger>
+            <TabsTrigger
+              value="tab-2"
+              className="data-[state=active]:after:bg-primary relative flex-col rounded-none px-4 py-2 text-xs after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-red-700"
+            >
+              <CheckIcon
+                className="mb-1.5 opacity-60"
+                size={16}
+                aria-hidden="true"
+              />
+              Completas
+            </TabsTrigger>
+          </TabsList>
+
+          <AlertDialog>
+            <AlertDialogTrigger className="bg-red-600 text-white rounded font-bold px-2.5 py-1 shadow hover:bg-red-500 transition-all duration-200 flex flex-row items-center justify-center space-x-2.5">
+              <FileUpIcon className="size-5" />
+              <span>Subir XML</span>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-h-[450ox] max-w-[810px] overflow-auto">
+              <AlertDialogTitle>Adjuntar facturas</AlertDialogTitle>
+              <AlertDialogDescription>
+                Carga aqu&iacute; los archivos xml &uacute;nicamente o un
+                archivo .zip con las facturas
+              </AlertDialogDescription>
+              <XmlDropzone
+                onChange={(facturasXml) => setUploadedFacturas(facturasXml)}
+              />
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    const toastId = toast.loading("Importando facturas...");
+                    try {
+                      const result = await enviarFacturas(
+                        uploadedFacturas.map((f) => f.rawFile)
+                      );
+                      toast.dismiss(toastId);
+
+                      if (result.errors.length) {
+                        result.errors.forEach((err) => {
+                          const nombre = err.file
+                            .replace(/^.*Factura-/, "")
+                            .replace(/\.\w+$/, "");
+                          toast.warning(
+                            `Hay errores en la factura ${nombre}:\n${err.error}`,
+                            { duration: 8000 }
+                          );
+                        });
+                      }
+
+                      if (result.imported.length > 0) {
+                        toast.success(
+                          `✓ ${result.imported.length} facturas importadas correctamente`
+                        );
+                        fetchFacturas();
+                      }
+                    } catch (err) {
+                      toast.error("No se pudieron importar las facturas.");
+                      console.error(err);
+                    }
+                  }}
+                >
+                  <UploadIcon /> Cargar XML
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
 
         {/* Seccion de Filtros */}
-        <div className="bg-white rounded-md border border-gray-200 shadow px-5 py-4 my-2 flex items-center justify-between">
+        <div
+          className={`bg-white rounded-md border border-gray-200 shadow px-5 py-4 my-2 flex items-center justify-between ${
+            activeTab === "tab-1" && "py-7"
+          }`}
+        >
           {/* Mostrar siempre */}
           <RadioOptions
             selectedValue={selectedValue}
@@ -168,28 +248,30 @@ export default function FacturasPage() {
           />
 
           {/* Se muestra solo en completas */}
-          <div className="flex flex-row items-center justify-evenly space-x-8 mb-4">
-            <div className="flex flex-col">
-              <Label htmlFor="from">Desde:</Label>
-              <input
-                type="date"
-                id="from"
-                className="border border-gray-300 rounded pl-4 py-1"
-                defaultValue={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
+          {activeTab === "tab-2" && (
+            <div className="flex flex-row items-center justify-evenly space-x-8 mb-4">
+              <div className="flex flex-col">
+                <Label htmlFor="from">Desde:</Label>
+                <input
+                  type="date"
+                  id="from"
+                  className="border border-gray-300 rounded pl-4 py-1"
+                  defaultValue={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label htmlFor="to">Hasta:</Label>
+                <input
+                  type="date"
+                  id="to"
+                  className="border border-gray-300 rounded pl-4 py-1"
+                  defaultValue={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex flex-col">
-              <Label htmlFor="to">Hasta:</Label>
-              <input
-                type="date"
-                id="to"
-                className="border border-gray-300 rounded pl-4 py-1"
-                defaultValue={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/** Contenido **/}
