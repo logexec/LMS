@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { GrSubtractCircle, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
-import { RiReceiptLine } from "react-icons/ri";
+// import { RiReceiptLine } from "react-icons/ri";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -73,7 +73,7 @@ export const sidenavLinks: NavLink[] = [
     ],
   },
   {
-    category: "Facturación",
+    category: "SRI",
     requiredPermissions: [Permission.MANAGE_BUDGET],
     links: [
       // {
@@ -91,11 +91,11 @@ export const sidenavLinks: NavLink[] = [
       //   url: "/facturacion/ordenes-compra",
       //   icon: Receipt,
       // },
-      {
-        label: "Importar XML",
-        url: "/facturas/importar",
-        icon: RiReceiptLine,
-      },
+      // {
+      //   label: "Importar XML",
+      //   url: "/facturas/importar",
+      //   icon: RiReceiptLine,
+      // },
       {
         label: "Facturas",
         url: "/facturas",
