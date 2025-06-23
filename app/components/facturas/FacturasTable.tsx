@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useDeferredValue,
+} from "react";
 import {
   ColumnDef,
   flexRender,
@@ -52,7 +58,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -71,24 +76,25 @@ interface FacturasTableProps {
   facturas: Factura[];
   loading: boolean;
   updateFactura: (id: number, data: Partial<Factura>) => void;
-  fetchFacturas: () => void,
+  fetchFacturas: () => void;
+  isCompleteView: boolean;
 }
 export default function FacturasTable({
   facturas,
   loading,
   updateFactura,
   fetchFacturas,
+  isCompleteView,
 }: FacturasTableProps) {
   const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
   const [filterCuentaContable, setFilterCuentaContable] = useState<string>("");
   const [globalFilter, setGlobalFilter] = useState<string>("");
+  const deferredGlobalFilter = useDeferredValue(globalFilter);
 
   const [proyectosLatinium, setProyectosLatinium] = useState<Option[]>([]);
   const [centrosCosto, setCentrosCosto] = useState<Option[]>([]);
   const [accounts, setAccounts] = useState<Option[]>([]);
-
-  const isCompleteView = facturas.some((f) => f.nota_latinium != null);
 
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [edits, setEdits] = useState<Record<number, Partial<Factura>>>({});
@@ -153,6 +159,22 @@ export default function FacturasTable({
         toast.error("No se pudieron cargar las cuentas contables");
       });
   }, []);
+
+  const updateAccountantStatus = () => {
+    const pendientes = facturas.filter((f) => f.contabilizado === "PENDIENTE");
+
+    apiClient
+      .patch("/latinium/estado-contable", { facturas: pendientes })
+      .then((res) => {
+        toast.success("Estado contable actualizado correctamente.");
+        console.log(res);
+        fetchFacturas(); // refresca la lista
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error al actualizar el estado contable.");
+      });
+  };
 
   // Global fuzzy filter function
   const fuzzyFilter = <TData,>(
@@ -290,7 +312,7 @@ export default function FacturasTable({
         },
       },
       {
-        accessorFn: "descripcion",
+        accessorKey: "descripcion",
         id: "descripcion",
         header: "Descripción",
         cell: ({ row }) => (
@@ -327,10 +349,10 @@ export default function FacturasTable({
         header: "Contabilizado",
         cell: ({ row }) => (
           <span className="flex justify-center">
-            {row.original.contabilizado === "CONTABILIZADO" ? (
-              <CheckIcon className="h-4 w-4 text-green-500" />
-            ) : (
+            {row.original.contabilizado === "PENDIENTE" ? (
               <XIcon className="h-4 w-4 text-red-500" />
+            ) : (
+              <CheckIcon className="h-4 w-4 text-green-500" />
             )}
           </span>
         ),
@@ -411,7 +433,7 @@ export default function FacturasTable({
   );
 
   {
-    /* Para la Paginacion y Ordenamiento */
+    /* Para la Paginacion y Organizacion */
   }
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -420,7 +442,7 @@ export default function FacturasTable({
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "name",
+      id: "razon_social_emisor", // Columna a ordenar por defecto. || Proveedor
       desc: false,
     },
   ]);
@@ -436,7 +458,11 @@ export default function FacturasTable({
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     globalFilterFn: fuzzyFilter,
-    state: { globalFilter, sorting, pagination },
+    state: {
+      globalFilter: deferredGlobalFilter,
+      sorting,
+      pagination,
+    },
   });
 
   return (
@@ -481,6 +507,17 @@ export default function FacturasTable({
             onChange={(e) => setGlobalFilter(e.target.value)}
           />
         </div>
+
+        {isCompleteView && (
+          <Button
+            variant="outline"
+            onClick={() => updateAccountantStatus()}
+            className="bg-gray-700 text-white py-2 px-5 font-bold hover:bg-gray-700/85 hover:text-white transition-colors duration-300"
+          >
+            Actualizar desde Latinium
+          </Button>
+        )}
+
         {hasEdits && (
           <Button
             variant="outline"
@@ -592,7 +629,10 @@ export default function FacturasTable({
               table.setPageSize(Number(value));
             }}
           >
-            <SelectTrigger id={"pagination"} className="w-fit whitespace-nowrap">
+            <SelectTrigger
+              id={"pagination"}
+              className="w-fit whitespace-nowrap"
+            >
               <SelectValue placeholder="Selecciona el numero de resultados" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2">
