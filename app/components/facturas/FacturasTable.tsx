@@ -432,9 +432,7 @@ export default function FacturasTable({
     ]
   );
 
-  {
-    /* Para la Paginacion y Organizacion */
-  }
+  { /* Para la Paginacion y Organizacion */ }
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 50,

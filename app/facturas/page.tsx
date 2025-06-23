@@ -41,7 +41,7 @@ export default function FacturasPage() {
 
   const now = new Date();
   const today = now.toISOString().split("T")[0];
-  const from = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const from = new Date(now.getFullYear(), now.getMonth(), 0, 1)
     .toISOString()
     .split("T")[0];
   const [fromDate, setFromDate] = useState(from);
