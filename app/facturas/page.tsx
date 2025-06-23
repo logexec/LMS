@@ -303,16 +303,18 @@ export default function FacturasPage() {
           <FacturasTable
             facturas={facturas}
             loading={loading}
-            updateFactura={updateFactura} // si lo necesitas
+            updateFactura={updateFactura}
             fetchFacturas={fetchFacturas}
+            isCompleteView={false}
           />
         </TabsContent>
         <TabsContent value="tab-2" className="p-6">
           <FacturasTable
             facturas={facturas}
             loading={loading}
-            updateFactura={updateFactura} // si lo necesitas
+            updateFactura={updateFactura}
             fetchFacturas={fetchFacturas}
+            isCompleteView
           />
         </TabsContent>
       </Tabs>
