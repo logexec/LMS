@@ -2,9 +2,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FacturasTable from "../components/facturas/FacturasTable";
 import {
+  ArrowBigUpIcon,
   CheckIcon,
   ClockFadingIcon,
-  // FileUpIcon,
+  FileUpIcon,
+  XIcon,
   // UploadIcon,
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,17 +16,16 @@ import { Factura, ParsedFactura } from "@/types/factura";
 import api from "@/services/axios";
 import { toast } from "sonner";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-// import {
-//   AlertDialog,
-//   AlertDialogCancel,
-//   AlertDialogContent,
-//   AlertDialogDescription,
-//   AlertDialogFooter,
-//   AlertDialogTitle,
-//   AlertDialogTrigger,
-// } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { XmlDropzone } from "../components/facturas/XmlDropzone";
-// import { enviarFacturas } from "./importar/actions";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
@@ -94,11 +95,12 @@ export default function FacturasPage() {
     } catch (error: unknown) {
       console.error(error);
       toast.error("Error al enviar el TXT");
+    } finally {
+      setUploadedFacturas([]);
     }
   };
 
-  const progress =
-    countTotal > 0 ? Math.floor((countDone / countTotal) * 100) : 0;
+  const progress = countTotal > 0 ? Math.floor((countDone / countTotal) * 100) : 0;
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
@@ -203,8 +205,8 @@ export default function FacturasPage() {
             toast.info(`Se ignoraron ${data.countSkipped} duplicados`);
           if (data.countErrors > 0)
             toast.error(`Ocurrieron ${data.countErrors} errores`);
+          fetchFacturas();
         }
-        fetchFacturas();
       } catch (e) {
         console.error("Error al obtener estado de importación", e);
         toast.error("No se pudo obtener el estado de importación");
@@ -221,16 +223,17 @@ export default function FacturasPage() {
         prev.map((f) => (f.id === id ? ({ ...f, ...data } as Factura) : f))
       );
       toast.success("Factura actualizada");
+      fetchFacturas();
     } catch (err) {
       console.error(err);
       toast.error("No se pudo actualizar");
-    } finally {
       fetchFacturas();
     }
   };
 
   return (
     <main>
+      <Notification />
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as "tab-1" | "tab-2")}
@@ -258,11 +261,11 @@ export default function FacturasPage() {
                 size={16}
                 aria-hidden="true"
               />
-              Completas
+              Contabilizadas
             </TabsTrigger>
           </TabsList>
 
-          {/* <AlertDialog>
+          <AlertDialog>
             <AlertDialogTrigger className="bg-red-600 text-white rounded font-bold px-2.5 py-1 shadow hover:bg-red-500 transition-all duration-200 flex flex-row items-center justify-center space-x-2.5">
               <FileUpIcon className="size-5" />
               <span>Importar facturas</span>
@@ -270,86 +273,35 @@ export default function FacturasPage() {
             <AlertDialogContent className="max-h-[450px] max-w-[810px] overflow-auto">
               <AlertDialogTitle>Adjuntar facturas</AlertDialogTitle>
               <AlertDialogDescription>
-                Carga aqu&iacute; los archivos xml &uacute;nicamente o un
-                archivo .zip con las facturas
+                Carga aqu&iacute; tus txt para obtener toda la informaci&oacute;n del SRI
               </AlertDialogDescription>
               <XmlDropzone
-                onChange={(facturasXml) => setUploadedFacturas(facturasXml)}
+                onChange={(data) => setUploadedFacturas(data)}
+                disabled={Boolean(jobPath)}
               />
+              <div className="mt-4 space-y-2">
+                {jobPath && (
+                  <div className="space-y-1">
+                    <span className="text-sm">
+                      Procesadas: {countDone} de {countTotal}
+                    </span>
+                    <Progress value={progress} />
+                  </div>
+                )}
+              </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <Button
-                  onClick={async () => {
-                    const toastId = toast.loading("Importando facturas...");
-                    try {
-                      const result = await enviarFacturas(
-                        uploadedFacturas.map((f) => f.rawFile)
-                      );
-                      toast.dismiss(toastId);
-
-                      if (result.errors.length) {
-                        result.errors.forEach((err) => {
-                          const nombre = err.file
-                            .replace(/^.*Factura-/, "")
-                            .replace(/\.\w+$/, "");
-                          toast.warning(
-                            `Hay errores en la factura ${nombre}:\n${err.error}`,
-                            { duration: 8000 }
-                          );
-                        });
-                      }
-
-                      if (result.imported.length > 0) {
-                        toast.success(
-                          `✓ ${result.imported.length} facturas importadas correctamente`
-                        );
-                        fetchFacturas();
-                      }
-
-                      if (!result.imported.length && !result.errors.length) {
-                        window.dispatchEvent(escKeyEvent);
-                        toast.info(
-                          `Las facturas que intentas cargar al sistema ya existen.`
-                        );
-                        fetchFacturas();
-                      }
-                    } catch (err) {
-                      toast.error("No se pudieron importar las facturas.");
-                      console.error(err);
-                    }
-                  }}
-                >
-                  <UploadIcon /> Cargar Facturas
+                <Button onClick={handleUploadTxt} disabled={Boolean(jobPath)}>
+                  Cargar Facturas
                 </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
-          </AlertDialog> */}
-
-          <section>
-            <XmlDropzone
-              onChange={(data) => setUploadedFacturas(data)}
-              disabled={Boolean(jobPath)}
-            />
-            <div className="mt-4 space-y-2">
-              <Button onClick={handleUploadTxt} disabled={Boolean(jobPath)}>
-                Cargar TXT
-              </Button>
-
-              {jobPath && (
-                <div className="space-y-1">
-                  <span className="text-sm">
-                    Procesadas: {countDone} de {countTotal}
-                  </span>
-                  <Progress value={progress} />
-                </div>
-              )}
-            </div>
-          </section>
+          </AlertDialog>
         </div>
 
         {/* Seccion de Filtros */}
         <div
-          className={`bg-white rounded-md border border-gray-200 shadow px-5 py-4 my-2 flex items-center justify-between ${
+          className={`bg-white dark:bg-black rounded-md border border-gray-200 dark:border-gray-800 shadow px-5 py-4 my-2 flex items-center justify-between ${
             activeTab === "tab-1" && "py-7"
           }`}
         >
@@ -371,7 +323,7 @@ export default function FacturasPage() {
                 <input
                   type="date"
                   id="from"
-                  className="border border-gray-300 rounded pl-4 py-1"
+                  className="border border-gray-300 dark:border-gray-700 rounded pl-4 py-1"
                   defaultValue={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
                 />
@@ -381,7 +333,7 @@ export default function FacturasPage() {
                 <input
                   type="date"
                   id="to"
-                  className="border border-gray-300 rounded pl-4 py-1"
+                  className="border border-gray-300 dark:border-gray-700 rounded pl-4 py-1"
                   defaultValue={toDate}
                   onChange={(e) => setToDate(e.target.value)}
                 />
@@ -445,4 +397,37 @@ function RadioOptions({
       </RadioGroup>
     </div>
   );
+}
+
+function Notification() {
+  const [isVisible, setIsVisible] = useState(true)
+
+  if (!isVisible) return null
+
+  return (
+    <div className="dark bg-muted text-foreground px-4 py-3 md:py-2">
+      <div className="flex gap-2 md:items-center">
+        <div className="flex grow gap-3 md:items-center md:justify-center">
+          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+            <p className="text-sm">
+              Para desplazarte r&aacute;pidamente por la tabla, presiona la tecla <Button variant='outline' className="mx-2" size="sm"><ArrowBigUpIcon /> shift</Button>
+              y haz scroll con la rueda del mouse.
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          className="group -my-1.5 -me-2 size-8 shrink-0 p-0 hover:bg-transparent"
+          onClick={() => setIsVisible(false)}
+          aria-label="Close banner"
+        >
+          <XIcon
+            size={16}
+            className="opacity-60 transition-opacity group-hover:opacity-100"
+            aria-hidden="true"
+          />
+        </Button>
+      </div>
+    </div>
+  )
 }

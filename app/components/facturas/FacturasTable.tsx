@@ -34,6 +34,7 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
   DownloadIcon,
+  EyeIcon,
   XIcon,
 } from "lucide-react";
 import { Factura } from "@/types/factura";
@@ -332,8 +333,6 @@ export default function FacturasTable({
             .trim()
             .toLowerCase();
           const isDone = status === "contabilizado";
-          const raw = row.getValue("contabilizado");
-          console.log("Fila", row.original.id, "contabilizado →", raw);
           return (
             <span className="flex justify-center">
               {isDone ? (
@@ -394,17 +393,25 @@ export default function FacturasTable({
         header: "Factura PDF",
         id: "download",
         cell: ({ row }) => (
-          <Button
-            variant="outline"
-            title="Descargar Factura"
-            onClick={() => {
-              window.alert(
-                `Si puedes leer este mensaje, es porque olvide de darle funcionalidad para generar la factura en PDF. Con todo, esta factura pertenece a ${row.original.nombre_comercial_emisor}. Su secuencial es ${row.original.secuencial} :)`
-              );
-            }}
-          >
-            <DownloadIcon size={4} />
-          </Button>
+          <div className="flex flex-row items-center justify-center">
+            <Button
+              variant="ghost"
+              title="Ver Factura"
+              className="text-red-700 hover:text-white hover:bg-red-600 transition-colors duration-300"
+              onClick={() => verPdf(row.original.id)}
+            >
+              <EyeIcon />
+            </Button>
+
+            <Button
+              variant="ghost"
+              title="Descargar Factura"
+              className="text-red-700 hover:text-white hover:bg-red-600 transition-colors duration-300"
+              onClick={() => descargarPdf(row.original.id)}
+            >
+              <DownloadIcon />
+            </Button>
+          </div>
         ),
       },
     ],
@@ -453,6 +460,25 @@ export default function FacturasTable({
     },
   });
 
+  {
+    /* Seccion de PDF */
+  }
+  // Para ver en línea en una nueva pestaña
+  const verPdf = async (invoiceId: number) => {
+    window.open(
+      `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/pdf`,
+      "_blank"
+    );
+  };
+
+  // Para forzar descarga
+  const descargarPdf = async (invoiceId: number) => {
+    window.open(
+      `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/pdf?download=1`,
+      "_blank"
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* filtros */}
@@ -500,7 +526,7 @@ export default function FacturasTable({
           <Button
             variant="outline"
             onClick={() => updateAccountantStatus()}
-            className="bg-gray-700 text-white py-2 px-5 font-bold hover:bg-gray-700/85 hover:text-white transition-colors duration-300"
+            className="bg-gray-700 text-white dark:bg-gray-300 dark:text-black py-2 px-5 font-bold hover:bg-gray-700/85 dark:hover:bg-gray-300/85 hover:text-white dark:hover:text-black transition-colors duration-300"
           >
             Actualizar desde Latinium
           </Button>
@@ -521,7 +547,7 @@ export default function FacturasTable({
 
       <div className="bg-background overflow-hidden rounded-md border">
         <Table className="min-w-full">
-          <TableHeader className="sticky top-0 bg-gray-50">
+          <TableHeader className="sticky top-0 bg-gray-50 dark:bg-gray-950">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -589,7 +615,7 @@ export default function FacturasTable({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="even:bg-gray-100">
+                <TableRow key={row.id} className="even:bg-gray-100 dark:even:bg-gray-900 dark:hover:bg-gray-800">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-4 py-2 align-top">
                       {flexRender(
