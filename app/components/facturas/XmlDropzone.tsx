@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 
 interface Props {
   onChange: (data: ParsedFactura[]) => void;
+  disabled?: boolean;
 }
 
 export type FilePreview =
@@ -35,7 +36,7 @@ export type FilePreview =
       size: number;
     };
 
-export function XmlDropzone({ onChange }: Props) {
+export function XmlDropzone({ onChange, disabled }: Props) {
   const [files, setFiles] = useState<FilePreview[]>([]);
 
   const handleDrop = useCallback(
@@ -66,7 +67,20 @@ export function XmlDropzone({ onChange }: Props) {
       for (const preview of previews) {
         try {
           const content = await preview.file.text();
-          const parsed = await parseFacturaXml(content, preview.name);
+
+          let parsed: ParsedFactura | null = null;
+
+          if (preview.name.toLowerCase().endsWith(".txt")) {
+            // Para los .txt NO se invoca parseFacturaXml.
+            parsed = {
+              rawFile: preview.file,
+              archivoOriginal: preview.name,
+              isTxt: true,
+            } as ParsedFactura;
+          } else {
+            // sigue la lógica normal para XML
+            parsed = await parseFacturaXml(content, preview.name);
+          }
 
           if (!parsed) {
             toast.warning(`Archivo inválido: ${preview.name}`);
@@ -74,14 +88,21 @@ export function XmlDropzone({ onChange }: Props) {
             continue;
           }
 
-          const factura: ParsedFactura = {
+          // Si llegamos aquí, tenemos un parsed (XML o TXT)
+          updated.push({
+            ...preview,
+            status: "valid",
+            parsed: {
+              ...parsed,
+              rawFile: preview.file,
+              archivoOriginal: preview.name,
+            },
+          });
+          parsedFacturas.push({
             ...parsed,
-            archivoOriginal: preview.name,
             rawFile: preview.file,
-          };
-
-          parsedFacturas.push(factura);
-          updated.push({ ...preview, status: "valid", parsed: factura });
+            archivoOriginal: preview.name,
+          });
         } catch (e) {
           toast.error(`Error leyendo: ${preview.name}`);
           updated.push({ ...preview, status: "invalid" });
@@ -98,7 +119,11 @@ export function XmlDropzone({ onChange }: Props) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleDrop,
     multiple: true,
-    accept: { "text/xml": [".xml"], "application/zip": [".zip"] },
+    accept: {
+      "text/xml": [".xml"],
+      "application/zip": [".zip"],
+      "text/plain": [".txt"],
+    },
   });
 
   return (
@@ -113,7 +138,9 @@ export function XmlDropzone({ onChange }: Props) {
         <input {...getInputProps()} />
         <div className="flex flex-col items-center justify-center gap-2">
           <Upload className="text-muted-foreground w-6 h-6" />
-          <p className="text-sm">Arrastra o selecciona archivos XML o ZIP</p>
+          <p className="text-sm">
+            Arrastra o selecciona archivos txt, XML o ZIP
+          </p>
         </div>
       </div>
 
@@ -163,6 +190,7 @@ export function XmlDropzone({ onChange }: Props) {
                     .map((f) => f.parsed);
                   onChange(remaining);
                 }}
+                disabled={disabled}
               >
                 <X className="h-4 w-4" />
               </Button>

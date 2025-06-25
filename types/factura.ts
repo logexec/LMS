@@ -6,6 +6,7 @@ export interface ParsedFactura {
   importeTotal: number;
   archivoOriginal: string;
   rawFile: File;
+  isTxt?: boolean;
 }
 
 export interface InvoiceDescription {

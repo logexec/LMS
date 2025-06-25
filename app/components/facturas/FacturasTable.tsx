@@ -325,37 +325,25 @@ export default function FacturasTable({
         ),
       },
       {
-        accessorKey: "observacion",
-        header: "Observación",
-        cell: ({ row }) => {
-          const id = row.original.id;
-          return (
-            <Input
-              className="min-w-64 max-w-lg"
-              defaultValue={
-                edits[id]?.observacion ?? row.original.observacion ?? ""
-              }
-              onBlur={(e) => {
-                const val = e.target.value;
-                // deferimos el setState para que el próximo click en otro input no se pierda
-                setTimeout(() => onEditCell(id, "observacion", val), 0);
-              }}
-            />
-          );
-        },
-      },
-      {
         accessorKey: "contabilizado",
         header: "Contabilizado",
-        cell: ({ row }) => (
-          <span className="flex justify-center">
-            {row.original.contabilizado === "PENDIENTE" ? (
-              <XIcon className="h-4 w-4 text-red-500" />
-            ) : (
-              <CheckIcon className="h-4 w-4 text-green-500" />
-            )}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const status = String(row.getValue("contabilizado"))
+            .trim()
+            .toLowerCase();
+          const isDone = status === "contabilizado";
+          const raw = row.getValue("contabilizado");
+          console.log("Fila", row.original.id, "contabilizado →", raw);
+          return (
+            <span className="flex justify-center">
+              {isDone ? (
+                <CheckIcon className="h-4 w-4 text-green-500" />
+              ) : (
+                <XIcon className="h-4 w-4 text-red-500" />
+              )}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "cuenta_contable",
@@ -432,7 +420,9 @@ export default function FacturasTable({
     ]
   );
 
-  { /* Para la Paginacion y Organizacion */ }
+  {
+    /* Para la Paginacion y Organizacion */
+  }
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 50,
