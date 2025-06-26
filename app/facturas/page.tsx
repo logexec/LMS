@@ -100,7 +100,8 @@ export default function FacturasPage() {
     }
   };
 
-  const progress = countTotal > 0 ? Math.floor((countDone / countTotal) * 100) : 0;
+  const progress =
+    countTotal > 0 ? Math.floor((countDone / countTotal) * 100) : 0;
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
@@ -205,6 +206,13 @@ export default function FacturasPage() {
             toast.info(`Se ignoraron ${data.countSkipped} duplicados`);
           if (data.countErrors > 0)
             toast.error(`Ocurrieron ${data.countErrors} errores`);
+
+          // 1) Quitar el bloqueo del Dropzone
+          setJobPath(null);
+          // 2) Resetear progreso
+          setCountTotal(0);
+          setCountDone(0);
+          // 3) Refrescar la lista
           fetchFacturas();
         }
       } catch (e) {
@@ -273,9 +281,11 @@ export default function FacturasPage() {
             <AlertDialogContent className="max-h-[450px] max-w-[810px] overflow-auto">
               <AlertDialogTitle>Adjuntar facturas</AlertDialogTitle>
               <AlertDialogDescription>
-                Carga aqu&iacute; tus txt para obtener toda la informaci&oacute;n del SRI
+                Carga aqu&iacute; tus txt para obtener toda la
+                informaci&oacute;n del SRI
               </AlertDialogDescription>
               <XmlDropzone
+                key={uploadedFacturas.length} // <-- fuerza remonte
                 onChange={(data) => setUploadedFacturas(data)}
                 disabled={Boolean(jobPath)}
               />
@@ -400,9 +410,9 @@ function RadioOptions({
 }
 
 function Notification() {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(true);
 
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <div className="dark bg-muted text-foreground px-4 py-3 md:py-2">
@@ -410,7 +420,11 @@ function Notification() {
         <div className="flex grow gap-3 md:items-center md:justify-center">
           <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
             <p className="text-sm">
-              Para desplazarte r&aacute;pidamente por la tabla, presiona la tecla <Button variant='outline' className="mx-2" size="sm"><ArrowBigUpIcon /> shift</Button>
+              Para desplazarte r&aacute;pidamente por la tabla, presiona la
+              tecla{" "}
+              <Button variant="outline" className="mx-2" size="sm">
+                <ArrowBigUpIcon /> shift
+              </Button>
               y haz scroll con la rueda del mouse.
             </p>
           </div>
@@ -429,5 +443,5 @@ function Notification() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
