@@ -466,7 +466,7 @@ export default function FacturasTable({
   // Para ver en línea en una nueva pestaña
   const verPdf = async (invoiceId: number) => {
     window.open(
-      `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/pdf`,
+      `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/view`,
       "_blank"
     );
   };
