@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,7 +88,7 @@ const formSchema = z.object({
 });
 
 // Animation variants
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -97,7 +97,7 @@ const containerVariants = {
   },
 };
 
-const staggerVariants = {
+const staggerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,

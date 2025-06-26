@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, Transition } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { sidenavLinks } from "@/utils/constants";
-import logo from "@/public/images/logex_logo.png";
+import logo from "@/src/assets/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -58,6 +58,12 @@ const Sidenav = () => {
       ),
     }));
 
+  const springTransition: Transition = {
+    type: "spring", // aquí TS sabe que es el literal correcto
+    bounce: 0,
+    duration: 0.3,
+  };
+
   const sidenavAnimationProps = isDesktop
     ? {
         initial: { x: 0 },
@@ -66,7 +72,7 @@ const Sidenav = () => {
     : {
         initial: { x: -320 },
         animate: { x: isMobileMenuOpen ? 0 : -320 },
-        transition: { type: "spring", bounce: 0, duration: 0.3 },
+        transition: springTransition,
       };
 
   return (

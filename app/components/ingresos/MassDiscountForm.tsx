@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { MassDiscountTable } from "./MassDiscountTable";
 import {
   MassiveFormData,
@@ -412,7 +412,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
   const maxDate = lastAllowedDate.toISOString().split("T")[0];
 
   // Variantes para animaciones
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -421,7 +421,7 @@ const MassDiscountForm: React.FC<MassDiscountFormProps> = ({
     },
   };
 
-  const contentVariants = {
+  const contentVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,

@@ -4,13 +4,13 @@ import DescuentosForm from "../../components/ingresos/DescuentosForm";
 import GastosForm from "../../components/ingresos/GastosForm";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IngresosForm from "@/app/components/ingresos/IngresosForm";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, Variants } from "motion/react";
 import { useState } from "react";
 
 const RegistroPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("discount");
 
-  const tabContentVariants = {
+  const tabContentVariants: Variants = {
     initial: { opacity: 0, x: -10 },
     animate: {
       opacity: 1,
@@ -19,7 +19,7 @@ const RegistroPage: React.FC = () => {
     },
     exit: { opacity: 0, x: 10, transition: { duration: 0.2 } },
   };
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,

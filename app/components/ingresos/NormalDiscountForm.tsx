@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -241,7 +241,7 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
   // );
 
   // Variantes de animación para una entrada más suave
-  const formVariants = {
+  const formVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
@@ -250,7 +250,7 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
     },
   };
 
-  const staggerVariants = {
+  const staggerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -261,7 +261,7 @@ export default function NormalDiscountForm({ type, onSubmit }: MyFormProps) {
     },
   };
 
-  const fadeInVariants = {
+  const fadeInVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,

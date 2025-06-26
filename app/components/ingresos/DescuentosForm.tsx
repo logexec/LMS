@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { LoadingState, RequestData } from "@/utils/types";
@@ -361,7 +361,7 @@ const validateAndConvertData = (data: any): BatchRequestData => {
 };
 
   // Variantes de animación para una transición más fluida
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -372,7 +372,7 @@ const validateAndConvertData = (data: any): BatchRequestData => {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
@@ -381,7 +381,7 @@ const validateAndConvertData = (data: any): BatchRequestData => {
     },
   };
 
-  const tabContentVariants = {
+  const tabContentVariants: Variants = {
     initial: { opacity: 0, x: -10 },
     animate: {
       opacity: 1,

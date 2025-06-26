@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Transition, Variants } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
@@ -171,16 +171,22 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
   };
 
   // Variantes para animaciones
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.4,
-        ease: "easeOut",
+        ease: [0.0, 0.0, 0.2, 1.0],
       },
     },
+  };
+
+  const springTransition: Transition = {
+    type: "spring", // aquí TS sabe que es el literal correcto
+    bounce: 0,
+    duration: 0.3,
   };
 
   const itemVariants = {
@@ -188,11 +194,7 @@ const ExcelUploadSection: React.FC<ExcelUploadSectionProps> = ({ context }) => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-      },
+      transition: springTransition,
     },
   };
 
