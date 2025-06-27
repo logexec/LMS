@@ -1,20 +1,14 @@
-# Etapa de construcción
-FROM node:20-alpine AS builder
+# Etapa de dependencias
+FROM node:20-bullseye-slim AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-COPY . .
-RUN npm run build
 
-# Etapa de producción
-FROM node:20-alpine
+# Etapa de desarrollo / producción
+FROM node:20-bullseye-slim
 WORKDIR /app
-ENV NODE_ENV=production
-# Copia sólo lo necesario
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package*.json ./
-RUN npm ci --omit=dev
-
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NODE_ENV=development
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
