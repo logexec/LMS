@@ -26,8 +26,8 @@ type InputProps = {
   numericInput?: boolean;
   containerClassName?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  allowPastDates?: boolean;
-  min?: number;
+  minDate?: string;
+  maxDate?: string;
   readonly?: boolean;
 };
 
@@ -72,8 +72,8 @@ const Input: React.FC<InputProps> = ({
   onKeyDown,
   numericInput,
   containerClassName,
-  allowPastDates = true,
-  min,
+  minDate,
+  maxDate,
   readonly,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -102,6 +102,8 @@ const Input: React.FC<InputProps> = ({
           value={
             value || (currentDate ? new Date().toISOString().split("T")[0] : "")
           }
+          min={minDate}
+          max={maxDate}
           onChange={onChange}
           placeholder={placeholder}
           maxLength={maxLength}
@@ -122,7 +124,6 @@ const Input: React.FC<InputProps> = ({
           disabled={disabled}
           pattern={pattern}
           onKeyDown={numericInput ? handleNumericInput : onKeyDown}
-          min={allowPastDates ? min : new Date().toISOString().split("T")[0]}
           readOnly={readonly}
         />
 

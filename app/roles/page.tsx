@@ -250,7 +250,7 @@ const RoleManagementPage = () => {
               <TabsList className="bg-slate-100 p-1">
                 <TabsTrigger
                   value="new"
-                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm flex items-center gap-2"
+                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-xs flex items-center gap-2"
                 >
                   {editingRole ? (
                     <Edit2 className="h-4 w-4" />
@@ -261,7 +261,7 @@ const RoleManagementPage = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="list"
-                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-xs"
                 >
                   Lista de Roles
                 </TabsTrigger>

@@ -33,7 +33,7 @@ const Navigation = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-30 w-full bg-slate-950/70 text-white shadow-lg backdrop-blur-sm"
+      className="sticky top-0 z-30 w-full bg-slate-950/70 text-white shadow-lg backdrop-blur-xs"
     >
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         <motion.div
@@ -77,7 +77,7 @@ const Navigation = () => {
           <motion.button
             whileHover={{ scale: 0.99 }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center space-x-2 rounded-lg bg-primary px-4 py-2 text-xs lg:text-sm font-medium text-white dark:text-black transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="flex items-center space-x-2 rounded-lg bg-primary px-4 py-2 text-xs lg:text-sm font-medium text-white dark:text-black transition-colors hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             onClick={() => logout()}
           >
             <LogOut size={18} />

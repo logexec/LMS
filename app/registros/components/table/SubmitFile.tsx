@@ -81,24 +81,40 @@ export function SubmitFile({
             )}
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-full max-w-4xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Subir Archivo</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="font-medium text-slate-600">
               Arrastra o selecciona un archivo para adjuntar a la solicitud.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div
             {...getRootProps()}
-            className="border border-dashed p-4 text-center cursor-pointer"
+            className="border border-dashed border-indigo-600 hover:border-indigo-400 p-4 text-center cursor-pointer shadow-xs"
           >
             <input {...getInputProps()} />
             {selectedFile ? (
               <p>{selectedFile.name}</p>
             ) : (
-              <p>Arrastra aquí un archivo o haz click para seleccionarlo</p>
+              <>
+                <p>Arrastra aquí un archivo o haz click para seleccionarlo</p>
+                <p className="text-sm text-gray-500 font-semibold">
+                  (Tamaño máximo 20MB)
+                </p>
+              </>
             )}
           </div>
+          <p className="text-center">
+            ¿Es un PDF mayor a 20MB? ¡No te perocupes!{" "}
+            <a
+              href="https://www.ilovepdf.com/compress_pdf"
+              className="text-red-500 hover:text-red-600 visited:text-red-400 transition-colors underline"
+              target="_blank"
+            >
+              Haz click aquí
+            </a>{" "}
+            para comprimirlo en línea y súbelo sin problemas.
+          </p>
           <AlertDialogFooter>
             <Button onClick={() => setIsDialogOpen(false)} variant="outline">
               Cancelar

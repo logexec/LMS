@@ -221,7 +221,7 @@ export const DataTable = <T extends BaseTableData>({
         <input
           type="text"
           placeholder="Filtrar datos..."
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
         />
@@ -347,7 +347,7 @@ export const DataTable = <T extends BaseTableData>({
               className={`px-3 py-1 border rounded hover:bg-red-100 
                 ${
                   pageNum === current_page
-                    ? "bg-red-500 text-white hover:!bg-red-700"
+                    ? "bg-red-500 text-white hover:bg-red-700!"
                     : ""
                 }`}
             >

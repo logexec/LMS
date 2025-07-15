@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, Transition } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { sidenavLinks } from "@/utils/constants";
-import logo from "@/public/images/logex_logo.png";
+import logo from "@/src/assets/images/logex_logo.png";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { InRepositionRequests } from "./Requests";
+import { RepositionRequests } from "./Requests";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const useMediaQuery = (query: string) => {
@@ -31,7 +31,7 @@ const Sidenav = () => {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const path = usePathname();
   const { hasPermission } = useAuth();
-  const notification = InRepositionRequests();
+  const notification = RepositionRequests();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
@@ -58,6 +58,12 @@ const Sidenav = () => {
       ),
     }));
 
+  const springTransition: Transition = {
+    type: "spring", // aquí TS sabe que es el literal correcto
+    bounce: 0,
+    duration: 0.3,
+  };
+
   const sidenavAnimationProps = isDesktop
     ? {
         initial: { x: 0 },
@@ -66,7 +72,7 @@ const Sidenav = () => {
     : {
         initial: { x: -320 },
         animate: { x: isMobileMenuOpen ? 0 : -320 },
-        transition: { type: "spring", bounce: 0, duration: 0.4 },
+        transition: springTransition,
       };
 
   return (
@@ -77,19 +83,14 @@ const Sidenav = () => {
           initial={false}
           animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
           className={`relative z-50 rounded-lg p-3 text-white lg:hidden ${
-            isMobileMenuOpen
-              ? "-top-[12.5rem] left-28"
-              : "-top-20 md:top-[2.5rem] lg:top-12 left-0 md:left-4 lg:left-4"
+            isMobileMenuOpen ? "-top-[12.5rem] left-28" : "top-10 left-5"
           }`}
           onClick={toggleMobileMenu}
         >
           {isMobileMenuOpen ? (
             <X size={24} />
           ) : (
-            <Menu
-              size={20}
-              className="absolute top-0 lg:top-[15.5rem] -left-[1rem] md:left-[.25rem] lg:left-[11.965rem]"
-            />
+            <Menu size={24} className="absolute top-0 left-0" />
           )}
         </motion.button>
       )}
@@ -111,7 +112,7 @@ const Sidenav = () => {
       <ScrollArea>
         <motion.aside
           {...sidenavAnimationProps}
-          className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col bg-slate-950 bg-opacity-95 p-6 backdrop-blur-sm lg:w-[17rem]"
+          className="fixed top-0 bottom-0 left-0 z-40 flex w-80 flex-col bg-slate-950 bg-opacity-95 p-6 backdrop-blur-xs lg:w-[17rem]"
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -119,15 +120,17 @@ const Sidenav = () => {
             transition={{ delay: 0.2 }}
             className="mb-6 flex justify-center h-9 w-full mx-auto relative"
           >
-            <Link href="/" className="block">
+            <Link
+              href="/"
+              className="block fixed top-7 left-0 h-[inherit] w-[inherit]"
+            >
               <Image
-                width={175}
-                height={100}
+                className="object-contain"
+                fill
+                sizes="(max-width: 760px) 100vw, 150px"
                 priority
                 src={logo.src}
                 alt="LogeX logo"
-                className="object-contain"
-                sizes="(max-width: 760px) 100cw, 150px"
               />
             </Link>
           </motion.div>
@@ -144,7 +147,7 @@ const Sidenav = () => {
                 <h3 className="mb-2 text-sm font-semibold text-slate-400">
                   {item.category}
                 </h3>
-                <div className="mb-2 h-0.5 bg-gradient-to-r from-red-600 to-transparent" />
+                <div className="mb-2 h-0.5 bg-linear-to-r from-red-600 to-transparent" />
                 <ul className="space-y-1">
                   {item.links.map((link, linkIndex) => (
                     <motion.li

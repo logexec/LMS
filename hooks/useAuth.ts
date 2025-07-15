@@ -6,6 +6,7 @@ export const useAuth = () => {
   if (!context) {
     throw new Error("useAuth debe ser usado dentro de un AuthProvider");
   }
+
   const hasRole = (role: string | string[]): boolean => {
     if (!context.user?.role) return false;
 
@@ -20,16 +21,44 @@ export const useAuth = () => {
 
     const userPermissions = context.user.permissions.map((p) => p.name);
 
+    const checkSinglePermission = (perm: string): boolean => {
+      // Si el usuario tiene el permiso exacto
+      if (userPermissions.includes(perm)) return true;
+
+      // Lógica jerárquica
+      if (perm.startsWith("view_")) {
+        const resource = perm.replace("view_", "");
+        return (
+          userPermissions.includes(`edit_${resource}`) ||
+          userPermissions.includes(`manage_${resource}`)
+        );
+      }
+      if (perm.startsWith("edit_")) {
+        const resource = perm.replace("edit_", "");
+        return userPermissions.includes(`manage_${resource}`);
+      }
+      return false;
+    };
+
     if (Array.isArray(permission)) {
-      return permission.some((p) => userPermissions.includes(p));
+      return permission.every((p) => checkSinglePermission(p));
     }
-    return userPermissions.includes(permission);
+
+    return checkSinglePermission(permission);
   };
 
   const hasProjects = (): string[] => {
     if (!context.user?.assignedProjects) return [];
 
-    return context.user.assignedProjects.projects.map((project) => project);
+    // Ajuste: Verifica si assignedProjects es un arreglo directo o un objeto con una propiedad projects
+    if (Array.isArray(context.user.assignedProjects)) {
+      return context.user.assignedProjects;
+    }
+    return (
+      context.user.assignedProjects.projects?.map(
+        (project: string) => project
+      ) || []
+    );
   };
 
   return {

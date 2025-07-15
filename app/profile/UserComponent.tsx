@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { EditIcon, User2Icon } from "lucide-react";
 import {
@@ -38,14 +38,28 @@ const UserProfileComponent = ({
   role,
   onProfileUpdate,
 }: UserProfileComponentProps) => {
+  const [assignedProjects, setAssignedProjects] = useState<number[]>([]);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user")!);
+    setAssignedProjects(user.assignedProjects || []);
+  }, []);
+
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
-    queryKey: ["projects", id],
+    queryKey: ["projects", assignedProjects], // Ahora depende de assignedProjects
     queryFn: async () => {
+      if (!assignedProjects.length) return []; // Evita ejecutar con un array vacío
+
       try {
         const response = await apiService.getCurrentUser();
         console.log("Response", response);
         const projectsData = Array.isArray(response) ? response : [];
-        return projectsData.map((project: Project) => ({
+
+        const filteredProjects = projectsData.filter(
+          (project) => assignedProjects.includes(project.id) // Correcta comparación
+        );
+
+        return filteredProjects.map((project: Project) => ({
           ...project,
           name:
             project.name?.substring(0, 4).toUpperCase() || `PRJ-${project.id}`,
@@ -56,6 +70,7 @@ const UserProfileComponent = ({
         return [];
       }
     },
+    enabled: assignedProjects.length > 0,
     staleTime: 10 * 1000,
   });
 
@@ -204,7 +219,7 @@ const UserProfileComponent = ({
                                 .toISOString()
                                 .split("T")[0]
                             }
-                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                            className="px-3 py-2 border rounded-md focus:outline-hidden focus:ring-3 focus:border-blue-300"
                           />
                         </div>
                         <div className="flex flex-col">
@@ -217,7 +232,7 @@ const UserProfileComponent = ({
                             value={telefono}
                             onChange={(e) => setTelefono(e.target.value)}
                             placeholder="Ingresa tu teléfono"
-                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                            className="px-3 py-2 border rounded-md focus:outline-hidden focus:ring-3 focus:border-blue-300"
                           />
                         </div>
                         <div className="flex flex-col">
@@ -230,14 +245,14 @@ const UserProfileComponent = ({
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Ingresa nueva contraseña"
-                            className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                            className="px-3 py-2 border rounded-md focus:outline-hidden focus:ring-3 focus:border-blue-300"
                           />
                         </div>
                         <AlertDialogFooter className="pt-4">
                           <AlertDialogAction asChild>
                             <button
                               type="submit"
-                              className="uppercase font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                              className="uppercase font-bold text-xs px-4 py-2 rounded focus:outline-hidden"
                               disabled={updateProfileMutation.isPending}
                             >
                               {updateProfileMutation.isPending
@@ -248,7 +263,7 @@ const UserProfileComponent = ({
                           <AlertDialogCancel asChild>
                             <button
                               type="button"
-                              className="uppercase text-gray-800 font-bold text-xs px-4 py-2 rounded focus:outline-none"
+                              className="uppercase text-gray-800 font-bold text-xs px-4 py-2 rounded focus:outline-hidden"
                             >
                               Cancelar
                             </button>
@@ -284,7 +299,11 @@ const UserProfileComponent = ({
                       </p>
                     </div>
                   ) : (
-                    <ScrollArea className="h-[340px] pr-4 shadow-inner border-y border-slate-200 rounded">
+                    <ScrollArea
+                      className={`${
+                        projects.length > 12 ? "h-[340px]" : "h-auto py-8"
+                      } pr-4 shadow-inner border-y border-slate-200 rounded`}
+                    >
                       <ul className="space-y-3 columns-3">
                         {projects.map((project: Project) => (
                           <li

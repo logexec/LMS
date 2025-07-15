@@ -119,7 +119,7 @@ const UserForm: React.FC<UserFormProps> = ({
                   type="text"
                   name="name"
                   id="name"
-                  className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                  className="border-b-2 border-gray-300 outline-hidden focus:border-sky-300 transition-all duration-300"
                   placeholder="Nombre completo"
                   onChange={handleInputChange}
                   value={formData.name}
@@ -135,7 +135,7 @@ const UserForm: React.FC<UserFormProps> = ({
                   type="email"
                   name="email"
                   id="email"
-                  className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                  className="border-b-2 border-gray-300 outline-hidden focus:border-sky-300 transition-all duration-300"
                   placeholder="usuario@logex.ec"
                   onChange={handleInputChange}
                   value={formData.email}
@@ -156,7 +156,7 @@ const UserForm: React.FC<UserFormProps> = ({
                       type="password"
                       name="password"
                       id="password"
-                      className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                      className="border-b-2 border-gray-300 outline-hidden focus:border-sky-300 transition-all duration-300"
                       onChange={handleInputChange}
                       value={formData.password}
                       required
@@ -174,7 +174,7 @@ const UserForm: React.FC<UserFormProps> = ({
                       type="password"
                       name="confirmPassword"
                       id="confirmPassword"
-                      className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                      className="border-b-2 border-gray-300 outline-hidden focus:border-sky-300 transition-all duration-300"
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       value={confirmPassword}
                       required
@@ -190,7 +190,7 @@ const UserForm: React.FC<UserFormProps> = ({
                 <select
                   name="role_id"
                   id="role_id"
-                  className="border-b-2 border-gray-300 outline-none focus:border-sky-300 transition-all duration-300"
+                  className="border-b-2 border-gray-300 outline-hidden focus:border-sky-300 transition-all duration-300"
                   onChange={handleInputChange}
                   value={formData.role_id}
                   required

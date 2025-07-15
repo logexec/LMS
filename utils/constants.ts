@@ -1,9 +1,18 @@
 import { LuUsers } from "react-icons/lu";
-import { SquarePlus, Landmark, Wallet, PiggyBank, Receipt } from "lucide-react";
-import { GrSubtractCircle, GrDocumentUser, GrMoney } from "react-icons/gr";
+import {
+  SquarePlus,
+  Landmark,
+  Wallet,
+  PiggyBank,
+  // Receipt,
+  Banknote,
+  HandHelping,
+  CircleDollarSign,
+  ReceiptText,
+} from "lucide-react";
+import { GrSubtractCircle, GrMoney } from "react-icons/gr";
 import { GiPayMoney } from "react-icons/gi";
-import { VscRequestChanges } from "react-icons/vsc";
-import { HandHelping } from "lucide-react";
+// import { RiReceiptLine } from "react-icons/ri";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -21,28 +30,76 @@ export interface NavLink {
   hidden?: boolean;
 }
 
+export enum Permission {
+  VIEW_USERS = "view_users",
+  MANAGE_USERS = "manage_users",
+  VIEW_INCOME = "view_income",
+  EDIT_INCOME = "edit_income",
+  MANAGE_INCOME = "manage_income",
+  VIEW_DISCOUNTS = "view_discounts",
+  MANAGE_DISCOUNTS = "manage_discounts",
+  VIEW_EXPENSES = "view_expenses",
+  MANAGE_EXPENSES = "manage_expenses",
+  VIEW_REQUESTS = "view_requests",
+  MANAGE_REQUESTS = "manage_requests",
+  VIEW_REPOSITIONS = "view_repositions",
+  EDIT_REPOSITIONS = "edit_repositions",
+  MANAGE_REPOSITIONS = "manage_repositions",
+  VIEW_BUDGET = "view_budget",
+  MANAGE_BUDGET = "manage_budget",
+  VIEW_PROVISIONS = "view_provisions",
+  MANAGE_PROVISIONS = "manage_provisions",
+  MANAGE_SPECIAL_INCOME = "manage_special_income",
+  MANAGE_SUPPORT = "manage_support",
+}
+
 export const sidenavLinks: NavLink[] = [
   {
     category: "Administración General",
-    requiredPermissions: ["manage_users"],
+    requiredPermissions: [Permission.MANAGE_USERS],
     links: [
       {
         label: "Usuarios",
         url: "/usuarios",
         icon: LuUsers,
-        requiredPermissions: ["manage_users", "view_users"],
+        requiredPermissions: [Permission.VIEW_USERS],
       },
       {
         label: "Cuentas",
         url: "/cuentas",
         icon: PiggyBank,
-        requiredPermissions: ["manage_users", "view_users"],
+        requiredPermissions: [Permission.VIEW_USERS],
       },
+    ],
+  },
+  {
+    category: "SRI",
+    requiredPermissions: [Permission.MANAGE_BUDGET],
+    links: [
+      // {
+      //   label: "Facturación",
+      //   url: "/facturacion/facturacion",
+      //   icon: RiReceiptLine,
+      // },
+      // {
+      //   label: "SRI",
+      //   url: "/facturacion/sri",
+      //   icon: ReceiptText,
+      // },
+      // {
+      //   label: "Órdenes de Compra",
+      //   url: "/facturacion/ordenes-compra",
+      //   icon: Receipt,
+      // },
+      // {
+      //   label: "Importar XML",
+      //   url: "/facturas/importar",
+      //   icon: RiReceiptLine,
+      // },
       {
-        label: "Órdenes de Compra",
-        url: "/ordenes-compra",
-        icon: Receipt,
-        requiredPermissions: ["manage_users", "view_users"],
+        label: "Facturas",
+        url: "/facturas",
+        icon: ReceiptText,
       },
     ],
   },
@@ -50,86 +107,64 @@ export const sidenavLinks: NavLink[] = [
     category: "Registros",
     links: [
       {
-        label: "Nuevo Ingreso",
+        label: "Nuevo Registro",
         url: "/registros/nuevo",
         icon: SquarePlus,
-        requiredPermissions: ["register_income"],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
       },
       {
         label: "Descuentos",
-        url: "/registros/descuentos",
+        url: "/registros/discounts",
         icon: GrSubtractCircle,
-        requiredPermissions: ["view_discounts", "manage_discounts"],
+        requiredPermissions: [Permission.VIEW_DISCOUNTS],
       },
       {
         label: "Gastos",
-        url: "/registros/gastos",
+        url: "/registros/expenses",
         icon: GiPayMoney,
-        requiredPermissions: ["view_expenses", "manage_expenses"],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
       },
-      // {
-      //   label: "Ingresos Especiales",
-      //   url: "/registros/ingresos-especiales",
-      //   icon: Banknote,
-      //   requiredPermissions: ["view_expenses", "manage_expenses"],
-      // },
+      {
+        label: "Ingresos",
+        url: "/registros/income",
+        icon: Banknote,
+        requiredPermissions: [Permission.EDIT_INCOME],
+      },
       {
         label: "Reposiciones",
-        url: "/registros/reposiciones",
+        url: "/registros/repositions",
         icon: GrMoney,
-        requiredPermissions: ["view_expenses", "manage_expenses"],
+        requiredPermissions: [Permission.VIEW_EXPENSES],
+      },
+      {
+        label: "Reposiciones de Ingresos",
+        url: "/registros/income-repositions",
+        icon: CircleDollarSign,
+        requiredPermissions: [Permission.EDIT_INCOME],
       },
     ],
   },
-  {
-    category: "Gestión",
-    links: [
-      {
-        label: "Solicitudes",
-        url: "/gestion/solicitudes",
-        icon: VscRequestChanges,
-        requiredPermissions: ["view_requests", "manage_requests"],
-      },
-      {
-        label: "Reportes Personales",
-        url: "/gestion/reportes-personales",
-        icon: GrDocumentUser,
-        requiredPermissions: ["view_reports", "manage_reports"],
-      },
-    ],
-  },
-  // {
-  //   category: "Ingresos Especiales",
-  //   requiredPermissions: ["manage_special_income"],
-  //   links: [
-  //     {
-  //       label: "Inicio",
-  //       url: "/ingresos-especiales",
-  //       icon: LayoutDashboard,
-  //     },
-  //   ],
-  // },
   {
     category: "Finanzas",
-    requiredPermissions: ["manage_provisions"],
+    requiredPermissions: [Permission.MANAGE_BUDGET],
     links: [
       {
         label: "Presupuesto",
         url: "/finanzas/presupuesto",
         icon: Landmark,
-        requiredPermissions: ["view_budget", "manage_budget"],
+        requiredPermissions: [Permission.VIEW_BUDGET],
       },
       {
         label: "Provisiones",
         url: "/finanzas/provisiones",
         icon: Wallet,
-        requiredPermissions: ["manage_provisions"],
+        requiredPermissions: [Permission.VIEW_PROVISIONS],
       },
     ],
   },
   {
     category: "Soporte",
-    requiredPermissions: ["manage_support"],
+    requiredPermissions: [Permission.MANAGE_SUPPORT],
     links: [
       {
         label: "Tickets",

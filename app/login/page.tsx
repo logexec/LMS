@@ -21,8 +21,8 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
     try {
-      await handleLogin(email, password, rememberMe);
-      toast.success("¡Autenticación exitosa!");
+      await login(email, password, rememberMe);
+      window.location.href = "/";
     } catch (error) {
       setError("Error al iniciar sesión");
       toast.error("Error al iniciar sesión");
@@ -49,7 +49,7 @@ const LoginPage = () => {
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-red-600 to-red-800 p-12 items-center justify-center"
+        className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-red-600 to-red-800 p-12 items-center justify-center"
       >
         <div className="max-w-lg">
           <motion.img
@@ -145,7 +145,7 @@ const LoginPage = () => {
                   name="email"
                   type="email"
                   required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none text-sm transition duration-150 ease-in-out"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-hidden text-sm transition duration-150 ease-in-out"
                   placeholder="Correo electrónico"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -161,7 +161,7 @@ const LoginPage = () => {
                   name="password"
                   type="password"
                   required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none text-sm transition duration-150 ease-in-out"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-hidden text-sm transition duration-150 ease-in-out"
                   placeholder="Contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -185,7 +185,7 @@ const LoginPage = () => {
               whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-xs text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
             >
               {isLoading ? (
                 <span className="flex items-center">

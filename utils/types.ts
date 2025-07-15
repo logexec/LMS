@@ -23,12 +23,15 @@ export interface BaseEntity {
 export interface RequestProps extends BaseEntity {
   unique_id: string;
   updated_at: string;
-  invoice_number: string;
-  account_id: number;
+  invoice_number: number | string;
+  account_id: string;
+  account_name?: string;
+  project_name?: string;
   amount: number;
-  project: string;
+  project: string | string[];
   responsible_id: string | null;
-  transport_id: string | null;
+  vehicle_plate: string | null;
+  vehicle_number: string | null;
   note: string | null;
   status: Status;
   type: RequestType;
@@ -37,25 +40,36 @@ export interface RequestProps extends BaseEntity {
   request_date?: string;
   when?: string;
   month?: string;
+  reposicion_id?: string;
 }
 
 export interface AccountProps {
   id: string;
   name: string;
-  account_number: string;
-  account_type: "nomina" | "transportista";
-  account_status: "active" | "inactive";
-  account_affects: "discount" | "expense" | "both";
-  generates_income: boolean;
+  account_number?: string;
+  account_type?: string;
+  account_status?: string;
+  account_affects?: string;
+  generates_income?: boolean;
 }
 
 export interface ResponsibleProps {
   id: string | number;
   nombre_completo: string;
+  proyecto: string;
 }
 
 export interface TransportProps {
-  id: string | number;
+  vehicle_plate: string;
+  vehicle_number: string;
+}
+
+export interface VehicleProps {
+  name: string;
+}
+
+export interface ProjectProps {
+  id: string;
   name: string;
 }
 
@@ -76,6 +90,10 @@ export interface ReposicionProps {
     | "decimo_cuarto"
     | "utilidades";
   note?: string;
+  vehicle_plate?: string;
+  vehicle_number?: string;
+  responsible_id?: string;
+  amount?: number;
   requests?: any[];
 }
 
@@ -101,7 +119,11 @@ export interface DataTableProps<TData> {
   mode: "requests" | "reposiciones";
   type?: "discount" | "expense" | "income";
   onStatusChange?: (id: number, status: Status) => Promise<void>;
-  onCreateReposicion?: (requestIds: string[], file: File) => Promise<void>;
+  onCreateReposicion?: (
+    requestIds: string[],
+    file: File,
+    formData?: any
+  ) => Promise<void>;
   onUpdateReposicion?: (
     id: number,
     updateData: ReposicionUpdateData,
@@ -168,7 +190,8 @@ export interface NormalFormData {
   valor: string;
   proyecto: string;
   responsable: string;
-  transporte: string;
+  vehicle_plate?: string;
+  vehicle_number?: string;
   observacion: string;
 }
 
@@ -176,7 +199,7 @@ export interface NormalRequestData {
   type: string;
   personnel_type: string;
   request_date: string;
-  invoice_number: string;
+  invoice_number: number | string;
   account_id: string;
   amount: string;
   project: string;
@@ -315,11 +338,6 @@ export interface BaseFormData {
   observacion: string;
 }
 
-export interface NormalFormData extends BaseFormData {
-  responsable: string;
-  transporte: string;
-}
-
 export interface MassiveFormData extends NormalFormData {
   area: string;
 }
@@ -375,7 +393,7 @@ export interface NormalRequestData {
   type: string;
   personnel_type: string;
   request_date: string;
-  invoice_number: string;
+  invoice_number: number | string;
   account_id: string;
   amount: string;
   project: string;
@@ -455,3 +473,35 @@ export interface Installment {
 }
 
 // Fin Préstamos
+
+// API
+export interface RequestFilters {
+  period?: "last_week" | "last_month" | "all";
+  project?: string;
+  type?: "expense" | "discount" | "income";
+  status?: "pending" | "rejected" | "approved";
+}
+
+export interface RequestUpdateData {
+  invoice_number?: string;
+  amount?: string;
+  note?: string;
+  // Add more fields if needed
+}
+
+export interface RepositionFilters {
+  period?: "last_week" | "last_month" | "all";
+  project?: string;
+  type?: "expense" | "discount" | "income" | "all";
+  status?: "rejected" | "pending" | "paid" | "all";
+  mode?: "all" | "income";
+}
+
+export interface RepositionUpdateData {
+  total?: number;
+  date?: Date;
+  note: string;
+  status: "rejected" | "paid";
+  when?: string;
+  month?: string;
+}

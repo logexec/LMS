@@ -11,6 +11,7 @@ import Sidenav from "@/app/components/Sidenav";
 import Navigation from "@/app/components/Navigation";
 import Loader from "@/app/Loader";
 import LoginPage from "@/app/login/page";
+import { DataProvider } from "./DataContext";
 const queryClient = new QueryClient();
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -47,8 +48,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </AnimatePresence>
         </div>
         {process.env.NODE_ENV === "development" && (
-          <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60">
-            LMS | Versión 1.2.1.20251802 | Beta
+          <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60 cursor-default">
+            LMS | Versión 3.3.4 | Beta
           </div>
         )}
       </div>
@@ -89,9 +90,11 @@ export default function AppContent({
       enableSystem
       disableTransitionOnChange
     >
-      <AnimatePresence mode="wait">
-        <DashboardLayout>{children}</DashboardLayout>
-      </AnimatePresence>
+      <DataProvider>
+        <AnimatePresence mode="wait">
+          <DashboardLayout>{children}</DashboardLayout>
+        </AnimatePresence>
+      </DataProvider>
     </ThemeProvider>
   );
 }

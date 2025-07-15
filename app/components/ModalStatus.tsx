@@ -19,7 +19,7 @@ const ModalStatus: React.FC<ModalProps> = ({
 }) => {
   return createPortal(
     <div
-      className={`fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-50 duration-300 backdrop-blur-sm`}
+      className={`fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-50 duration-300 backdrop-blur-xs`}
     >
       <div
         className={`bg-white p-8 rounded-lg w-[28rem] duration-300 fade-in-200`}
