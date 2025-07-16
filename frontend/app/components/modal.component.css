@@ -1,0 +1,7 @@
+.modal-overlay {
+  transition: opacity 300ms ease-out;
+}
+
+.modal-content {
+  transition: transform 300ms ease-out, opacity 300ms ease-out;
+}

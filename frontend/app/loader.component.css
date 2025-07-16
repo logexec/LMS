@@ -1,0 +1,57 @@
+.spinner {
+  border: 4px solid #a8a8a8;
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+.text {
+  font-size: 18px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  margin-block: 2ch;
+  animation: fade 2000ms linear infinite;
+}
+
+.text-fade {
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 400;
+  animation: fadeText 1500ms linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeText {
+  0%,
+  100% {
+    color: var(--primary);
+  }
+  50% {
+    color: #a8a8a8;
+  }
+}

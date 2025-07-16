@@ -1,0 +1,433 @@
+.truck {
+  margin: 150px 0px 0px 110px;
+  position: relative;
+  animation: truckmove 4s linear;
+  animation-fill-mode: forwards;
+  z-index: 6;
+}
+@keyframes truckmove {
+  0% {
+    margin: 150px 0px 0px 1000px;
+  }
+  100% {
+    margin: 150px 0px 0px 50px;
+  }
+}
+@keyframes tyreroate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes truckupgeer {
+  0% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(40deg);
+  }
+
+  100% {
+    transform: rotate(10deg);
+  }
+}
+@keyframes truckup {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes giftout {
+  0% {
+    transform: rotate(0deg);
+    left: 670px;
+    top: 58px;
+  }
+
+  50% {
+    transform: rotate(40deg);
+    left: 870px;
+    top: 48px;
+  }
+  100% {
+    transform: rotate(0deg);
+    left: 920px;
+    top: 128px;
+    z-index: 1;
+  }
+}
+.truck-top {
+  width: 190px;
+  height: 25px;
+  border-top-left-radius: 20px;
+  background-color: OrangeRed;
+  margin: 0px 0px 0px 10px;
+  position: relative;
+}
+.truck-top:before {
+  content: "";
+  width: 100px;
+  border-top: 0px solid transparent;
+  border-left: 10px solid transparent;
+  border-right: 0px solid transparent;
+  border-bottom: 30px solid OrangeRed;
+  margin: 0px;
+  top: -30px;
+  right: 0px;
+  position: absolute;
+}
+.truck-middle {
+  width: 165px;
+  height: 100px;
+  background-color: black;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 4px 0px 4px 0px;
+  border-right: 25px solid OrangeRed;
+  margin: 0px 0px 0px 10px;
+  position: relative;
+}
+.truck-glass {
+  width: 70px;
+  height: 100px;
+  background-color: gray;
+  position: relative;
+}
+.truck-glass:after {
+  content: "";
+  width: 90px;
+  height: 165px;
+  position: absolute;
+  left: -5px;
+  top: -11px;
+  z-index: 1;
+  border-top: 2px solid #d23900;
+  border-left: 2px solid #d23900;
+  border-right: 2px solid #d23900;
+  box-sizing: border-box;
+}
+.truck-glass:before {
+  content: "";
+  width: 24px;
+  height: 12px;
+  position: absolute;
+  right: -25px;
+  top: 110px;
+  z-index: 1;
+  border: 1px solid silver;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  box-sizing: border-box;
+  background-color: #d23900;
+  z-index: 2;
+}
+.truck-mirror {
+  width: 10px;
+  height: 20px;
+  background-color: #484848;
+  margin: 0px;
+  left: 37px;
+  top: 20px;
+  z-index: 1;
+  right: 0px;
+  position: absolute;
+  border-radius: 2px;
+}
+.truck-mirror:before {
+  content: "";
+  width: 80px;
+  height: 10px;
+  background-color: #484848;
+  margin: 0px;
+  left: -70px;
+  top: 2px;
+  z-index: 1;
+  right: 0px;
+  position: absolute;
+  border-radius: 10px;
+}
+.truck-mirror-front {
+  width: 10px;
+  height: 50px;
+  background-color: #484848;
+  margin: 0px;
+  left: -37px;
+  top: 22px;
+  z-index: 1;
+  right: 0px;
+  position: absolute;
+  border-radius: 5px;
+  transform: rotate(10deg);
+}
+.truck-mirror-front:before {
+  content: "";
+  width: 12px;
+  height: 15px;
+  background-color: #484848;
+  margin: 0px;
+  left: 5px;
+  top: 35px;
+  right: 0px;
+  position: absolute;
+  border-radius: 0px;
+}
+.truck-mirror-front:after {
+  content: "";
+  width: 15px;
+  height: 50px;
+  background-color: #484848;
+  border-right: 2px solid gray;
+  margin: 0px;
+  left: 15px;
+  top: 10px;
+  right: 0px;
+  position: absolute;
+  border-radius: 5px;
+}
+.truck-glass-front {
+  width: 25px;
+  border-top: 0px solid transparent;
+  border-left: 10px solid transparent;
+  border-right: 0px solid transparent;
+  border-bottom: 100px solid gray;
+  margin: 0px 0px 0px -10px;
+  position: relative;
+}
+.truck-glass-front:after {
+  content: "";
+  width: 70px;
+  border-bottom: 4px solid black;
+  margin: 0px 0px 0px 0px;
+  position: absolute;
+  top: 100px;
+  left: -10px;
+}
+.truck-glass-back {
+  width: 30px;
+  height: 100px;
+  background-color: gray;
+}
+.truck-container {
+  width: 581px;
+  height: 220px;
+  background-color: rgb(225, 225, 225);
+  position: absolute;
+  left: 200px;
+  top: -60px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border: 1px solid rgb(205, 205, 205);
+  animation: truckup 4s linear;
+  transform: rotate(0deg);
+  transform-origin: right bottom;
+  animation-fill-mode: forwards;
+  animation-delay: 4.5s;
+}
+.truck-container-up {
+  width: 200px;
+  height: 20px;
+  background-color: #484848;
+  position: absolute;
+  left: 250px;
+  top: 165px;
+  z-index: -1;
+  transform: rotate(10deg);
+  transform-origin: right bottom;
+  animation: truckupgeer 5s linear;
+  animation-fill-mode: forwards;
+  animation-delay: 5s;
+}
+.truck-container-gift {
+  width: 100px;
+  height: 100px;
+  background-color: #d8b58c;
+  position: absolute;
+  left: 670px;
+  top: 58px;
+  border-radius: 3px;
+  text-align: center;
+  animation: giftout 2.5s linear;
+  animation-delay: 6s;
+  animation-fill-mode: forwards;
+  transform: rotate(0deg);
+  transform-origin: right bottom;
+  font-family: sans-serif;
+  font-weight: bold;
+  box-shadow: inset 0px 0px 3px 1px rgba(50, 50, 50, 0.85);
+  z-index: -1;
+}
+
+.truck-middle-bottom {
+  width: 200px;
+  height: 50px;
+  background-color: OrangeRed;
+  position: relative;
+}
+.truck-bottom {
+  width: 750px;
+  height: 50px;
+  background-color: #323232;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  position: relative;
+}
+.truck-bottom:after {
+  content: "";
+  width: 22px;
+  height: 0px;
+  border-top: 30px solid #323232;
+  border-left: 0px solid transparent;
+  border-right: 40px solid transparent;
+  border-bottom: 0px solid transparent;
+  position: absolute;
+  right: -40px;
+  top: 20px;
+}
+.truck-bottom:before {
+  content: "";
+  width: 41px;
+  height: 22px;
+  background-color: #323232;
+  position: absolute;
+  right: -41px;
+  top: 0px;
+  border-bottom-right-radius: 5px;
+}
+.light-front {
+  margin: 0px;
+  position: absolute;
+  left: 0px;
+  top: 50px;
+  z-index: 1;
+}
+.light-center {
+  width: 550px;
+  margin: 0px;
+  position: absolute;
+  left: 270px;
+  top: 70px;
+  display: flex;
+  flex-direction: row;
+  z-index: 1;
+}
+
+.light-blue-front {
+  width: 20px;
+  height: 20px;
+  background-color: #bbcccd;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  margin: 0px 0px 0px 1px;
+}
+.light-orange {
+  width: 10px;
+  height: 10px;
+  background-color: Gold;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  margin: 3px 0px 0px 1px;
+}
+
+.tank {
+  width: 100px;
+  height: 50px;
+  background-color: #323232;
+  border-radius: 5px;
+  margin: -40px 0px 0px 155px;
+  border: 1px solid silver;
+  border-sizing: border-box;
+}
+
+.light-red-top {
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  border-radius: 5px;
+  margin: -17px 0px 0px 230px;
+}
+.light-blue {
+  width: 15px;
+  height: 20px;
+  background-color: #bbcccd;
+}
+.light-front {
+  margin: 5px 0px 0px 0px;
+  position: absolute;
+  left: -1px;
+}
+.tyre {
+  width: 100px;
+  height: 65px;
+  background-color: rgba(50, 50, 50, 0.85);
+  border-top-left-radius: 50px;
+  border-top-right-radius: 50px;
+  margin: 0px;
+  position: relative;
+  top: -15px;
+  left: 0px;
+}
+.tyre:before {
+  content: "+";
+  width: 90px;
+  height: 90px;
+  background-color: silver;
+  border-radius: 100px;
+  margin: 0px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  border: 15px solid black;
+  box-sizing: border-box;
+  animation: tyreroate 2s linear;
+  animation-iteration-count: 2;
+  color: gray;
+  text-align: center;
+  font-size: 6em;
+  font-family: sans-serif;
+  font-weight: bold;
+  line-height: 60px;
+}
+.tyre:after {
+  content: "+";
+  width: 30px;
+  height: 30px;
+  background-color: black;
+  border-radius: 100px;
+  margin: 0px;
+  position: absolute;
+  top: 35px;
+  left: 35px;
+  color: rgb(201, 201, 201);
+  text-align: center;
+  font-size: 2em;
+  font-family: sans-serif;
+  font-weight: bold;
+  line-height: 30px;
+  animation: tyreroate 2s linear;
+  animation-iteration-count: 2;
+}
+.movetyre {
+  left: 55px;
+}
+.movetyre-left {
+  left: 25px;
+}
+.road {
+  width: 81%;
+  height: 30px;
+  background-color: #484848;
+  margin: 30px 0px 0px 0px;
+  position: absolute;
+}

@@ -1,0 +1,136 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: lms-backend:latest
+    container_name: lms-backend
+    env_file:
+      - ./backend/.env.docker
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      db:
+        condition: service_healthy
+    # NO network_mode aquí, usamos la red default de Docker
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lms-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    # command: ["npm", "run", "dev"]    # descomentar si el Dockerfile no arranca el servidor
+
+  queue-worker:
+    image: lms-backend:latest
+    # container_name: lms-queue-worker
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - ./backend:/var/www/html
+      - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - backend
+    working_dir: /var/www/html
+    entrypoint: >
+      sh -c "wg-quick up wg0 && php artisan queue:work --sleep=3 --tries=3"
+    deploy:
+      replicas: 5
+
+  scheduler:
+    image: lms-backend:latest
+    container_name: lms-scheduler
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - ./backend:/var/www/html
+      - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - backend
+    working_dir: /var/www/html
+    entrypoint: >
+      sh -c "wg-quick up wg0 && while true; do
+        php artisan schedule:run --no-interaction --verbose;
+        sleep 3;
+      done"
+
+  estado-contable:
+    image: lms-backend:latest
+    container_name: lms-estado-contable
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - ./backend:/var/www/html
+      - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - backend
+    working_dir: /var/www/html
+    entrypoint: >
+      sh -c "wg-quick up wg0 && while true; do
+        php artisan update:estado-contable;
+        sleep 21600;  # cada 6h
+      done"
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123!
+      MYSQL_DATABASE: lms_backend
+      MYSQL_USER: restrella
+      MYSQL_PASSWORD: "LogeX-?2028*"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123!" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      default:
+        aliases:
+          - db
+
+volumes:
+  db_data:
+
+
+# Para configuracion de permisos de Docker para que funcinoe:
+
+# docker exec -it --user root lms-backend bash
+# cd /var/www/html
+
+# Asegúrate de que www-data (usuario de Apache/PHP) sea dueño:
+# chown -R www-data:www-data storage
+
+# Dale permisos de escritura al grupo:
+# chmod -R 775 storage
