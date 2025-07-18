@@ -1,10 +1,51 @@
+# ⚙️ General
+.DS_Store
+Thumbs.db
+*.log
+*.lock
+*.pid
+*.gz
+*.zip
+*.tar
+*.bak
+*.swp
+
+# ⚙️ Docker
+docker-compose.override.yml
+.env.docker
+.env.override
+*.tar
+*.sql
+*.dump
+
+# 🔒 Entornos
 /backend/.env*
 /frontend/.env*
 /wireguard-client/privatekey
 /wireguard-client/publickey
 
-# frontend/.gitignore
-node_modules/
-.next/
-dist/
+# 🐘 Laravel (backend)
+vendor/
+storage/
+bootstrap/cache/
+*.sqlite
+
+# 🚀 Next.js (frontend)
+frontend/.next/
+frontend/node_modules/
+frontend/dist/
+frontend/.turbo/
+frontend/build/
 *.node
+
+# 🧪 Coverage / test
+coverage/
+.nyc_output/
+test-output/
+.vitest/
+
+# 🧠 IDEs / editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
