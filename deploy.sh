@@ -1,24 +1,14 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/bash
 
-cd "$(dirname "$0")"
-
-# 1. Aseguramos main al día
-git fetch origin
-git checkout main
-git pull origin main
-
-# 2. Limpiamos imágenes obsoletas
+echo "==> Limpiando recursos viejos..."
+docker builder prune -f
+docker volume prune -f
 docker image prune -f
 
-# 3. Reconstruimos y levantamos contenedores
-docker compose build --pull backend frontend
-docker compose up -d
+echo "==> Haciendo pull del código..."
+git pull origin main
 
-# 4. Migraciones y cacheos en backend
-docker compose exec backend bash -lc "
-  php artisan migrate --force &&
-  php artisan config:cache &&
-  php artisan route:cache &&
-  php artisan view:cache
-"
+echo "==> Reconstruyendo imágenes y levantando servicios..."
+docker compose down --remove-orphans
+docker compose build --no-cache
+docker compose up -d
