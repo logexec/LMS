@@ -88,7 +88,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
     \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-    \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+    \App\Http\Middleware\VerifyCsrfToken::class,
     'throttle:60,1',
     \Illuminate\Routing\Middleware\SubstituteBindings::class,
 ])->group(function () {
