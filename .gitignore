@@ -25,10 +25,35 @@ docker-compose.override.yml
 /wireguard-client/publickey
 
 # 🐘 Laravel (backend)
-vendor/
-storage/
-bootstrap/cache/
-*.sqlite
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+.env
+.env.backup
+.env.production
+.env.production.example
+.env.local
+.env.local.example
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+local.lms.com.conf
+/bootstrap/cache/*
+generate_bearer_token.php
 
 # 🚀 Next.js (frontend)
 frontend/.next/
