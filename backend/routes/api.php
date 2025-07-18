@@ -246,6 +246,15 @@ Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'viewPdf']);
 
 
 
+Route::post('/debug-login', function (\Illuminate\Http\Request $request) {
+    return response()->json([
+        'headers' => $request->headers->all(),
+        'cookies' => $request->cookies->all(),
+        'session' => $request->session()->all(),
+        'token_valid' => $request->hasValidCsrfToken(),
+    ]);
+});
+
 
 /**
  * =======================================
