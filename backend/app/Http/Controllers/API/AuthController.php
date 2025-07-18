@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -16,6 +17,13 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        Log::debug('🔐 Login request session data:', [
+            'token_in_request' => $request->header('X-XSRF-TOKEN'),
+            'token_in_session' => $request->session()->token(),
+            'all_session_data' => $request->session()->all(),
+            'cookies' => request()->cookies->all(),
+        ]);
+
         $request->validate([
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users',
@@ -36,7 +44,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Usuario creado y autenticado',
-            'user'    => $user->load(['role','permissions']),
+            'user'    => $user->load(['role', 'permissions']),
         ], 201);
     }
 
@@ -50,7 +58,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! Auth::attempt($request->only('email','password')) ) {
+        if (! Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
                 'email' => ['Credenciales incorrectas.'],
             ]);
@@ -60,7 +68,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         /** @var \App\Models\User $user */
-        $user = Auth::user()->load(['role','permissions','assignedProjects']);
+        $user = Auth::user()->load(['role', 'permissions', 'assignedProjects']);
 
         return response()->json([
             'message' => 'Login exitoso',
@@ -87,7 +95,7 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return response()->json($request->user()->load(['role','permissions','assignedProjects']));
+        return response()->json($request->user()->load(['role', 'permissions', 'assignedProjects']));
     }
 }
 

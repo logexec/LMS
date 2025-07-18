@@ -21,7 +21,7 @@ return [
     'domain' => env('SESSION_DOMAIN', null),
     // 'secure' => env('SESSION_SECURE_COOKIE', true),
     'http_only' => env('SESSION_HTTP_ONLY', false),
-    'same_site' => env('SESSION_SAME_SITE', 'none'),
+    'same_site' => env('SESSION_SAME_SITE', 'lax'),
     'secure' => env('SESSION_SECURE_COOKIE', false),
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 ];
