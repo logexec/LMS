@@ -2,3 +2,9 @@
 /frontend/.env*
 /wireguard-client/privatekey
 /wireguard-client/publickey
+
+# frontend/.gitignore
+node_modules/
+.next/
+dist/
+*.node
