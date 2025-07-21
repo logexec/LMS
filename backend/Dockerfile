@@ -48,10 +48,13 @@ RUN mkdir -p storage/app/facturas \
 RUN composer install --no-dev --optimize-autoloader \
     && chown -R www-data:www-data bootstrap storage
 
+# 7.1) Asegura la existencia de los directorios criticos con el script:
+COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # 8) Exponer y lanzar PHP-FPM
 EXPOSE 9000
 CMD ["sh", "-c", "wg-quick up wg0 && php-fpm"]
-
 
 
 
