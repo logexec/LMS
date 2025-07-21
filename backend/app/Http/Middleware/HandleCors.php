@@ -11,7 +11,7 @@ class HandleCors
     {
         $request->isMethod('OPTIONS') ? $response = response()->json([], 200) : $response = $next($request);
 
-        $allowedOrigins = ['https://lms.logex.com.ec', 'http://localhost:3000', 'http://localhost:3001', 'http://192.168.18.100:3000'];
+        $allowedOrigins = ['https://lms.logex.com.ec', 'http://localhost:3000', 'http://localhost:3001', 'http://10.120.1.20:3000'];
         $origin = $request->headers->get('Origin');
         $response->headers->set('Access-Control-Allow-Origin', in_array($origin, $allowedOrigins) ? $origin : 'https://lms.logex.com.ec');
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
