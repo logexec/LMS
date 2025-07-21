@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "==> [1/6] Reparando permisos en backend/..."
-if sudo chown -R "$(id -u):$(id -g)" backend/; then
+if chown -R "$(id -u):$(id -g)" backend/; then
   echo "    ✔ chown backend/ a $(id -u):$(id -g)"
 else
   echo "    ⚠️  No pude chown backend/ (quizá no tengas sudo), sigue de todas formas..."
