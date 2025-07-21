@@ -33,9 +33,9 @@ services:
       - ./backend:/var/www/html
       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
       # ¡Esto asegura que los logs no se borren!
+      # Persistimos sólo los dirs que Laravel escribe
       - ./backend/storage/logs:/var/www/html/storage/logs
       - ./backend/storage/framework/sessions:/var/www/html/storage/framework/sessions
-      # Por ver
       - ./backend/storage/framework/views:/var/www/html/storage/framework/views
       - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
     cap_add:
