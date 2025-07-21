@@ -57,8 +57,6 @@ services:
     depends_on:
       - backend
 
-
-
   frontend:
     build:
       context: ./frontend
@@ -155,7 +153,18 @@ services:
 volumes:
   db_data:
 
-
+docker-cron:
+  image: alpine:3.18
+  container_name: docker-cron
+  # montamos el socket para que pueda hablar con el daemon
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  entrypoint: >
+    sh -c "\
+      echo '0 2 * * * docker builder prune --all --filter \"until=72h\" -f && \
+                    docker image prune -af && \
+                    docker volume prune -f' > /etc/crontabs/root && \
+      crond -f -l 8"
 
 # services:
 
