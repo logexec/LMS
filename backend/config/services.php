@@ -38,9 +38,20 @@ return [
         'api_key' => env('SENDGRID_API_KEY'),
     ],
     'sri' => [
-        'autorizacion_wsdl' => env(
-            'SRI_AUTORIZACION_WSDL',
+        // URL del WSDL de autorización offline del SRI
+        'wsdl'               => env(
+            'SRI_WSDL',
             'https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl'
         ),
+
+        // Opciones de cache para SoapClient
+        // (WSDL_CACHE_NONE, WSDL_CACHE_DISK, WSDL_CACHE_MEMORY, WSDL_CACHE_BOTH)
+        'cache_wsdl'         => env('SRI_CACHE_WSDL', WSDL_CACHE_NONE),
+
+        // Habilita el trace para debug
+        'trace'              => env('SRI_TRACE', true),
+
+        // Timeout de conexión en segundos
+        'connection_timeout' => env('SRI_TIMEOUT', 10),
     ],
 ];

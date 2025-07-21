@@ -11,7 +11,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\AuditLogController;
 use App\Http\Controllers\API\DocumentGenerationController;
 use App\Http\Controllers\API\InvoiceController;
-use App\Http\Controllers\API\InvoiceImportController;
+use App\Http\Controllers\API\InvoiceUploadController;
 use App\Http\Controllers\API\LoanController;
 use App\Http\Controllers\API\LoanImportController;
 use App\Http\Controllers\API\MobileDataController;
@@ -22,7 +22,6 @@ use App\Http\Controllers\API\RequestController;
 use App\Http\Controllers\API\ResponsibleController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\ReportController;
-use App\Http\Controllers\API\SriImportController;
 use App\Http\Controllers\API\StatsController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\API\TransportController;
@@ -107,7 +106,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auditoria', [AuditLogController::class, 'index']);
 
     // Invoices & documents
-    Route::post('/facturas/importar',  [InvoiceImportController::class, 'import']);
     Route::apiResource('/facturas',     InvoiceController::class);
     Route::post('/generate-documents',  [DocumentGenerationController::class, 'generate']);
     Route::get('/sri-documents-stats',  [StatsController::class, 'index']);
@@ -212,9 +210,15 @@ Route::get('/download-expenses-template',  [TemplateController::class, 'download
     ->withoutMiddleware(\App\Http\Middleware\ValidateApiToken::class);
 
 // SRI TXT import
-Route::post('/import-sri-txt', [SriImportController::class, 'uploadTxt']);
-Route::get('/import-status/{path}', [SriImportController::class, 'status'])
-    ->where('path', '.*');
+// Route::post('/import-sri-txt', [SriImportController::class, 'uploadTxt']);
+// Route::get('/import-status/{path}', [SriImportController::class, 'status'])
+//     ->where('path', '.*');
+Route::post('/facturas/importar-xml',   [InvoiceUploadController::class, 'uploadXml']);
+Route::get( '/facturas/importar-xml/stream', [InvoiceUploadController::class, 'streamXml']);
+
+Route::post('/facturas/importar-txt',   [InvoiceUploadController::class, 'uploadTxt']);
+Route::get( '/facturas/importar-txt/stream',[InvoiceUploadController::class, 'streamTxt']);
+
 
 // Latinium integration endpoints
 Route::get('/latinium/accounts',             [InvoiceController::class, 'latiniumAccounts']);

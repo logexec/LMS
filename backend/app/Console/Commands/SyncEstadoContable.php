@@ -8,56 +8,30 @@ use Illuminate\Support\Facades\DB;
 
 class SyncEstadoContable extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'update:estado-contable';
+    protected $signature   = 'update:estado-contable';
+    protected $description = 'Actualiza el estado contable de facturas en LMS.';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Actualiza el estado contable de cada factura en la base de datos de LMS.';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
-        $this->info('Sincronizando estado contable con LATINIUM');
+        $this->info('Sincronizando estado contable');
 
-        // 1) Traemos sólo las pendientes
         $facturas = Invoice::where('contabilizado', 'PENDIENTE')->get();
-        $this->info('Facturas pendientes: ' . $facturas->count());
-        foreach ($facturas as $factura) {
-            $this->line('Clave acceso: ' . $factura->clave_acceso);
-
-            // 2) Elegimos la conexión correcta
-            $connection = $factura->identificacion_comprador === '0992301066001'
+        foreach ($facturas as $fac) {
+            $conn = $fac->identificacion_comprador === '0992301066001'
                 ? 'latinium_prebam'
                 : 'latinium_sersupport';
 
-            $this->line('Usando conexión: ' . $connection);
-            
-            // 3) Consultamos por AutFactura = clave_acceso
-            $existeCompra = DB::connection($connection)
+            $existe = DB::connection($conn)
                 ->table('Compra')
-                ->where('AutFactura', $factura->clave_acceso)
+                ->where('AutFactura', $fac->clave_acceso)
                 ->exists();
 
-            $this->line('¿Compra existe? ' . ($existeCompra ? 'Sí' : 'No'));
-
-            if ($existeCompra && $factura->contabilizado !== 'CONTABILIZADO') {
-                $factura->update(['contabilizado' => 'CONTABILIZADO']);
-                $this->info("Factura ID {$factura->id} actualizada a CONTABILIZADO");
-            } else {
-                $this->line("Sin cambios para factura ID {$factura->id}");
+            if ($existe) {
+                $fac->update(['contabilizado' => 'CONTABILIZADO']);
+                $this->info("Factura {$fac->id} ⇒ CONTABILIZADO");
             }
         }
 
-        $this->info('Sincronización contable completada.');
+        $this->info('Sincronización completada.');
     }
 }
