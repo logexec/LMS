@@ -6,6 +6,13 @@ docker builder prune -f
 docker volume prune -f
 docker image prune -f
 
+# Dar permisos
+if sudo chown -R "$(id -u):$(id -g)" backend/; then
+  echo "    ✔ chown backend/ a $(id -u):$(id -g)"
+else
+  echo "    ⚠️  No pude chown backend/ (quizá no tengas sudo), sigue de todas formas..."
+fi
+
 echo "==> [2/6] Traer último código de Git y resetear…"
 git fetch origin main
 git reset --hard origin/main
