@@ -85,7 +85,7 @@ services:
 
   queue-worker:
     image: lms-backend:latest
-    # container_name: lms-queue-worker
+    container_name: queue-worker
     restart: unless-stopped
     env_file:
       - ./backend/.env.docker

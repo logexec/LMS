@@ -12,7 +12,7 @@ class Cors
     {
         // 1) Definir orígenes permitidos
         $allowedOrigins = [
-            'http://localhost:3000',
+            // 'http://localhost:3000',
             'http://10.120.1.20:3000',
             'https://lms.logex.com.ec',
         ];
