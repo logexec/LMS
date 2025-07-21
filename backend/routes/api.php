@@ -69,7 +69,7 @@ Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
 |--------------------------------------------------------------------------
 */
 Route::middleware([
-    \App\Http\Middleware\Cors::class,
+    // \App\Http\Middleware\Cors::class,
     \App\Http\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
@@ -83,7 +83,7 @@ Route::middleware([
 |--------------------------------------------------------------------------
 */
 Route::middleware([
-    \App\Http\Middleware\Cors::class,
+    // \App\Http\Middleware\Cors::class,
     \App\Http\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
