@@ -1,35 +1,34 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "==> [1/6] Limpiando caches de Docker (builders, volúmenes, imágenes)…"
+echo "➤ Ajustando permisos de storage y cache…"
+sudo chown -R 33:33 backend/storage backend/bootstrap/cache
+chmod -R 775 backend/storage backend/bootstrap/cache
+
+echo "➤ Limpiando cachés de Docker…"
 docker builder prune -f
 docker volume prune -f
 docker image prune -f
 
-# Dar permisos
-if sudo chown -R "$(id -u):$(id -g)" backend/; then
-  echo "    ✔ chown backend/ a $(id -u):$(id -g)"
-else
-  echo "    ⚠️  No pude chown backend/ (quizá no tengas sudo), sigue de todas formas..."
-fi
-
-echo "==> [2/6] Trayendo último código de Git y reseteando…"
+echo "➤ Actualizando código…"
 git fetch origin main
 git reset --hard origin/main
 
-echo "==> [3/6] Deteniendo y removiendo containers huérfanos…"
-docker compose down --remove-orphans
-
-echo "==> [4/6] Reconstruyendo imágenes sin cache…"
+echo "➤ Reconstruyendo imágenes…"
 docker compose build --no-cache
 
-echo "==> [5/6] Levantando servicios…"
+echo "➤ Levantando servicios…"
+docker compose down --remove-orphans
 docker compose up -d
 
-echo "==> [6/6] Corrigiendo permisos dentro del container backend…"
+echo "➤ Recargando Nginx…"
+docker compose exec nginx nginx -s reload
+
+echo "➤ Limpiando caché de Laravel en container…"
 docker compose exec backend bash -lc "\
-  chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-  chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+  php artisan config:clear && \
+  php artisan route:clear && \
+  php artisan cache:clear \
 "
 
-echo "✅ Despliegue completado."
+echo "✅ Despliegue completo"
