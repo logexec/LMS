@@ -1,48 +1,56 @@
-# backend/Dockerfile
 FROM php:8.2-fpm
 
-# 1) Sistema y WireGuard (igual que antes, salvo nginx)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-   libonig-dev libzip-dev zip unzip \
-   libpng-dev libjpeg-dev libfreetype6-dev \
-   libxml2-dev gnupg2 curl unixodbc-dev \
-   iproute2 wireguard-tools \
-   && rm -rf /var/lib/apt/lists/* \
-   && printf '%s\n' '#!/bin/sh' 'exit 0' > /usr/sbin/resolvconf \
-   && chmod +x /usr/sbin/resolvconf \
-   && mkdir -p /etc/wireguard
+# 1) Instala dependencias de sistema y WireGuard
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       libonig-dev libzip-dev zip unzip \
+       libpng-dev libjpeg-dev libfreetype6-dev \
+       libxml2-dev gnupg2 curl unixodbc-dev \
+       iproute2 wireguard-tools \
+    && rm -rf /var/lib/apt/lists/* \
+    && printf '%s\n' '#!/bin/sh' 'exit 0' > /usr/sbin/resolvconf \
+    && chmod +x /usr/sbin/resolvconf \
+    && mkdir -p /etc/wireguard
 
-# 2) SQLSRV, GD, SOAP...
+# 2) SQLSRV, GD, SOAP y extensiones PHP
 RUN curl -sSL https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
-   -o packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb \
-   && rm packages-microsoft-prod.deb && apt-get update \
-   && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
-   && docker-php-ext-configure gd --with-freetype --with-jpeg \
-   && docker-php-ext-install gd mbstring pdo_mysql zip exif pcntl soap \
-   && pecl install sqlsrv pdo_sqlsrv \
-   && docker-php-ext-enable sqlsrv pdo_sqlsrv
+    -o packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd mbstring pdo_mysql zip exif pcntl soap \
+    && pecl install sqlsrv pdo_sqlsrv \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 # 3) Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# 4) PHP config overrides
+# 4) Overrides de PHP (SameSite, secure flag)
 RUN echo "session.cookie_samesite=lax" > /usr/local/etc/php/conf.d/z-samesite.ini \
-   && echo "session.cookie_secure=0" >> /usr/local/etc/php/conf.d/z-samesite.ini
+    && echo "session.cookie_secure=0" >> /usr/local/etc/php/conf.d/z-samesite.ini
 
-# 5) Copy app + permisos
+# 5) Copia la aplicación y fija permisos iniciales
 WORKDIR /var/www/html
 COPY . .
-RUN chown -R www-data:www-data /var/www/html \
-   && chmod -R 755 /var/www/html \
-   && mkdir -p storage/app/facturas \
-   && chmod -R 775 storage/app/facturas \
-   && composer install --no-dev --optimize-autoloader \
-   && chown -R www-data:www-data bootstrap storage
 
-# 6) Exponer PHP-FPM
+# 6) Asegura carpetas críticas y permisos
+RUN mkdir -p storage/app/facturas \
+         storage/logs \
+         storage/framework/cache \
+         storage/framework/sessions \
+         storage/framework/views \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 storage storage/logs storage/app storage/app/facturas storage/framework \
+    && chmod -R 775 bootstrap/cache
+
+# 7) Dependencias PHP via Composer
+RUN composer install --no-dev --optimize-autoloader \
+    && chown -R www-data:www-data bootstrap storage
+
+# 8) Exponer y lanzar PHP-FPM
 EXPOSE 9000
-
-CMD wg-quick up wg0 && php-fpm
+CMD ["sh", "-c", "wg-quick up wg0 && php-fpm"]
 
 
 
