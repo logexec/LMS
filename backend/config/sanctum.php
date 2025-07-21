@@ -3,7 +3,7 @@
 use Laravel\Sanctum\Sanctum;
 
 return [
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost')),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', '10.120.1.20:3000')),
     'guards' => [
         'api' => [
             'driver' => 'token',
