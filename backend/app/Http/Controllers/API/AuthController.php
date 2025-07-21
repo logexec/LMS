@@ -17,12 +17,6 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        Log::debug('🔐 Login request session data:', [
-            'token_in_request' => $request->header('X-XSRF-TOKEN'),
-            'token_in_session' => $request->session()->token(),
-            'all_session_data' => $request->session()->all(),
-            'cookies' => request()->cookies->all(),
-        ]);
 
         $request->validate([
             'name'                  => 'required|string|max:255',
@@ -53,6 +47,12 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        Log::debug('🔐 Login request session data:', [
+            'token_in_request' => $request->header('X-XSRF-TOKEN'),
+            'token_in_session' => $request->session()->token(),
+            'all_session_data' => $request->session()->all(),
+            'cookies' => request()->cookies->all(),
+        ]);
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string',

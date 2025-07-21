@@ -452,6 +452,6 @@ Route::post('/debug-login', function (\Illuminate\Http\Request $request) {
 // });
 
 // // Al final de api.php, captura todas las peticiones OPTIONS
-// Route::options('{any}', function () {
-//     return response('', 200);
-// })->where('any', '.*');
+Route::options('{any}', function () {
+    return response('', 200);
+})->where('any', '.*');
