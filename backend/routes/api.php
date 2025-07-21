@@ -78,127 +78,127 @@ Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
 |--------------------------------------------------------------------------
 */
 
-    //––– Debugging (logs cookies/headers/session/user) –––
-    Route::get('/debug', function (Request $request) {
-        Log::debug('===== API DEBUG =====', [
-            'cookies'       => $request->cookies->all(),
-            'headers'       => $request->headers->all(),
-            'session_id'    => session()->getId(),
-            'session_token' => session()->token(),
-            'user_id'       => auth()->user()?->id,
-        ]);
-        return response()->json([
-            'ok'      => true,
-            'cookies' => $request->cookies->all(),
-        ]);
+//––– Debugging (logs cookies/headers/session/user) –––
+Route::get('/debug', function (Request $request) {
+    Log::debug('===== API DEBUG =====', [
+        'cookies'       => $request->cookies->all(),
+        'headers'       => $request->headers->all(),
+        'session_id'    => session()->getId(),
+        'session_token' => session()->token(),
+        'user_id'       => auth()->user()?->id,
+    ]);
+    return response()->json([
+        'ok'      => true,
+        'cookies' => $request->cookies->all(),
+    ]);
+});
+
+Route::post('/login', [AuthController::class, 'login']);
+
+//––– Authenticated SPA routes –––
+Route::middleware('auth:sanctum')->group(function () {
+    // User profile & password
+    Route::post('/logout',          [AuthController::class, 'logout']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/refresh-token',   [AuthController::class, 'refresh']);
+    Route::patch('/users/{user}',   [UserController::class, 'patch']);
+
+    // Audit logs
+    Route::get('/auditoria', [AuditLogController::class, 'index']);
+
+    // Invoices & documents
+    Route::post('/facturas/importar',  [InvoiceImportController::class, 'import']);
+    Route::apiResource('/facturas',     InvoiceController::class);
+    Route::post('/generate-documents',  [DocumentGenerationController::class, 'generate']);
+    Route::get('/sri-documents-stats',  [StatsController::class, 'index']);
+    Route::post('/reports/generate',    [ReportController::class, 'generate']);
+
+    // Accounts, Transports, Responsibles
+    Route::apiResource('/accounts',     AccountController::class);
+    Route::apiResource('/transports',   TransportController::class);
+    Route::apiResource('/responsibles', ResponsibleController::class);
+
+    // Projects & project/users
+    Route::prefix('projects')->group(function () {
+        Route::apiResource('/', ProjectController::class);
+        Route::get('/{id}/users', [ProjectController::class, 'getProjectUsers']);
+        Route::post('/{id}/users', [ProjectController::class, 'assignUsers']);
     });
 
-    Route::post('/login', [AuthController::class, 'login']);
+    // Areas
+    Route::apiResource('/areas', AreaController::class);
 
-    //––– Authenticated SPA routes –––
-    Route::middleware('auth:sanctum')->group(function () {
-        // User profile & password
-        Route::post('/logout',          [AuthController::class, 'logout']);
-        Route::post('/change-password', [AuthController::class, 'changePassword']);
-        Route::post('/refresh-token',   [AuthController::class, 'refresh']);
-        Route::patch('/users/{user}',   [UserController::class, 'patch']);
+    // Requests (incl. import, batch delete, upload discounts)
+    Route::apiResource('/requests', RequestController::class);
+    Route::post('/requests/import',        [RequestController::class, 'import']);
+    Route::post('/requests/batch-delete',  [RequestController::class, 'batchDelete']);
+    Route::post('/requests/upload-discounts', [RequestController::class, 'uploadDiscounts']);
 
-        // Audit logs
-        Route::get('/auditoria', [AuditLogController::class, 'index']);
+    // Reposiciones (dentro de API)
+    Route::apiResource('/reposiciones', ReposicionController::class)
+        ->except('file');
+    Route::get('/reposiciones/{id}/file', [ReposicionController::class, 'file']);
 
-        // Invoices & documents
-        Route::post('/facturas/importar',  [InvoiceImportController::class, 'import']);
-        Route::apiResource('/facturas',     InvoiceController::class);
-        Route::post('/generate-documents',  [DocumentGenerationController::class, 'generate']);
-        Route::get('/sri-documents-stats',  [StatsController::class, 'index']);
-        Route::post('/reports/generate',    [ReportController::class, 'generate']);
+    // Loans & imports
+    Route::post('/loans/import', [LoanImportController::class, 'import']);
+    Route::apiResource('/loans',  LoanController::class);
 
-        // Accounts, Transports, Responsibles
-        Route::apiResource('/accounts',     AccountController::class);
-        Route::apiResource('/transports',   TransportController::class);
-        Route::apiResource('/responsibles', ResponsibleController::class);
-
-        // Projects & project/users
-        Route::prefix('projects')->group(function () {
-            Route::apiResource('/', ProjectController::class);
-            Route::get('/{id}/users', [ProjectController::class, 'getProjectUsers']);
-            Route::post('/{id}/users', [ProjectController::class, 'assignUsers']);
-        });
-
-        // Areas
-        Route::apiResource('/areas', AreaController::class);
-
-        // Requests (incl. import, batch delete, upload discounts)
-        Route::apiResource('/requests', RequestController::class);
-        Route::post('/requests/import',        [RequestController::class, 'import']);
-        Route::post('/requests/batch-delete',  [RequestController::class, 'batchDelete']);
-        Route::post('/requests/upload-discounts', [RequestController::class, 'uploadDiscounts']);
-
-        // Reposiciones (dentro de API)
-        Route::apiResource('/reposiciones', ReposicionController::class)
-            ->except('file');
-        Route::get('/reposiciones/{id}/file', [ReposicionController::class, 'file']);
-
-        // Loans & imports
-        Route::post('/loans/import', [LoanImportController::class, 'import']);
-        Route::apiResource('/loans',  LoanController::class);
-
-        /*
+    /*
         |--------------------------------------------------------------------------
         | Admin-only (role:admin,developer)
         |--------------------------------------------------------------------------
         */
-        Route::middleware(['role:admin,developer'])->group(function () {
-            // Users CRUD + assign permissions/projects
-            Route::prefix('users')->group(function () {
-                Route::get('/',   [UserController::class, 'index']);
-                Route::post('/',  [UserController::class, 'store']);
-                Route::get('/{user}',   [UserController::class, 'show']);
-                Route::put('/{user}',   [UserController::class, 'update']);
-                Route::delete('/{user}', [UserController::class, 'destroy']);
-                Route::put('/{user}/permissions', [UserController::class, 'updatePermissions']);
-                Route::get('/{user}/projects',     [UserController::class, 'getUserProjects']);
-                Route::post('/{user}/projects',    [UserController::class, 'assignProjects']);
-            });
-
-            // Roles & their permissions
-            Route::prefix('roles')->group(function () {
-                Route::get('/',   [RoleController::class, 'index']);
-                Route::post('/',  [RoleController::class, 'store']);
-                Route::get('/{role}',   [RoleController::class, 'show']);
-                Route::put('/{role}',   [RoleController::class, 'update']);
-                Route::delete('/{role}', [RoleController::class, 'destroy']);
-                Route::get('/{role}/permissions',   [RoleController::class, 'permissions']);
-                Route::put('/{role}/permissions',   [RoleController::class, 'updatePermissions']);
-            });
-
-            // Permissions management
-            Route::prefix('permissions')->group(function () {
-                Route::get('/',   [PermissionController::class, 'index']);
-                Route::post('/',  [PermissionController::class, 'store']);
-                Route::get('/{permission}',   [PermissionController::class, 'show']);
-                Route::put('/{permission}',   [PermissionController::class, 'update']);
-                Route::delete('/{permission}', [PermissionController::class, 'destroy']);
-                Route::post('/{permission}/assign-to-role', [PermissionController::class, 'assignToRole']);
-            });
-
-            // In-app registration (if still needed)
-            Route::post('/register', [AuthController::class, 'register']);
+    Route::middleware(['role:admin,developer'])->group(function () {
+        // Users CRUD + assign permissions/projects
+        Route::prefix('users')->group(function () {
+            Route::get('/',   [UserController::class, 'index']);
+            Route::post('/',  [UserController::class, 'store']);
+            Route::get('/{user}',   [UserController::class, 'show']);
+            Route::put('/{user}',   [UserController::class, 'update']);
+            Route::delete('/{user}', [UserController::class, 'destroy']);
+            Route::put('/{user}/permissions', [UserController::class, 'updatePermissions']);
+            Route::get('/{user}/projects',     [UserController::class, 'getUserProjects']);
+            Route::post('/{user}/projects',    [UserController::class, 'assignProjects']);
         });
 
-        /*
+        // Roles & their permissions
+        Route::prefix('roles')->group(function () {
+            Route::get('/',   [RoleController::class, 'index']);
+            Route::post('/',  [RoleController::class, 'store']);
+            Route::get('/{role}',   [RoleController::class, 'show']);
+            Route::put('/{role}',   [RoleController::class, 'update']);
+            Route::delete('/{role}', [RoleController::class, 'destroy']);
+            Route::get('/{role}/permissions',   [RoleController::class, 'permissions']);
+            Route::put('/{role}/permissions',   [RoleController::class, 'updatePermissions']);
+        });
+
+        // Permissions management
+        Route::prefix('permissions')->group(function () {
+            Route::get('/',   [PermissionController::class, 'index']);
+            Route::post('/',  [PermissionController::class, 'store']);
+            Route::get('/{permission}',   [PermissionController::class, 'show']);
+            Route::put('/{permission}',   [PermissionController::class, 'update']);
+            Route::delete('/{permission}', [PermissionController::class, 'destroy']);
+            Route::post('/{permission}/assign-to-role', [PermissionController::class, 'assignToRole']);
+        });
+
+        // In-app registration (if still needed)
+        Route::post('/register', [AuthController::class, 'register']);
+    });
+
+    /*
         |--------------------------------------------------------------------------
         | Fine-grained permission / role + permission
         |--------------------------------------------------------------------------
         | e.g. only admins with manage_system, or view_reports+generate_reports
         */
-        Route::middleware(['permission:view_reports,generate_reports'])->group(function () {
-            // ...
-        });
-        Route::middleware(['role:admin', 'permission:manage_system'])->group(function () {
-            // ...
-        });
+    Route::middleware(['permission:view_reports,generate_reports'])->group(function () {
+        // ...
     });
+    Route::middleware(['role:admin', 'permission:manage_system'])->group(function () {
+        // ...
+    });
+});
 
 /*
 |--------------------------------------------------------------------------

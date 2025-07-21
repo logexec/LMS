@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php'
     )
     ->withMiddleware(function ($middleware) {
-        // *** Middleware "web" ***
+        // *** web middleware (solo aplica en web.php) ***
         $middleware->use([
             \App\Http\Middleware\Cors::class,
             \App\Http\Middleware\EncryptCookies::class,
@@ -20,10 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
         ]);
 
-        // *** Middleware "api" ***
+        // *** api middleware (pipeline para /api/*) ***
         $middleware->api([
             \App\Http\Middleware\Cors::class,
-            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
@@ -31,21 +31,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:60,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
-    })->withExceptions(function (Exceptions $exceptions) {
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Exception $e, $request) {
             if ($request->is('api/*')) {
-                if ($e instanceof MethodNotAllowedHttpException) {
-                    return response()->json([
-                        'message' => 'Método no permitido para esta ruta.',
-                        'exception' => get_class($e),
-                    ], 405);
-                }
                 return response()->json([
-                    'message' => $e->getMessage(),
+                    'message'   => $e instanceof MethodNotAllowedHttpException
+                                    ? 'Método no permitido.'
+                                    : $e->getMessage(),
                     'exception' => get_class($e),
-                ], 500);
+                ], $e instanceof MethodNotAllowedHttpException ? 405 : 500);
             }
         });
-    })->withProviders([
+    })
+    ->withProviders([
         Laravel\Sanctum\SanctumServiceProvider::class,
-    ])->create();
+    ])
+    ->create();
