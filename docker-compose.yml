@@ -30,7 +30,7 @@ services:
     env_file:
       - ./backend/.env.docker
     volumes:
-      - ./backend:/var/www/html
+      - ./backend:/var/www/html:ro
       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
       # ¡Esto asegura que los logs no se borren!
       # Persistimos sólo los dirs que Laravel escribe
