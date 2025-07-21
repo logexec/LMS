@@ -32,6 +32,9 @@ services:
     volumes:
       - ./backend:/var/www/html
       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+      # ¡Esto asegura que los logs no se borren!
+      - ./lms-logs:/var/www/html/storage/logs
+      - ./lms-sessions:/var/www/html/storage/framework/sessions
     cap_add:
       - NET_ADMIN
     expose:
