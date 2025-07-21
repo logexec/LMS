@@ -1,37 +1,27 @@
 #!/bin/bash
-
 set -euo pipefail
 
-# 0. Ensure script is run from repo root
-REPO_ROOT="$(dirname "$0")"
-cd "$REPO_ROOT"
-
-echo "==> [1/8] Granting write permissions to backend directory..."
-# Give current user write permission so git pull can overwrite
-chmod -R u+rwX backend || echo "⚠️ Warning: unable to chmod backend directory"
-
-echo "==> [2/8] Cleaning up old Docker resources..."
+echo "==> [1/6] Limpiando recursos viejos..."
 docker builder prune -f
 docker volume prune -f
 docker image prune -f
 
-echo "==> [3/8] Fetching latest code from origin/main..."
+echo "==> [2/6] Traer último código..."
 git fetch origin main
-# Reset hard to remote to avoid merge conflicts
 git reset --hard origin/main
 
-echo "==> [4/8] Bringing down existing containers (and removing orphans)..."
+echo "==> [3/6] Bajar contenedores antiguos..."
 docker compose down --remove-orphans
 
-echo "==> [5/8] Rebuilding images (no cache)..."
+echo "==> [4/6] Reconstruyendo imágenes sin cache..."
 docker compose build --no-cache
 
-echo "==> [6/8] Starting services in detached mode..."
+echo "==> [5/6] Levantando servicios en background..."
 docker compose up -d
 
-echo "==> [7/8] Fixing storage & cache permissions inside container..."
+echo "==> [6/6] Corrigiendo permisos dentro del contenedor backend..."
 docker compose exec backend \
-  chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-  chmod -R 775             /var/www/html/storage /var/www/html/bootstrap/cache
+  bash -lc "chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+             chmod -R 775             /var/www/html/storage /var/www/html/bootstrap/cache"
 
-echo "[8/8] ✅ Permissions fixed, logs and sessions should now be writable."
+echo "✅ ¡Despliegue completado!"
