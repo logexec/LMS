@@ -1,52 +1,49 @@
 # backend/Dockerfile
 FROM php:8.2-fpm
 
-# Dependencias de sistema
+# 1) Sistema y WireGuard (igual que antes, salvo nginx)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-   nginx \
    libonig-dev libzip-dev zip unzip \
    libpng-dev libjpeg-dev libfreetype6-dev \
    libxml2-dev gnupg2 curl unixodbc-dev \
    iproute2 wireguard-tools \
    && rm -rf /var/lib/apt/lists/* \
    && printf '%s\n' '#!/bin/sh' 'exit 0' > /usr/sbin/resolvconf \
-   && chmod +x /usr/sbin/resolvconf
+   && chmod +x /usr/sbin/resolvconf \
+   && mkdir -p /etc/wireguard
 
-# WireGuard
-RUN mkdir -p /etc/wireguard
-
-# SQLSRV
+# 2) SQLSRV, GD, SOAP...
 RUN curl -sSL https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
    -o packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb \
    && rm packages-microsoft-prod.deb && apt-get update \
    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
-   && rm -rf /var/lib/apt/lists/*
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+   && docker-php-ext-configure gd --with-freetype --with-jpeg \
    && docker-php-ext-install gd mbstring pdo_mysql zip exif pcntl soap \
    && pecl install sqlsrv pdo_sqlsrv \
    && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
-# Composer
+# 3) Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configuración PHP
-RUN echo "session.cookie_samesite=None" > /usr/local/etc/php/conf.d/z-override.ini \
-   && echo "session.cookie_secure=0" >> /usr/local/etc/php/conf.d/z-override.ini
+# 4) PHP config overrides
+RUN echo "session.cookie_samesite=lax" > /usr/local/etc/php/conf.d/z-samesite.ini \
+   && echo "session.cookie_secure=0" >> /usr/local/etc/php/conf.d/z-samesite.ini
 
-# Archivos
+# 5) Copy app + permisos
 WORKDIR /var/www/html
-COPY . /var/www/html
-
-# Permisos
+COPY . .
 RUN chown -R www-data:www-data /var/www/html \
    && chmod -R 755 /var/www/html \
-   && mkdir -p /var/www/html/storage/app/facturas \
-   && chmod -R 775 /var/www/html/storage/app/facturas \
+   && mkdir -p storage/app/facturas \
+   && chmod -R 775 storage/app/facturas \
    && composer install --no-dev --optimize-autoloader \
    && chown -R www-data:www-data bootstrap storage
 
+# 6) Exponer PHP-FPM
+EXPOSE 9000
+
 CMD wg-quick up wg0 && php-fpm
+
 
 
 
