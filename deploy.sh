@@ -1,6 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+# Dar permisos
+if sudo chown -R "$(id -u):$(id -g)" backend/; then
+  echo "    ✔ chown backend/ a $(id -u):$(id -g)"
+else
+  echo "    ⚠️  No pude chown backend/ (quizá no tengas sudo), sigue de todas formas..."
+fi
+
 echo "➤ Ajustando permisos de storage y cache…"
 sudo chown -R 33:33 backend/storage backend/bootstrap/cache
 chmod -R 775 backend/storage backend/bootstrap/cache
