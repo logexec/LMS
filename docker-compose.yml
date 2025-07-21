@@ -151,21 +151,6 @@ services:
 volumes:
   db_data:
 
-docker-cron:
-  image: alpine:3.18
-  container_name: docker-cron
-  # montamos el socket para que pueda hablar con el daemon
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-  entrypoint: >
-      sh -c "
-        wg-quick up wg0 &&
-        while true; do
-          php artisan schedule:run --verbose --no-interaction;
-          sleep 60;
-        done
-      "
-
 # services:
 
 #   backend:
