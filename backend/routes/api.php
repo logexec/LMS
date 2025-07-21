@@ -231,7 +231,10 @@ Route::patch('/latinium/estado-contable',    [InvoiceController::class, 'actuali
 Route::get('/invoices/{invoice}/pdf',  [InvoiceController::class, 'pdf']);
 Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'viewPdf']);
 
-
+// Responde a las solicitudes de preflight con un 200
+Route::options('{any}', function () {
+    return response('', 200);
+})->where('any', '.*');
 
 
 Route::post('/debug-login', function (\Illuminate\Http\Request $request) {
