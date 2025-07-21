@@ -57,18 +57,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
+    image: lms-frontend:latest
     env_file:
-      - ./frontend/.env
+      - ./frontend/.env   # el env de producción
     ports:
       - "3000:3000"
-    # monto tu código para que cada cambio lo veas en caliente
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     depends_on:
       - backend
     # command: ["npm", "run", "dev"]
-    command: ["npx", "next", "dev", "-H", "0.0.0.0"]
 
   db:
     image: mysql:8.0
