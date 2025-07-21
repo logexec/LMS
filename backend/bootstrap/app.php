@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function ($middleware) {
         // *** Middleware "web" ***
         $middleware->use([
-            // \App\Http\Middleware\Cors::class,
+            \App\Http\Middleware\Cors::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
@@ -22,11 +22,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // *** Middleware "api" ***
         $middleware->api([
-            // \App\Http\Middleware\Cors::class,
+            \App\Http\Middleware\Cors::class,
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
             'throttle:60,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-
         ]);
     })->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Exception $e, $request) {

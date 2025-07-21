@@ -33,6 +33,7 @@ use App\Http\Controllers\API\UserController;
 | Public / Throttled (no auth)
 |--------------------------------------------------------------------------
 */
+
 Route::middleware('throttle:6,1')->group(function () {
     // (e.g. health checks, public info, etc.)
 });
@@ -68,30 +69,14 @@ Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
 | CSRF cookie
 |--------------------------------------------------------------------------
 */
-Route::middleware([
-    \App\Http\Middleware\Cors::class,
-    \App\Http\Middleware\EncryptCookies::class,
-    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    \Illuminate\Session\Middleware\StartSession::class,
-])->group(function () {
-    Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
-});
+
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
 | API (stateful SPA) — all routes below share these middlewares
 |--------------------------------------------------------------------------
 */
-Route::middleware([
-    \App\Http\Middleware\Cors::class,
-    \App\Http\Middleware\EncryptCookies::class,
-    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    \Illuminate\Session\Middleware\StartSession::class,
-    \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
-    \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-    'throttle:60,1',
-    \Illuminate\Routing\Middleware\SubstituteBindings::class,
-])->group(function () {
 
     //––– Debugging (logs cookies/headers/session/user) –––
     Route::get('/debug', function (Request $request) {
@@ -170,7 +155,7 @@ Route::middleware([
                 Route::post('/',  [UserController::class, 'store']);
                 Route::get('/{user}',   [UserController::class, 'show']);
                 Route::put('/{user}',   [UserController::class, 'update']);
-                Route::delete('/{user}',[UserController::class, 'destroy']);
+                Route::delete('/{user}', [UserController::class, 'destroy']);
                 Route::put('/{user}/permissions', [UserController::class, 'updatePermissions']);
                 Route::get('/{user}/projects',     [UserController::class, 'getUserProjects']);
                 Route::post('/{user}/projects',    [UserController::class, 'assignProjects']);
@@ -182,7 +167,7 @@ Route::middleware([
                 Route::post('/',  [RoleController::class, 'store']);
                 Route::get('/{role}',   [RoleController::class, 'show']);
                 Route::put('/{role}',   [RoleController::class, 'update']);
-                Route::delete('/{role}',[RoleController::class, 'destroy']);
+                Route::delete('/{role}', [RoleController::class, 'destroy']);
                 Route::get('/{role}/permissions',   [RoleController::class, 'permissions']);
                 Route::put('/{role}/permissions',   [RoleController::class, 'updatePermissions']);
             });
@@ -193,7 +178,7 @@ Route::middleware([
                 Route::post('/',  [PermissionController::class, 'store']);
                 Route::get('/{permission}',   [PermissionController::class, 'show']);
                 Route::put('/{permission}',   [PermissionController::class, 'update']);
-                Route::delete('/{permission}',[PermissionController::class, 'destroy']);
+                Route::delete('/{permission}', [PermissionController::class, 'destroy']);
                 Route::post('/{permission}/assign-to-role', [PermissionController::class, 'assignToRole']);
             });
 
@@ -210,11 +195,10 @@ Route::middleware([
         Route::middleware(['permission:view_reports,generate_reports'])->group(function () {
             // ...
         });
-        Route::middleware(['role:admin','permission:manage_system'])->group(function () {
+        Route::middleware(['role:admin', 'permission:manage_system'])->group(function () {
             // ...
         });
     });
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -222,15 +206,15 @@ Route::middleware([
 |--------------------------------------------------------------------------
 */
 Route::get('/download-discounts-template', [TemplateController::class, 'downloadDiscountsTemplate'])
-     ->withoutMiddleware(\App\Http\Middleware\ValidateApiToken::class);
+    ->withoutMiddleware(\App\Http\Middleware\ValidateApiToken::class);
 
 Route::get('/download-expenses-template',  [TemplateController::class, 'downloadExpensesTemplate'])
-     ->withoutMiddleware(\App\Http\Middleware\ValidateApiToken::class);
+    ->withoutMiddleware(\App\Http\Middleware\ValidateApiToken::class);
 
 // SRI TXT import
 Route::post('/import-sri-txt', [SriImportController::class, 'uploadTxt']);
 Route::get('/import-status/{path}', [SriImportController::class, 'status'])
-     ->where('path', '.*');
+    ->where('path', '.*');
 
 // Latinium integration endpoints
 Route::get('/latinium/accounts',             [InvoiceController::class, 'latiniumAccounts']);
