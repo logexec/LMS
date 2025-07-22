@@ -64,20 +64,10 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
 
 /*
-|--------------------------------------------------------------------------
-| CSRF cookie
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
-
-/*
-|--------------------------------------------------------------------------
-| API (stateful SPA) — all routes below share these middlewares
-|--------------------------------------------------------------------------
-*/
-
-//––– Debugging (logs cookies/headers/session/user) –––
+ |-------------------------------------------------------------------------  
+ | DEBUGGING (logs cookies/headers/session/user)
+ |-------------------------------------------------------------------------
+ */
 Route::get('/debug', function (Request $request) {
     Log::debug('===== API DEBUG =====', [
         'cookies'       => $request->cookies->all(),
@@ -91,6 +81,19 @@ Route::get('/debug', function (Request $request) {
         'cookies' => $request->cookies->all(),
     ]);
 });
+/*
+|--------------------------------------------------------------------------
+| CSRF cookie
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
+
+/*
+|--------------------------------------------------------------------------
+| API (stateful SPA) — all routes below share these middlewares
+|--------------------------------------------------------------------------
+*/
 
 Route::post('/login', [AuthController::class, 'login']);
 

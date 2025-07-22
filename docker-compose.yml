@@ -46,16 +46,6 @@ services:
       db:
         condition: service_healthy
 
-  nginx:
-    image: nginx:1.25-alpine
-    ports:
-      - "8000:80"
-    volumes:
-      - ./backend:/var/www/html:ro
-      - ./backend/docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - backend
-
   frontend:
     build:
       context: ./frontend
@@ -65,7 +55,7 @@ services:
     env_file:
       - ./frontend/.env # el env de producción
     ports:
-      - "3000:3000"
+      - "3000"
     depends_on:
       - backend
     # command: ["npm", "run", "dev"]
@@ -86,6 +76,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  # Para produccion
+  # db:
+  #   image: mysql:8.0
+  #   container_name: db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root123!
+  #     MYSQL_DATABASE: lms_backend
+  #     MYSQL_USER: restrella
+  #     MYSQL_PASSWORD: "LogeX-?2028*"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-proot123!"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"     # HTTP
+      - "443:443"   # HTTPS
+    volumes:
+      - ./backend:/var/www/html:ro
+      - ./backend/docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro # Certificados
+    depends_on:
+      - backend
+      - frontend
 
   queue-worker:
     image: lms-backend:latest
@@ -148,6 +169,16 @@ services:
         php artisan update:estado-contable;
         sleep 21600;  # cada 6h
       done"
+
+  certbot-renew:
+    image: certbot/certbot:latest
+    container_name: certbot-renew
+    # montamos el mismo volumen donde nginx espera los certs
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./backend/public:/var/www/html/public:ro
+    entrypoint: >
+      sh -c "certbot renew --webroot -w /var/www/html/public && nginx -s reload"
 
 volumes:
   db_data:
