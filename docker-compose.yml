@@ -60,8 +60,8 @@ services:
     container_name: nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "880:80"
+      # - "443:443"
     volumes:
       - ./backend:/var/www/html:ro
       - ./backend/docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
