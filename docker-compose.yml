@@ -75,7 +75,7 @@ services:
     restart: unless-stopped
     volumes:
       - letsencrypt_data:/etc/letsencrypt
-      - ./backend/public:/var/www/html/public:ro
+      - ./backend/public:/var/www/html/public:rw
     entrypoint: ["certbot", "renew", "--webroot", "-w", "/var/www/html/public"]
 
   queue-worker:
