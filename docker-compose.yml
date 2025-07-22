@@ -142,9 +142,9 @@ services:
                php artisan update:estado-contable; \
                sleep 21600; \
              done"
-  volumes:
-    db_data:
-    letsencrypt_data:
+volumes:
+  db_data:
+  letsencrypt_data:
 
 
 # V2
