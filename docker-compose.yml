@@ -1,40 +1,18 @@
 services:
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: backend
-  #   image: lms-backend:latest
-  #   env_file:
-  #     - ./backend/.env.docker
-  #   ports:
-  #     - "8000:80"
-  #   volumes:
-  #     - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
-  #   cap_add:
-  #     - NET_ADMIN
-  #   devices:
-  #     - /dev/net/tun
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend
     image: lms-backend:latest
+    restart: unless-stopped
     env_file:
       - ./backend/.env.docker
     volumes:
       - ./backend:/var/www/html:ro
       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
-      # Sólo estos dirs en rw para logs y cache
       - ./backend/storage:/var/www/html/storage:rw
-      # Cache de Laravel
       - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache:rw
     cap_add:
       - NET_ADMIN
@@ -52,13 +30,13 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     image: lms-frontend:latest
+    restart: unless-stopped
     env_file:
-      - ./frontend/.env # el env de producción
+      - ./frontend/.env
     ports:
-      - "3000"
+      - "3000:3000"
     depends_on:
       - backend
-    # command: ["npm", "run", "dev"]
 
   db:
     image: mysql:8.0
@@ -76,37 +54,29 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
-  # Para produccion
-  # db:
-  #   image: mysql:8.0
-  #   container_name: db
-  #   restart: unless-stopped
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: root123!
-  #     MYSQL_DATABASE: lms_backend
-  #     MYSQL_USER: restrella
-  #     MYSQL_PASSWORD: "LogeX-?2028*"
-  #   volumes:
-  #     - db_data:/var/lib/mysql
-  #   healthcheck:
-  #     test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-proot123!"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
 
   nginx:
     image: nginx:1.25-alpine
+    container_name: nginx
+    restart: unless-stopped
     ports:
-      - "80:80"     # HTTP
-      - "443:443"   # HTTPS
+      - "80:80"
+      - "443:443"
     volumes:
       - ./backend:/var/www/html:ro
       - ./backend/docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro # Certificados
+      - letsencrypt_data:/etc/letsencrypt:ro
     depends_on:
       - backend
-      - frontend
+
+  certbot-renew:
+    image: certbot/certbot:latest
+    container_name: certbot-renew
+    restart: unless-stopped
+    volumes:
+      - letsencrypt_data:/etc/letsencrypt
+      - ./backend/public:/var/www/html/public:ro
+    entrypoint: ["certbot", "renew", "--webroot", "-w", "/var/www/html/public"]
 
   queue-worker:
     image: lms-backend:latest
@@ -126,8 +96,6 @@ services:
     working_dir: /var/www/html
     entrypoint: >
       sh -c "wg-quick up wg0 && php artisan queue:work --sleep=3 --tries=3"
-    # deploy:
-    #   replicas: 5
 
   scheduler:
     image: lms-backend:latest
@@ -146,7 +114,11 @@ services:
       - backend
     working_dir: /var/www/html
     entrypoint: >
-      sh -c "wg-quick up wg0 && while true"
+      sh -c "wg-quick up wg0 && \
+             while true; do \
+               php artisan schedule:run --no-interaction --verbose; \
+               sleep 60; \
+             done"
 
   estado-contable:
     image: lms-backend:latest
@@ -165,23 +137,188 @@ services:
       - backend
     working_dir: /var/www/html
     entrypoint: >
-      sh -c "wg-quick up wg0 && while true; do
-        php artisan update:estado-contable;
-        sleep 21600;  # cada 6h
-      done"
+      sh -c "wg-quick up wg0 && \
+             while true; do \
+               php artisan update:estado-contable; \
+               sleep 21600; \
+             done"
+  volumes:
+    db_data:
+    letsencrypt_data:
 
-  certbot-renew:
-    image: certbot/certbot:latest
-    container_name: certbot-renew
-    # montamos el mismo volumen donde nginx espera los certs
-    volumes:
-      - ./letsencrypt:/etc/letsencrypt
-      - ./backend/public:/var/www/html/public:ro
-    entrypoint: >
-      sh -c "certbot renew --webroot -w /var/www/html/public && nginx -s reload"
 
-volumes:
-  db_data:
+# V2
+# services:
+
+
+#   backend:
+#     build:
+#       context: ./backend
+#       dockerfile: Dockerfile
+#     container_name: backend
+#     image: lms-backend:latest
+#     env_file:
+#       - ./backend/.env.docker
+#     volumes:
+#       - ./backend:/var/www/html:ro
+#       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+#       # Sólo estos dirs en rw para logs y cache
+#       - ./backend/storage:/var/www/html/storage:rw
+#       # Cache de Laravel
+#       - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache:rw
+#     cap_add:
+#       - NET_ADMIN
+#     devices:
+#       - /dev/net/tun
+#     expose:
+#       - "9000"
+#     depends_on:
+#       db:
+#         condition: service_healthy
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile
+#     container_name: frontend
+#     image: lms-frontend:latest
+#     env_file:
+#       - ./frontend/.env # el env de producción
+#     ports:
+#       - "3000"
+#     depends_on:
+#       - backend
+#     # command: ["npm", "run", "dev"]
+
+#   db:
+#     image: mysql:8.0
+#     container_name: db
+#     restart: unless-stopped
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root123!
+#       MYSQL_DATABASE: lms_backend
+#       MYSQL_USER: restrella
+#       MYSQL_PASSWORD: "LogeX-?2028*"
+#     volumes:
+#       - db_data:/var/lib/mysql
+#     healthcheck:
+#       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123!" ]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+  
+  # Para produccion
+  # db:
+  #   image: mysql:8.0
+  #   container_name: db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root123!
+  #     MYSQL_DATABASE: lms_backend
+  #     MYSQL_USER: restrella
+  #     MYSQL_PASSWORD: "LogeX-?2028*"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-proot123!"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+#   nginx:
+#     image: nginx:1.25-alpine
+#     ports:
+#       - "80:80"     # HTTP
+#       # - "443:443"   # HTTPS
+#     volumes:
+#       - ./backend:/var/www/html:ro
+#       - ./backend/docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+#       - letsencrypt_data:/etc/letsencrypt:ro # Certificados
+#     depends_on:
+#       - backend
+#       - frontend
+
+#   queue-worker:
+#     image: lms-backend:latest
+#     container_name: queue-worker
+#     restart: unless-stopped
+#     env_file:
+#       - ./backend/.env.docker
+#     volumes:
+#       - ./backend:/var/www/html
+#       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+#     cap_add:
+#       - NET_ADMIN
+#     devices:
+#       - /dev/net/tun
+#     depends_on:
+#       - backend
+#     working_dir: /var/www/html
+#     entrypoint: >
+#       sh -c "wg-quick up wg0 && php artisan queue:work --sleep=3 --tries=3"
+#     # deploy:
+#     #   replicas: 5
+
+#   scheduler:
+#     image: lms-backend:latest
+#     container_name: scheduler
+#     restart: unless-stopped
+#     env_file:
+#       - ./backend/.env.docker
+#     volumes:
+#       - ./backend:/var/www/html
+#       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+#     cap_add:
+#       - NET_ADMIN
+#     devices:
+#       - /dev/net/tun
+#     depends_on:
+#       - backend
+#     working_dir: /var/www/html
+#     entrypoint: >
+#       sh -c "wg-quick up wg0 && \
+#             while true; do
+#                php artisan schedule:run --no-interaction --verbose;
+#               sleep 60;
+#             done"
+
+#   estado-contable:
+#     image: lms-backend:latest
+#     container_name: estado-contable
+#     restart: unless-stopped
+#     env_file:
+#       - ./backend/.env.docker
+#     volumes:
+#       - ./backend:/var/www/html
+#       - ./wireguard-client/wg0.conf:/etc/wireguard/wg0.conf:ro
+#     cap_add:
+#       - NET_ADMIN
+#     devices:
+#       - /dev/net/tun
+#     depends_on:
+#       - backend
+#     working_dir: /var/www/html
+#     entrypoint: >
+#       sh -c "wg-quick up wg0 && while true; do
+#         php artisan update:estado-contable;
+#         sleep 21600;  # cada 6h
+#       done"
+
+#   certbot-renew:
+#     image: certbot/certbot:latest
+#     container_name: certbot-renew
+#     # montamos el mismo volumen donde nginx espera los certs
+#     volumes:
+#       - ./letsencrypt:/etc/letsencrypt
+#       - ./backend/public:/var/www/html/public:ro
+#     entrypoint: >
+#       sh -c "certbot renew --webroot -w /var/www/html/public && nginx -s reload"
+
+# volumes:
+#   db_data:
+#   letsencrypt_data:
+
+# V1
 
     # services:
 
@@ -316,7 +453,7 @@ volumes:
 
     # # Para configuracion de permisos de Docker para que funcinoe:
 
-    # # docker exec -it --user root lms-backend bash
+    # # docker exec -it --user root backend bash
     # # cd /var/www/html
 
     # # Asegúrate de que www-data (usuario de Apache/PHP) sea dueño:

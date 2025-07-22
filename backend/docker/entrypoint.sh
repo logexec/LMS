@@ -1,18 +1,18 @@
 #!/bin/sh
 set -e
 
-# Dentro del contenedor, como root, se asegura de que se tengan permisos y existan:
+# Asegura directorios y ownership
 for dir in \
-    /var/www/html/storage \
-    /var/www/html/storage/framework \
-    /var/www/html/storage/framework/sessions \
-    /var/www/html/storage/framework/views \
-    /var/www/html/storage/framework/cache \
-    /var/www/html/bootstrap/cache
+  /var/www/html/storage \
+  /var/www/html/storage/framework \
+  /var/www/html/storage/framework/sessions \
+  /var/www/html/storage/framework/views \
+  /var/www/html/storage/framework/cache \
+  /var/www/html/bootstrap/cache
 do
-    mkdir -p "$dir"
-    chwon -R www-data:www-data "$dir"
+  mkdir -p "$dir"
+  chown -R www-data:www-data "$dir"
 done
 
-# Despues se delega el comando original (php-fpm)
-exec "@"
+# Lanza el CMD real
+exec "$@"

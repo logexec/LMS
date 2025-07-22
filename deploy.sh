@@ -3,6 +3,7 @@ set -euo pipefail
 
 echo "[0/6] 🔄 Renovando certificados Let’s Encrypt…"
 docker compose run --rm certbot-renew
+docker compose exec nginx nginx -s reload
 
 echo "[1/6] 🧹 Limpiando caches de Docker…"
 docker builder prune --all --filter "until=24h" -f
