@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { useAuth } from "@/hooks/useAuth";
-import { Toaster } from "sonner";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/ui/mode-toggle";
-import Sidenav from "@/app/components/Sidenav";
-import Navigation from "@/app/components/Navigation";
-import Loader from "@/app/Loader";
-import LoginPage from "@/app/login/page";
-import { DataProvider } from "./DataContext";
+import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@/components/theme-provider';
+import { ModeToggle } from '@/components/ui/mode-toggle';
+import Sidenav from '@/app/components/Sidenav';
+import Navigation from '@/app/components/Navigation';
+import Loader from '@/app/Loader';
+import LoginPage from '@/app/login/page';
+import { DataProvider } from './DataContext';
+import { useAuth } from '@/hooks/useAuth';
+
 const queryClient = new QueryClient();
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -47,7 +48,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </motion.main>
           </AnimatePresence>
         </div>
-        {process.env.NODE_ENV === "development" && (
+        {process.env.NODE_ENV === 'development' && (
           <div className="fixed bottom-0 right-8 w-fit text-center text-sm text-white bg-red-600 rounded-t-lg p-1 opacity-60 cursor-default">
             LMS | Versión 3.3.4 | Beta
           </div>
@@ -62,9 +63,9 @@ export default function AppContent({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return <Loader fullScreen />;
   }
 
