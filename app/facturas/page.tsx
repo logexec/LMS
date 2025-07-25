@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FacturasTable from "../components/facturas/FacturasTable";
@@ -10,7 +12,7 @@ import {
   // UploadIcon,
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Factura, ParsedFactura } from "@/types/factura";
 import api from "@/services/axios";
@@ -29,19 +31,18 @@ import { XmlDropzone } from "../components/facturas/XmlDropzone";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
-  timeout: 120_000,
-});
+type Uploaded = {
+  rawFile: File;
+  archivoOriginal: string;
+  isTxt: boolean;
+  // …otros campos
+};
 
-interface ImportStatus {
-  countTotal: number;
-  countDone: number;
-  countProcessed: number;
-  countSkipped: number;
-  countErrors: number;
-}
+type LogEntry = {
+  file: string;
+  imported: number;
+  skipped: number;
+};
 
 export default function FacturasPage() {
   const [selectedValue, setSelectedValue] = useState("PREBAM");
@@ -60,64 +61,128 @@ export default function FacturasPage() {
   const [uploadedFacturas, setUploadedFacturas] = useState<ParsedFactura[]>([]);
 
   // NUEVOS ESTADOS para la importación en background
-  const [jobPath, setJobPath] = useState<string | null>(null);
   const [countTotal, setCountTotal] = useState(0);
   const [countDone, setCountDone] = useState(0);
 
-  // Handler del botón “Cargar TXT”
-  const handleUploadTxt = async () => {
-    if (uploadedFacturas.length === 0) {
-      toast.warning("Selecciona primero un archivo TXT");
-      return;
-    }
+  // Nuevo: controlar el AlertDialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // Nuevo: llevar un log por archivo
+  const [fileLogs, setFileLogs] = useState<
+    { file: string; imported: number; skipped: number }[]
+  >([]);
 
-    // asumimos un único TXT
-    const txt = uploadedFacturas[0].rawFile;
-    const form = new FormData();
-    form.append("file", txt, txt.name);
+  const xmlDropzoneRef = useRef<{ clearFiles: () => void }>(null);
 
-    toast.loading("Iniciando importación…");
-    try {
-      const resp = await api.post<{ success: boolean; job_path: string }>(
-        "/import-sri-txt",
-        form,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+  /**
+   * Cuenta líneas no vacías en un .txt
+   */
+  async function fileLinesCount(file: File): Promise<number> {
+    const text = await file.text();
+    return text.split(/\r?\n/).filter((l) => l.trim() !== "").length;
+  }
+
+  const handleImport = async () => {
+    const xmls = uploadedFacturas.filter((f) =>
+      f.rawFile.name.endsWith(".xml")
+    );
+    const txts = uploadedFacturas.filter((f) =>
+      f.rawFile.name.endsWith(".txt")
+    );
+
+    let total = 0;
+    if (xmls.length) total = xmls.length;
+    else if (txts.length === 1) total = await fileLinesCount(txts[0].rawFile);
+    else return toast.error("Sube XMLs o un solo TXT");
+
+    setCountTotal(total);
+    setCountDone(0);
+    setFileLogs([]);
+    toast.loading("Consultando con el SRI…", { id: "import" });
+
+    let sseUrl = "";
+    if (xmls.length) {
+      const fm = new FormData();
+      xmls.forEach((f) => fm.append("xml", f.rawFile, f.rawFile.name));
+      const { data } = await api.post<{ paths: string[] }>(
+        "/facturas/importar-xml",
+        fm,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
-      toast.dismiss();
-      if (resp.data.success) {
-        setJobPath(resp.data.job_path);
-        toast.info("Importación en segundo plano iniciada");
-      } else {
-        toast.error("No se pudo iniciar la importación");
-      }
-    } catch (error: unknown) {
-      console.error(error);
-      toast.error("Error al enviar el TXT");
-    } finally {
-      setUploadedFacturas([]);
+      sseUrl =
+        "/facturas/importar-xml/stream?" +
+        data.paths.map((p) => `paths[]=${encodeURIComponent(p)}`).join("&");
+    } else {
+      const fm = new FormData();
+      fm.append("txt", txts[0].rawFile, txts[0].rawFile.name);
+      const { data } = await api.post<{ path: string }>(
+        "/facturas/importar-txt",
+        fm,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      sseUrl =
+        "/facturas/importar-txt/stream?path=" + encodeURIComponent(data.path);
     }
+
+    const es = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}${sseUrl}`, {
+      withCredentials: true,
+    });
+
+    es.addEventListener("file_done", (e) => {
+      const raw: any = JSON.parse(e.data);
+      const label = raw.file ?? raw.clave ?? `Línea ${raw.line}`;
+      setFileLogs((prev) => [
+        ...prev,
+        {
+          file: label,
+          imported: raw.imported,
+          skipped: raw.skipped,
+        },
+      ]);
+      setCountDone((c) => c + 1);
+      if (raw.imported > 0) {
+        toast.success(`${label} importada`);
+      } else {
+        toast.warning(`${label} duplicada o sin factura`);
+      }
+    });
+
+    es.addEventListener("end", (e) => {
+      const sum: any = JSON.parse(e.data);
+      toast.dismiss("import");
+      toast.success(
+        `Importación finalizada: ${sum.imported} importadas, ${sum.skipped} omitidas`
+      );
+      es.close();
+      fetchFacturas();
+      setIsDialogOpen(false);
+      xmlDropzoneRef.current?.clearFiles();
+    });
   };
 
-  const progress =
-    countTotal > 0 ? Math.floor((countDone / countTotal) * 100) : 0;
+  const progress = countTotal ? Math.floor((countDone / countTotal) * 100) : 0;
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
     try {
-      const resp: AxiosResponse<{ data: Factura[] }> = await apiClient.get(
+      // 1) Construimos dinámicamente los params
+      const params: Record<string, any> = {
+        empresa: selectedValue === "PREBAM" ? "0992301066001" : "1792162696001",
+        ready: activeTab === "tab-2", // tab-2 = contabilizadas
+      };
+
+      // 2) Sólo aplicamos filtro de fechas en la pestaña “Contabilizadas”
+      if (activeTab === "tab-2") {
+        params.desde = fromDate;
+        params.hasta = toDate;
+      }
+
+      // 3) Llamada al endpoint
+      const resp: AxiosResponse<{ data: Factura[] }> = await api.get(
         "/facturas",
-        {
-          params: {
-            empresa:
-              selectedValue === "PREBAM" ? "0992301066001" : "1792162696001",
-            desde: fromDate,
-            hasta: toDate,
-            ready: activeTab === "tab-2" ? true : false,
-          },
-        }
+        { params }
       );
+
+      // 4) Mapeo completo (igual que tu versión original)
       setFacturas(
         resp.data.data.map((item) => ({
           id: item.id,
@@ -174,6 +239,8 @@ export default function FacturasPage() {
           updated_at: item.updated_at,
         }))
       );
+    } catch (error) {
+      console.error("Error al cargar facturas:", error);
     } finally {
       setLoading(false);
     }
@@ -182,47 +249,6 @@ export default function FacturasPage() {
   useEffect(() => {
     fetchFacturas();
   }, [activeTab, fromDate, toDate, fetchFacturas]);
-
-  // Función para sondear el progreso
-  useEffect(() => {
-    if (!jobPath) return;
-
-    const intervalId = setInterval(async () => {
-      try {
-        const encoded = encodeURIComponent(jobPath);
-        const { data } = await apiClient.get<ImportStatus>(
-          `/import-status/${encoded}`
-        );
-
-        setCountTotal(data.countTotal);
-        setCountDone(data.countDone);
-
-        if (data.countDone >= data.countTotal) {
-          clearInterval(intervalId);
-          toast.success(
-            `Importación completada: ${data.countProcessed} exitosas`
-          );
-          if (data.countSkipped > 0)
-            toast.info(`Se ignoraron ${data.countSkipped} duplicados`);
-          if (data.countErrors > 0)
-            toast.error(`Ocurrieron ${data.countErrors} errores`);
-
-          // 1) Quitar el bloqueo del Dropzone
-          setJobPath(null);
-          // 2) Resetear progreso
-          setCountTotal(0);
-          setCountDone(0);
-          // 3) Refrescar la lista
-          fetchFacturas();
-        }
-      } catch (e) {
-        console.error("Error al obtener estado de importación", e);
-        toast.error("No se pudo obtener el estado de importación");
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [jobPath, fetchFacturas]);
 
   const updateFactura = async (id: number, data: Partial<Factura>) => {
     try {
@@ -273,37 +299,50 @@ export default function FacturasPage() {
             </TabsTrigger>
           </TabsList>
 
-          <AlertDialog>
-            <AlertDialogTrigger className="bg-red-600 text-white rounded font-bold px-2.5 py-1 shadow hover:bg-red-500 transition-all duration-200 flex flex-row items-center justify-center space-x-2.5">
-              <FileUpIcon className="size-5" />
-              <span>Importar facturas</span>
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                onClick={() => setIsDialogOpen(true)}
+              >
+                Importar Facturas
+              </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-h-[450px] max-w-[810px] overflow-auto">
-              <AlertDialogTitle>Adjuntar facturas</AlertDialogTitle>
+            <AlertDialogContent>
+              <AlertDialogTitle>Adjuntar comprobantes</AlertDialogTitle>
               <AlertDialogDescription>
-                Carga aqu&iacute; tus txt para obtener toda la
-                informaci&oacute;n del SRI
+                Puedes subir un archivo TXT con claves de acceso o uno o más
+                archivos XML o ZIP para importar facturas.
               </AlertDialogDescription>
+
               <XmlDropzone
-                key={uploadedFacturas.length} // <-- fuerza remonte
+                ref={xmlDropzoneRef}
                 onChange={(data) => setUploadedFacturas(data)}
-                disabled={Boolean(jobPath)}
+                disabled={countTotal !== 0}
+                accept="*"
               />
-              <div className="mt-4 space-y-2">
-                {jobPath && (
-                  <div className="space-y-1">
-                    <span className="text-sm">
-                      Procesadas: {countDone} de {countTotal}
-                    </span>
-                    <Progress value={progress} />
-                  </div>
-                )}
-              </div>
+
+              {countTotal !== 0 && (
+                <div className="mt-4 space-y-2">
+                  <span className="text-sm">
+                    Procesadas: {countDone} de {countTotal}
+                  </span>
+                  <Progress value={progress} />
+                </div>
+              )}
+
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <Button onClick={handleUploadTxt} disabled={Boolean(jobPath)}>
-                  Cargar Facturas
-                </Button>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    xmlDropzoneRef.current?.clearFiles();
+                  }}
+                >
+                  Cancelar
+                </AlertDialogCancel>
+
+                {/* Botón principal: detecta si es XML o TXT */}
+                <Button onClick={handleImport}>Cargar Facturas</Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

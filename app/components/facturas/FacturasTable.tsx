@@ -23,7 +23,6 @@ import {
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import axios, { AxiosInstance } from "axios";
 import ComboBox from "../ui/Combobox";
 import {
   CheckIcon,
@@ -61,17 +60,12 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import api from "@/services/axios";
 
 interface Option {
   value: string;
   label: string;
 }
-
-const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
-  timeout: 120_000,
-});
 
 interface FacturasTableProps {
   facturas: Factura[];
@@ -87,13 +81,14 @@ export default function FacturasTable({
   fetchFacturas,
   isCompleteView,
 }: FacturasTableProps) {
-  const [filterProyecto, setFilterProyecto] = useState<string>("");
+  // const [filterProyecto, setFilterProyecto] = useState<string>("");
   const [filterCentro, setFilterCentro] = useState<string>("");
   const [filterCuentaContable, setFilterCuentaContable] = useState<string>("");
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const deferredGlobalFilter = useDeferredValue(globalFilter);
 
-  const [proyectosLatinium, setProyectosLatinium] = useState<Option[]>([]);
+  const [proyectosPrebam, setProyectosPrebam] = useState<Option[]>([]);
+  const [proyectosSersupport, setProyectosSersupport] = useState<Option[]>([]);
   const [centrosCosto, setCentrosCosto] = useState<Option[]>([]);
   const [accounts, setAccounts] = useState<Option[]>([]);
 
@@ -136,15 +131,26 @@ export default function FacturasTable({
 
   // Fetch combo options
   useEffect(() => {
-    apiClient
-      .get<{ data: Option[] }>("/latinium/projects")
-      .then((res) => setProyectosLatinium(res.data.data))
+    api
+      .get<{ data: Option[] }>("/latinium/projects", {
+        params: { empresa: "prebam" },
+      })
+      .then((res) => setProyectosPrebam(res.data.data))
+      .catch((err) => {
+        console.error(err);
+        toast.error("No se pudieron cargar los proyectos");
+      });
+    api
+      .get<{ data: Option[] }>("/latinium/projects", {
+        params: { empresa: "sersupport" },
+      })
+      .then((res) => setProyectosSersupport(res.data.data))
       .catch((err) => {
         console.error(err);
         toast.error("No se pudieron cargar los proyectos");
       });
 
-    apiClient
+    api
       .get<{ data: Option[] }>("/latinium/centro-costo")
       .then((res) => setCentrosCosto(res.data.data))
       .catch((err) => {
@@ -152,7 +158,7 @@ export default function FacturasTable({
         toast.error("No se pudieron cargar los centros de costo");
       });
 
-    apiClient
+    api
       .get<{ data: Option[] }>("/latinium/accounts")
       .then((res) => setAccounts(res.data.data))
       .catch((err) => {
@@ -164,7 +170,7 @@ export default function FacturasTable({
   const updateAccountantStatus = () => {
     const pendientes = facturas.filter((f) => f.contabilizado === "PENDIENTE");
 
-    apiClient
+    api
       .patch("/latinium/estado-contable", { facturas: pendientes })
       .then((res) => {
         toast.success("Estado contable actualizado correctamente.");
@@ -191,9 +197,9 @@ export default function FacturasTable({
   const data = useMemo(() => {
     let d = facturas;
     if (isCompleteView) {
-      if (filterProyecto) {
-        d = d.filter((f) => f.project === filterProyecto);
-      }
+      // if (filterProyecto) {
+      //   d = d.filter((f) => f.project === filterProyecto);
+      // }
       if (filterCentro) {
         d = d.filter((f) => f.centro_costo === filterCentro);
       }
@@ -205,7 +211,7 @@ export default function FacturasTable({
   }, [
     facturas,
     isCompleteView,
-    filterProyecto,
+    // filterProyecto,
     filterCentro,
     filterCuentaContable,
   ]);
@@ -292,7 +298,11 @@ export default function FacturasTable({
           return (
             <ComboBox
               selected={edits[id]?.project ?? row.original.project}
-              options={proyectosLatinium}
+              options={
+                row.original.empresa?.toLowerCase().includes("sersupport")
+                  ? proyectosSersupport
+                  : proyectosPrebam
+              }
               onChange={(val) => onEditCell(id, "project", val)}
             />
           );
@@ -420,7 +430,8 @@ export default function FacturasTable({
       selectedRows,
       accounts,
       centrosCosto,
-      proyectosLatinium,
+      proyectosPrebam,
+      proyectosSersupport,
       toggleSelect,
       toggleSelectAll,
       edits,
@@ -437,7 +448,7 @@ export default function FacturasTable({
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "razon_social_emisor", // Columna a ordenar por defecto. || Proveedor
+      id: "razon_social_emisor", // Columna a ordenar por defecto.  | Proveedor
       desc: false,
     },
   ]);
@@ -485,14 +496,14 @@ export default function FacturasTable({
       <div className="flex gap-4 flex-wrap pt-3 items-end">
         {isCompleteView && (
           <>
-            <div className="relative">
+            {/* <div className="relative">
               <small className="absolute -top-5 left-0">Proyecto</small>
               <ComboBox
                 selected={filterProyecto}
                 options={proyectosLatinium}
                 onChange={setFilterProyecto}
               />
-            </div>
+            </div> */}
             <div className="relative">
               <small className="absolute -top-5 left-0">Centro Costo</small>
               <ComboBox
@@ -615,9 +626,13 @@ export default function FacturasTable({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="even:bg-gray-100 dark:even:bg-gray-900 dark:hover:bg-gray-800">
+                <TableRow
+                  key={row.id}
+                  className={`even:bg-gray-100 dark:even:bg-gray-900 dark:hover:bg-gray-800 relative ${!row.original.nota_latinium && 'even:bg-rose-100 odd:bg-rose-50 hover:bg-red-200 dark:even:bg-rose-900 dark:odd:bg-rose-950 dark:hover:bg-red-800'}`}
+                  title={!row.original.nota_latinium && 'Faltan datos en esta factura' || undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-4 py-2 align-top">
+                    <TableCell key={cell.id} className="px-4 py-2 align-center">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

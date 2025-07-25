@@ -23,7 +23,8 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password, rememberMe);
+      const res = await login(email, password, rememberMe);
+      toast.info(`LMS te da la bienvenida, ${res.user.name}!`);
       window.location.href = "/";
     } catch (error) {
       toast.error(
@@ -32,6 +33,7 @@ const LoginPage = () => {
       setError(
         error instanceof Error ? error.message : "Error al iniciar sesión"
       );
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
