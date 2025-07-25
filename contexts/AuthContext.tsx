@@ -13,6 +13,7 @@ interface AuthContextProps {
   loading: boolean
   login: (email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
+  hasPermission?: (permission: string) => boolean
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(undefined)
@@ -21,6 +22,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
+
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+
+    // Permiso implícito si es admin
+    if (user.rol === 'admin') return true;
+
+    // Verifica si el usuario tiene el permiso explícito
+    return user.permissions?.some((perm) => perm.name === permission) ?? false;
+  };
 
   const getUser = async () => {
     try {
@@ -68,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   )
