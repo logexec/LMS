@@ -38,7 +38,7 @@ const Sidenav = () => {
   const filteredNavLinks = sidenavLinks
     .filter((category) => {
       if (!category.requiredPermissions) return true;
-
+      if (!hasPermission) return false;
       const hasCategoryPermission = hasPermission(category.requiredPermissions);
       if (!hasCategoryPermission) return false;
 

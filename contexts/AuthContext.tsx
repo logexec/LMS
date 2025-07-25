@@ -13,7 +13,7 @@ interface AuthContextProps {
   loading: boolean
   login: (email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
-  hasPermission?: (permission: string) => boolean
+  hasPermission: (permission: string) => boolean
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(undefined)
