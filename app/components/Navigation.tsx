@@ -71,7 +71,7 @@ const Navigation = () => {
               className="flex flex-row items-center space-x-2"
             >
               <User2 size={24} className="rounded-full border border-white" />
-              <span className="font-bold">{user.user!.name}</span>
+              <span className="font-bold">{user.user!.nombre}</span>
             </Link>
           </motion.div>
           <motion.button
