@@ -1,29 +1,12 @@
 "use client";
 
-import { getAuthToken } from "@/services/auth.service";
-import { animate, motion, useTransform } from "motion/react";
-import { useMotionValue } from "motion/react";
 import { useEffect, useState } from "react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import api from "@/lib/api";
 
 const fetchVehicles = async (): Promise<number> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/transports?action=count`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch users");
-  }
-
-  const data = await response.json();
-  return data;
+  const res = await api.get("/transports?action=count");
+  return res.data;
 };
 
 const Transport = () => {
@@ -34,8 +17,8 @@ const Transport = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const vehicles = await fetchVehicles();
-        setVehicles(vehicles);
+        const total = await fetchVehicles();
+        setVehicles(total);
       } catch (error) {
         console.error("Error fetching data:", error);
       }

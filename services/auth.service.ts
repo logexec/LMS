@@ -1,20 +1,63 @@
-'use client'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import api from "@/lib/api";
 
-import api from '@/lib/api'
-import { User } from '@/types/user'
-import { routes } from '@/lib/routes'
+export const login = async ({
+  email,
+  password,
+  remember,
+}: {
+  email: string;
+  password: string;
+  remember?: boolean;
+}) => {
+  const response = await api.post("/login", { email, password, remember });
+  return response.data;
+};
 
-type LoginPayload = {
-  email: string
-  password: string
-  remember?: boolean
-}
+export const logout = async () => {
+  await api.post("/logout");
+};
 
-export async function login(payload: LoginPayload): Promise<{ user: User }> {
-  const response = await api.post(routes.auth.login, payload)
-  return response.data
-}
+// ⚠️ TEMPORAL — para compatibilidad con archivos antiguos
+export const getAuthToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const tokenMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  return tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
+};
 
-export async function logout(): Promise<void> {
-  await api.post(routes.auth.logout)
-}
+export const fetchWithAuth = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<any> => {
+  const token = getAuthToken();
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+  });
+  return response.json();
+};
+
+export const fetchWithAuthFormData = async (
+  url: string,
+  formData: FormData,
+  method: "POST" | "PUT" = "POST"
+): Promise<any> => {
+  const token = getAuthToken();
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}${url}`,
+    {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+      credentials: "include",
+    }
+  );
+  return response.json();
+};

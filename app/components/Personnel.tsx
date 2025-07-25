@@ -1,30 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
-import { animate, motion, useMotionValue } from "motion/react";
-import { useTransform } from "motion/react";
-import { getAuthToken } from "@/services/auth.service";
+import { useEffect, useState } from "react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import api from "@/lib/api";
 
 const fetchPersonnel = async (): Promise<number> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/responsibles?action=count`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch personnel");
-  }
-
-  const data = await response.json();
-  return data;
+  const res = await api.get("/responsibles?action=count");
+  return res.data;
 };
 
 const Personnel = () => {
@@ -35,8 +17,8 @@ const Personnel = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const personnel = await fetchPersonnel();
-        setPersonnel(personnel);
+        const total = await fetchPersonnel();
+        setPersonnel(total);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
