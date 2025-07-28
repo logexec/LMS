@@ -1,9 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface User {
-  id: number
-  nombre: string
-  cedula: string
-  rol: 'admin' | 'vendedor' | 'cliente'
-  email: string
-  permissions: any
+  id: string;
+  nombre: string;
+  email: string;
+  role: {
+    id: number;
+    name: string;
+  };
+  permissions: Array<{
+    id: number;
+    name: string;
+  }>;
+  assignedProjects: {
+    id: number;
+    user_id: number;
+    projects: string[];
+  };
+  area?: string;
+  dob?: string;
+  phone?: string;
 }
