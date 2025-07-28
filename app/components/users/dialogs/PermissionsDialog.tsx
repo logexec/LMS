@@ -156,7 +156,7 @@ export const PermissionsDialog = ({
         <DialogHeader>
           <DialogTitle>Gestionar Permisos</DialogTitle>
           <DialogDescription>
-            Selecciona los permisos para el usuario {user?.name}
+            Selecciona los permisos para el usuario {user?.nombre}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

@@ -141,7 +141,7 @@ export const ProjectsDialog = ({
         <DialogHeader>
           <DialogTitle>Gestionar Proyectos</DialogTitle>
           <DialogDescription>
-            Selecciona los proyectos para el usuario {user?.name}
+            Selecciona los proyectos para el usuario {user?.nombre}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
