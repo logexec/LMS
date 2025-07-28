@@ -42,7 +42,7 @@ export function PayrollList() {
           {data.length ? (
             data.map((p: any) => (
               <TableRow key={p.id}>
-                <TableCell>{p.user.name}</TableCell>
+                <TableCell>{p.user.nombre}</TableCell>
                 <TableCell>
                   {p.period_start} → {p.period_end}
                 </TableCell>

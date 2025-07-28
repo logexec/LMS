@@ -47,7 +47,7 @@ export const DeleteUserDialog = ({
           <AlertTitle className="text-red-600">Advertencia</AlertTitle>
           <AlertDescription className="text-red-800">
             ¿Estás seguro que deseas eliminar permanentemente al usuario{" "}
-            <strong>{user.name}</strong>? Esta acción no se puede deshacer.
+            <strong>{user.nombre}</strong>? Esta acción no se puede deshacer.
           </AlertDescription>
         </Alert>
         <DialogFooter>

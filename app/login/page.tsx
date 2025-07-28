@@ -22,7 +22,7 @@ const LoginPage = () => {
 
     try {
       const res = await login({email, password});
-      toast.info(`LMS te da la bienvenida, ${res.user.name}!`);
+      toast.info(`LMS te da la bienvenida, ${res.user.nombre}!`);
       window.location.href = "/";
     } catch (error) {
       toast.error(

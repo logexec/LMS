@@ -81,7 +81,7 @@ export const UserActionsDialogs = ({
   useEffect(() => {
     if (user) {
       setEditForm({
-        name: user.name,
+        name: user.nombre,
         email: user.email,
         role_id: user.role_id,
       });

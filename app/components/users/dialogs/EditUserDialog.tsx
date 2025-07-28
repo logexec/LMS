@@ -202,7 +202,7 @@ export const EditUserDialog = ({
   useEffect(() => {
     if (isOpen && user) {
       setFormData({
-        name: user.name || "",
+        name: user.nombre || "",
         email: user.email || "",
         role_id: user.role_id || "",
         dob: user.dob || "",
@@ -412,7 +412,7 @@ export const EditUserDialog = ({
         <DialogHeader>
           <DialogTitle>Editar Usuario</DialogTitle>
           <DialogDescription>
-            Actualiza la información del usuario {user.name}
+            Actualiza la información del usuario {user.nombre}
           </DialogDescription>
         </DialogHeader>
 

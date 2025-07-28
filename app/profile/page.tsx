@@ -14,7 +14,7 @@ const UserPage = () => {
   const initialUserData = currentUser
     ? {
         id: user.id,
-        name: user.name,
+        name: user.nombre,
         email: user.email,
         dob: user.dob,
         phone: user.phone,

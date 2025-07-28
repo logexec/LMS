@@ -217,7 +217,7 @@ export const UserDialog = ({
       const permissionIds = user.permissions?.map((p) => p.id.toString()) || [];
       const projectIds = user.projects?.map((p) => p.id.toString()) || [];
       setFormData({
-        name: user.name || "",
+        name: user.nombre || "",
         email: user.email || "",
         role_id: user.role_id?.toString() || "",
         dob: user.dob || "",
