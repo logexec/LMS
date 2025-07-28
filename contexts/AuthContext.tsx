@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const hasPermission = (permission: string) => {
     if (!user) return false;
-    const userPerms = user.permissions.map((p) => p.name);
+    const userPerms = user.permissions.map((p: any) => p.name);
     // Permiso implícito si es admin
     if (user.rol === "admin") return true;
 
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getUser = async () => {
     try {
-      const res = await api.get("/user");
+      const res: { user: User } = await api.get("/user");
       setUser(res.user);
     } catch (err) {
       console.error(err);
