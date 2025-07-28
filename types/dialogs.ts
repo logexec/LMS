@@ -5,7 +5,7 @@ export interface Role {
 
 export interface User {
   id: string;
-  name: string;
+  nombre: string;
   email: string;
   dob?: string;
   phone?: string;
