@@ -13,8 +13,8 @@ interface AuthContextProps {
   loading: boolean;
   login: (email: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
-  hasPermission: boolean;
-  hasRole: boolean;
+  hasPermission: (permission: string | string[]) => boolean;
+  hasRole: (role: string) => boolean;
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(
@@ -26,20 +26,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  const hasPermission = (permission: string) => {
-    if (!user) return false;
-    const userPerms = user.permissions.map((p: any) => p.name);
+  const hasPermission = (permission: string | string[]): boolean => {
+  if (!user) return false;
+  const userPerms = user.permissions.map((p: any) => p.name);
+  if (Array.isArray(permission)) {
+    return permission.some((perm) => userPerms.includes(perm));
+  }
+  return userPerms.includes(permission);
+};
 
-    if (Array.isArray(permission)) {
-      return permission.some((perm) => userPerms.includes(perm));
-    }
-  };
-
-  const hasRole = (role: string) => {
-    if (!user) return false;
-    // Permiso implícito si es admin
-    if (user.rol.name === role) return true;
-  };
+const hasRole = (role: string): boolean => {
+  if (!user) return false;
+  return user.rol.name === role;
+};
 
   const getUser = async () => {
     try {

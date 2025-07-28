@@ -18,7 +18,7 @@ const UserPage = () => {
         email: user.email,
         dob: user.dob,
         phone: user.phone,
-        role: user.role,
+        role: user.rol,
       }
     : undefined;
 
