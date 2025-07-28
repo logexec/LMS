@@ -138,7 +138,7 @@ const Home = () => {
             : ecuadorHour >= 12 && ecuadorHour < 18
             ? "¡Buenas tardes, "
             : "¡Buenas noches, "}
-          {user.user?.name.split(" ")[0]}!
+          {user.user?.nombre.split(" ")[0]}!
         </span>
         <motion.span
           initial={{ opacity: 0, left: -50 }}
