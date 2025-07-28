@@ -34,7 +34,7 @@ export function NavUser({
   user,
 }: {
   user: {
-    name: string
+    nombre: string
     email: string
     avatar: string
   }
