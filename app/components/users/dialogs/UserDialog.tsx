@@ -109,7 +109,7 @@ interface Project {
 
 interface User {
   id: string;
-  name: string;
+  nombre: string;
   email: string;
   role_id: string;
   role?: Role;
@@ -148,7 +148,7 @@ export const UserDialog = ({
   roles = [],
   isLoading,
   mode = "create",
-  user = null,
+  user,
 }: UserDialogProps) => {
   const [activeTab, setActiveTab] = useState<string>("basic");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -217,7 +217,7 @@ export const UserDialog = ({
       const permissionIds = user.permissions?.map((p) => p.id.toString()) || [];
       const projectIds = user.projects?.map((p) => p.id.toString()) || [];
       setFormData({
-        name: user.nombre || "",
+        name: user.nombre,
         email: user.email || "",
         role_id: user.role_id?.toString() || "",
         dob: user.dob || "",
@@ -421,7 +421,7 @@ export const UserDialog = ({
   const dialogDescription =
     mode === "create"
       ? "Ingresa la información del nuevo usuario."
-      : `Actualiza la información de ${user?.name || ""}`;
+      : `Actualiza la información de ${user?.nombre || ""}`;
   const submitButtonText =
     mode === "create"
       ? isLoading

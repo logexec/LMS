@@ -239,12 +239,12 @@ export const UsersTable = () => {
             <div className="flex items-center space-x-4">
               <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
                 <span className="text-slate-600 font-medium">
-                  {row.original.name.charAt(0).toUpperCase()}
+                  {row.original.nombre.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
                 <h3 className="font-medium text-slate-900">
-                  {row.original.name}
+                  {row.original.nombre}
                 </h3>
                 <a
                   href={`mailto:${row.original.email}`}
@@ -274,12 +274,12 @@ export const UsersTable = () => {
             <div className="flex items-center space-x-4">
               <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
                 <span className="text-slate-600 font-medium">
-                  {row.original.name.charAt(0).toUpperCase()}
+                  {row.original.nombre.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
                 <h3 className="font-medium text-slate-900">
-                  {row.original.name}
+                  {row.original.nombre}
                 </h3>
                 <a
                   href={`mailto:${row.original.email}`}
