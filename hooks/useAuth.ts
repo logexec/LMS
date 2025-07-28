@@ -13,8 +13,8 @@ export function useAuth() {
 
   const { user, setUser, loading } = context
 
-  const handleLogin = async (email: string, password: string, remember = false) => {
-    const { user } = await login({ email, password, remember })
+  const handleLogin = async (email: string, password: string) => {
+    const { user } = await login({ email, password })
     setUser(user)
   }
 

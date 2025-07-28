@@ -6,7 +6,6 @@ import logo from "@/public/images/logo_transparent.png";
 import logo_small from "@/public/images/logex_logo.png";
 import Image from "next/image";
 import { toast } from "sonner";
-import Checkbox from "../components/Checkbox";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { login } from "@/services/auth.service";
 
@@ -14,7 +13,6 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +21,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const res = await login(email, password, rememberMe);
+      const res = await login({email, password});
       toast.info(`LMS te da la bienvenida, ${res.user.name}!`);
       window.location.href = "/";
     } catch (error) {
@@ -174,17 +172,6 @@ const LoginPage = () => {
                   placeholder="Contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <Checkbox
-                  label="Mantener la sesión iniciada"
-                  name="remember-me"
-                  id="remember-me"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="text-red-600 focus:ring-red-500"
-                  labelClassName="text-sm text-gray-600  dark:text-gray-400"
                 />
               </div>
             </div>

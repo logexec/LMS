@@ -4,13 +4,11 @@ import api from "@/lib/api";
 export const login = async ({
   email,
   password,
-  remember,
 }: {
   email: string;
   password: string;
-  remember?: boolean;
 }) => {
-  const response = await api.post("/login", { email, password, remember });
+  const response = await api.post("/login", { email, password });
   return response.data;
 };
 

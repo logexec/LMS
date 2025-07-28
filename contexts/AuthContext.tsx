@@ -52,10 +52,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     getUser();
   }, []);
 
-  const login = async (email: string, password: string, remember = false) => {
+  const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      await api.post("/login", { email, password, remember });
+      await api.post("/login", { email, password });
       await getUser();
       toast.success("Bienvenido");
       router.push("/");
