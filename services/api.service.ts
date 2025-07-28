@@ -399,10 +399,7 @@ export const apiService = {
   createLoan: async (formData: FormData) => {
     try {
       checkApiStatus();
-      const response = await fetchWithAuthFormData("/loans", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetchWithAuthFormData("/loans", formData, "POST");
 
       if (!response.ok) {
         const errorText: any = await response.text();
