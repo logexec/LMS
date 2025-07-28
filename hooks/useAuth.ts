@@ -29,6 +29,7 @@ export function useAuth() {
     isLoggedIn: !!user,
     login: handleLogin,
     logout: handleLogout,
-    hasPermission: context.hasPermission
+    hasPermission: context.hasPermission,
+    hasRole: context.hasRole
   }
 }

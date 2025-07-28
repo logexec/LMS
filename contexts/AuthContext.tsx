@@ -14,6 +14,7 @@ interface AuthContextProps {
   login: (email: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   hasPermission: (permission: string | string[]) => boolean;
+  hasRole: (rol: string | string[]) => boolean;
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(
@@ -28,11 +29,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const hasPermission = (permission: string) => {
     if (!user) return false;
     const userPerms = user.permissions.map((p: any) => p.name);
-    // Permiso implícito si es admin
-    if (user.rol === "admin") return true;
 
     if (Array.isArray(permission)) {
       return permission.some((perm) => userPerms.includes(perm));
+    }
+  };
+  
+  const hasRole = (role: string) => {
+    if (!user) return false;
+    const userPerms = user.rol;
+    // Permiso implícito si es admin
+    if (user.rol === "admin") return true;
+
+    if (Array.isArray(role)) {
+      return role.some((perm) => userPerms.includes(perm));
     }
   };
 
@@ -83,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, loading, login, logout, hasPermission }}
+      value={{ user, setUser, loading, login, logout, hasPermission, hasRole }}
     >
       {children}
     </AuthContext.Provider>
