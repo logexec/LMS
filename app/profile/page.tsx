@@ -9,16 +9,16 @@ const UserPage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const currentUser = user?.id;
+  const currentUser = String(user?.id);
 
   const initialUserData = currentUser
     ? {
-        id: user.id,
-        name: user.nombre,
-        email: user.email,
-        dob: user.dob,
-        phone: user.phone,
-        role: user.rol,
+        id: user!.id,
+        name: user!.nombre,
+        email: user!.email,
+        dob: user!.dob,
+        phone: user!.phone,
+        role: user!.rol,
       }
     : undefined;
 
