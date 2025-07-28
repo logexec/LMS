@@ -1,11 +1,13 @@
 export interface User {
-  id: string;
-  nombre: string;
+  id: number
+  nombre: string
   email: string;
-  role: {
+  rol: {
     id: number;
     name: string;
-  };
+  }
+  cedula: string
+  dob: string
   permissions: Array<{
     id: number;
     name: string;
@@ -16,6 +18,5 @@ export interface User {
     projects: string[];
   };
   area?: string;
-  dob?: string;
   phone?: string;
 }
